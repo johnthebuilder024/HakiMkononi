@@ -2,11 +2,10 @@ services:
   - type: web
     name: hakimkononi
     env: python
-    buildCommand: "./build.sh"
-    startCommand: "gunicorn sheria_ai.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+    plan: free
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate"
+    startCommand: "gunicorn sheria_ai.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120"
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.0
       - key: DEBUG
         value: "False"
       - key: SECRET_KEY
@@ -23,11 +22,5 @@ services:
         sync: false
       - key: META_VERIFY_TOKEN
         value: hakimkononi2026
-      - key: TWILIO_ACCOUNT_SID
-        sync: false
-      - key: TWILIO_AUTH_TOKEN
-        sync: false
-      - key: TWILIO_WHATSAPP_FROM
-        value: "whatsapp:+17372508034"
       - key: ALLOWED_HOSTS
         sync: false
