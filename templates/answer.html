@@ -1,0 +1,1303 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}HakiMkononi — {{ ui.answer_heading }}{% endblock %}
+
+{% block extra_head %}
+<script src="{% static 'js/marked.min.js' %}"></script>
+<style>
+
+/* ══ Answer box — base ════════════════════════════════════════════ */
+.answer-box {
+  line-height: 1.8;
+  font-size: .95rem;
+  color: #1a1a2e;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ── Paragraphs ── */
+.answer-box p          { margin-bottom: .65rem; }
+.answer-box p:last-child { margin-bottom: 0; }
+
+/* ── Bold / italic ── */
+.answer-box strong { font-weight: 700; color: #0f3d1f; }
+.answer-box em     { font-style: italic; }
+
+/* ── Headings inside boxes ── */
+.answer-box h1, .answer-box h2, .answer-box h3 {
+  font-size: .97rem; font-weight: 700;
+  color: var(--haki-green);
+  margin: 1rem 0 .35rem;
+  padding-bottom: .2rem;
+  border-bottom: 1px solid #d0eada;
+}
+
+/* ── Lists ── */
+.answer-box ul, .answer-box ol {
+  padding-left: 1.5rem;
+  margin-bottom: .65rem;
+}
+.answer-box li { margin-bottom: .3rem; }
+
+/* ── Blockquote — quoted law text ── */
+.answer-box blockquote {
+  border-left: 4px solid var(--haki-green);
+  background: #f0f8f3;
+  margin: .6rem 0 .8rem;
+  padding: .6rem 1rem;
+  border-radius: 0 8px 8px 0;
+  color: #1e3a28;
+  font-size: .9rem;
+  line-height: 1.7;
+}
+.answer-box blockquote p      { margin-bottom: .3rem; }
+.answer-box blockquote p:last-child { margin-bottom: 0; }
+
+/* ── Links inside answer text — subtle, not competing with content ── */
+.answer-box a {
+  color: #5a8a6a;
+  font-size: .78rem;
+  word-break: break-all;
+  text-decoration: none;
+  opacity: .8;
+}
+.answer-box a:hover { text-decoration: underline; opacity: 1; }
+
+/* ── Inline code ── */
+.answer-box code {
+  background: #f0f0f0;
+  padding: .1em .35em;
+  border-radius: 4px;
+  font-size: .84em;
+  color: #444;
+}
+
+/* ── Horizontal rule ── */
+.answer-box hr {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: .8rem 0;
+}
+
+/* ══ Letter box ══════════════════════════════════════════════════ */
+#text-letter {
+  font-family: 'Courier New', monospace;
+  font-size: .83rem;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  overflow-x: auto;
+  max-width: 100%;
+  background: #fdfaf7;
+  padding: .75rem 1rem;
+  border-radius: 6px;
+  color: #2c2c2c;
+  outline: none;
+  /* subtle border so user knows it's editable */
+  border: 1.5px solid #e8ddd0;
+  transition: border-color .2s;
+  min-height: 80px;
+}
+#text-letter:focus {
+  border-color: #9b2226;
+  box-shadow: 0 0 0 3px rgba(155,34,38,.08);
+  background: #fffdf9;
+}
+
+/* Placeholder chips inside the letter */
+.letter-placeholder {
+  display: inline;
+  color: #7a4200;
+  background: #fff3e0;
+  padding: .05em .3em;
+  border-radius: 3px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px dashed #f0a040;
+  white-space: nowrap;
+  transition: background .15s;
+  user-select: all;   /* clicking selects the whole token */
+}
+.letter-placeholder:hover {
+  background: #ffe0b2;
+  border-color: #e07c00;
+}
+/* When the user has replaced a placeholder — chip style disappears */
+.letter-placeholder.filled {
+  background: none; border: none; color: inherit;
+  font-weight: inherit; font-size: inherit;
+  padding: 0; cursor: text;
+}
+
+/* ── Letter toolbar ──────────────────────────────────────────────── */
+#letterToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  align-items: center;
+  background: #fdf4f4;
+  border: 1px solid #f0dada;
+  border-radius: 8px 8px 0 0;
+  padding: .45rem .75rem;
+  font-size: .78rem;
+  margin-bottom: -1px; /* merge with box border */
+}
+#letterToolbar .lt-hint {
+  color: #9b2226;
+  font-weight: 600;
+  flex: 1 1 100%;
+  font-size: .76rem;
+  margin-bottom: .1rem;
+}
+@media (min-width: 480px) {
+  #letterToolbar .lt-hint { flex: 1; margin-bottom: 0; }
+}
+#letterToolbar button {
+  padding: .2em .75em;
+  font-size: .76rem;
+  border-radius: 5px;
+  border: 1px solid #c8a8a8;
+  background: #fff;
+  color: #5a2222;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s;
+}
+#letterToolbar button:hover { background: #f8e8e8; }
+#letterToolbar button.lt-primary {
+  background: #9b2226; color: #fff; border-color: #9b2226;
+}
+#letterToolbar button.lt-primary:hover { background: #7a1a1d; }
+
+/* ══ Card polish ══════════════════════════════════════════════════ */
+.answer-card {
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 2px 14px rgba(0,0,0,.07);
+  margin-bottom: 1.1rem;
+  overflow: hidden;
+}
+.answer-card .card-header {
+  padding: .65rem 1.1rem;
+  font-size: .88rem;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(0,0,0,.07);
+}
+.answer-card .card-body {
+  padding: 1.1rem 1.25rem;
+  min-width: 0;
+}
+.answer-card .card-header {
+  padding: .65rem 1.1rem;
+  font-size: .88rem;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(0,0,0,.07);
+}
+.answer-card .card-body {
+  padding: 1.1rem 1.25rem;
+  min-width: 0;     /* allow flex children to shrink inside */
+}
+
+/* ── Box accent colours ── */
+.box-law    { border-left: 5px solid #1a7a3c; }
+.box-simple { border-left: 5px solid #0077b6; }
+.box-rights { border-left: 5px solid #e07c00; }
+.box-letter { border-left: 5px solid #9b2226; }
+
+/* ══ Sources card ═════════════════════════════════════════════════ */
+#sourcesCard { border-radius: 14px; box-shadow: 0 2px 14px rgba(0,0,0,.07); margin-bottom: 1.1rem; }
+#sourcesList li {
+  display: flex;
+  align-items: flex-start;     /* align to top when title wraps */
+  flex-wrap: nowrap;
+  gap: .25rem;
+  padding: .45rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: .85rem;
+  min-width: 0;
+}
+#sourcesList li:last-child { border-bottom: none; }
+/* Title + section — can wrap, link stays on same line as start of title */
+.source-title {
+  flex: 1 1 0;
+  min-width: 0;
+  color: #1a1a2e;
+  /* Allow wrapping — better than truncation on small screens */
+  white-space: normal;
+  word-break: break-word;
+}
+.source-link {
+  flex-shrink: 0;              /* never shrink — stays on same line */
+  align-self: flex-start;      /* align to top when title wraps */
+  white-space: nowrap;
+  font-size: .78rem;
+  color: var(--haki-green) !important;
+  text-decoration: none;
+  font-weight: 600;
+  padding: .15em .5em;
+  border: 1px solid #b6d9c3;
+  border-radius: 4px;
+  background: #fff;
+  transition: background .15s;
+}
+.source-link:hover { background: var(--haki-light); }
+
+/* ══ Waiting state ════════════════════════════════════════════════ */
+.pending-pulse::after {
+  content: " ●";
+  animation: blink 1s step-end infinite;
+  color: var(--haki-green);
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+/* ══ Page header ══════════════════════════════════════════════════ */
+.answer-hero {
+  background: linear-gradient(135deg, var(--haki-green) 0%, var(--haki-dark) 100%);
+  padding: 1.5rem 0 1.4rem;
+}
+.answer-hero .story-quote {
+  font-style: italic;
+  color: rgba(255,255,255,.75);
+  font-size: .88rem;
+  max-width: 680px;
+  margin-top: .4rem;
+  line-height: 1.5;
+}
+
+/* ══ Responsive ════════════════════════════════════════════════════ */
+@media (max-width: 576px) {
+  .answer-card .card-header { padding: .55rem .9rem; }
+  .answer-card .card-body   { padding: .9rem 1rem; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PRINT STYLES — clean, professional legal document
+   ══════════════════════════════════════════════════════════════════ */
+@media print {
+
+  /* ── Hide everything that isn't the answer ── */
+  nav, footer, .answer-hero,
+  #statusBar, #seriousBanner, #pollError,
+  #feedbackCard, #actionBtns, .copy-btn,
+  #loadingOverlay,
+  #disclaimerBox { display: none !important; }
+
+  /* Collapse the hero completely — prevents blank first page */
+  .answer-hero {
+    display: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* ── Reset page ── */
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 11pt;
+    margin: 0; padding: 0;
+  }
+
+  /* ── Remove container margins ── */
+  .container, .row, .col-12, .col-lg-9 {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  section { padding: 0 !important; margin: 0 !important; }
+
+  /* ── Print header block ── */
+  #print-header { display: block !important; }
+
+  /* ── Answer cards ── */
+  .answer-card {
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+    margin-bottom: 10pt !important;
+    page-break-inside: avoid;
+    overflow: visible !important;
+  }
+  .answer-card .card-header {
+    background: #f5f5f5 !important;
+    border-bottom: 1px solid #ccc !important;
+    padding: 5pt 8pt !important;
+    font-size: 10pt !important;
+    font-weight: bold; color: #000 !important;
+  }
+  .answer-card .card-body { padding: 6pt 8pt !important; }
+
+  .box-law    { border-left: 3pt solid #1a7a3c !important; }
+  .box-simple { border-left: 3pt solid #0077b6 !important; }
+  .box-rights { border-left: 3pt solid #e07c00 !important; }
+  .box-letter { border-left: 3pt solid #9b2226 !important; }
+
+  /* ── Answer text ── */
+  .answer-box {
+    font-size: 10pt !important;
+    line-height: 1.6 !important;
+    color: #000 !important;
+  }
+  .answer-box strong { color: #000 !important; }
+  .answer-box a { color: #1a7a3c !important; font-size: 9pt !important; }
+  .answer-box blockquote {
+    border-left: 2pt solid #1a7a3c !important;
+    background: #f9f9f9 !important;
+    padding: 4pt 8pt !important;
+    margin: 4pt 0 6pt !important;
+    font-size: 10pt !important;
+    color: #000 !important;
+  }
+
+  /* ── Letter box ── */
+  #text-letter {
+    font-family: 'Courier New', monospace !important;
+    font-size: 9pt !important;
+    background: #fafafa !important;
+    border: 1px solid #ddd !important;
+    padding: 6pt 8pt !important;
+    white-space: pre-wrap !important;
+    color: #000 !important;
+    border-radius: 0 !important;
+  }
+  #letterToolbar { display: none !important; }
+  /* Filled placeholder text looks normal in print */
+  .letter-placeholder { background: none !important; border: none !important;
+    color: #000 !important; font-weight: inherit !important; padding: 0 !important; }
+
+  /* ── Sources card ── */
+  #sourcesCard {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+  #sourcesCard .card-header {
+    background: #f5f5f5 !important;
+    border-bottom: 1px solid #ccc !important;
+    padding: 5pt 8pt !important;
+    font-size: 10pt !important;
+    font-weight: bold;
+  }
+  #sourcesList li {
+    font-size: 9pt !important;
+    padding: 3pt 0 !important;
+    border-bottom: 1px dotted #ccc !important;
+    flex-wrap: wrap !important;
+  }
+  .source-link {
+    font-size: 8pt !important;
+    border: 1px solid #ccc !important;
+    padding: 1pt 3pt !important;
+    color: #1a7a3c !important;
+  }
+
+  /* ── Disclaimer ── */
+  #print-disclaimer { display: block !important; }
+}
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ══ Page header ═══════════════════════════════════════════════════════ -->
+<div class="answer-hero">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+      <a href="{% url 'home' %}?lang={{ lang }}"
+         class="btn btn-sm btn-outline-light">← {{ ui.back_home }}</a>
+      <!-- New Chat button — always visible, clears and starts fresh -->
+      <a href="{% url 'home' %}?lang={{ lang }}"
+         class="btn btn-sm btn-warning fw-semibold"
+         title="Ask a new question">
+        ✏️ {% if lang == "en" %}New Question{% else %}Swali Jipya{% endif %}
+      </a>
+    </div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span style="font-size:1.4rem;">⚖️</span>
+      <h1 class="h4 fw-bold mb-0 text-white">{{ ui.answer_heading }}</h1>
+    </div>
+    {% if story %}
+    <p class="story-quote mb-0">"{{ story|truncatechars:180 }}"</p>
+    {% endif %}
+    {% if county %}
+    <span class="badge mt-2" style="background:var(--haki-gold);color:#000;">📍 {{ county }}</span>
+    {% endif %}
+  </div>
+</div>
+
+
+<section class="pt-4 pb-5">
+  <div class="container">
+
+    <!-- Print-only header: hidden on screen, first visible element in print -->
+    <div id="print-header" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #1a7a3c;padding-bottom:6pt;margin-bottom:8pt;">
+        <span style="font-size:16pt;font-weight:bold;color:#1a7a3c;">⚖️ HakiMkononi</span>
+        <span style="font-size:9pt;color:#555;">Legal Answer — kenyalaw.org</span>
+      </div>
+      <p id="print-question" style="font-style:italic;font-size:10pt;color:#333;margin-bottom:12pt;"></p>
+    </div>
+
+    {# ── Static error (no laws loaded) ──────────────────────────────── #}
+    {% if error %}
+    <div class="row justify-content-center mb-4">
+      <div class="col-12 col-lg-9">
+        <div class="alert alert-danger d-flex align-items-start gap-3" role="alert">
+          <span style="font-size:1.6rem;">⚠️</span>
+          <div>
+            <strong>{{ ui.error_heading }}</strong> {{ error }}
+            <div class="mt-2">
+              <a href="{% url 'home' %}?lang={{ lang }}"
+                 class="btn btn-sm btn-danger">{{ ui.back_home }}</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-9">
+
+        {# ── Serious case banner (JS shows when is_serious=true) ─────── #}
+        <div id="seriousBanner"
+             class="serious-banner p-3 d-flex align-items-start gap-3 mb-3 d-none">
+          <span style="font-size:1.6rem;">🚨</span>
+          <div>
+            <strong>{{ ui.serious_warning }}</strong><br>
+            <small class="text-muted">
+              {{ ui.serious_nlas }}
+              <a href="https://www.nlas.go.ke" target="_blank" rel="noopener">NLAS</a>.
+            </small>
+          </div>
+        </div>
+
+        {# ── Error from polling ──────────────────────────────────────── #}
+        <div id="pollError" class="alert alert-danger d-none" role="alert"></div>
+
+        {# ── Status bar (visible while pending) ──────────────────────── #}
+        {% if streaming %}
+        <div id="statusBar" class="card card-haki mb-3">
+          <div class="card-body py-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="spinner-border text-success spinner-border-sm flex-shrink-0"
+                   aria-hidden="true"></div>
+              <div class="flex-grow-1">
+                <div class="fw-semibold small pending-pulse" id="statusText">
+                  {% if lang == "en" %}Reading the law for you…
+                  {% elif lang == "sheng" %}Inasoma sheria…
+                  {% else %}Inasoma sheria…{% endif %}
+                </div>
+                <div class="progress mt-2" style="height:5px;">
+                  <div id="statusBar__prog" class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                       style="width:5%;"></div>
+                </div>
+              </div>
+              <span class="text-muted small fw-semibold" id="statusElapsed">0s</span>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {# ══ 4 Answer boxes — hidden until answer arrives ═════════════ #}
+
+        <!-- Box 1 — Law -->
+        <div class="answer-card card box-law {% if streaming %}d-none{% endif %}"
+             id="card-law">
+          <div class="card-header d-flex justify-content-between align-items-center"
+               style="background:#f0f8f3;">
+            <span>📜 <strong>{{ ui.box_law }}</strong>
+              <small class="text-muted fw-normal ms-1">{{ ui.box_law_sub }}</small></span>
+            <button class="btn btn-sm btn-outline-secondary copy-btn"
+                    data-target="text-law">📋 {{ ui.btn_copy }}</button>
+          </div>
+          <div class="card-body">
+            <div id="text-law" class="answer-box"></div>
+          </div>
+        </div>
+
+        <!-- Box 2 — Simple -->
+        <div class="answer-card card box-simple {% if streaming %}d-none{% endif %}"
+             id="card-simple">
+          <div class="card-header d-flex justify-content-between align-items-center"
+               style="background:#e8f4fb;">
+            <span>💬 <strong>{{ ui.box_simple }}</strong>
+              <small class="text-muted fw-normal ms-1">{{ ui.box_simple_sub }}</small></span>
+            <button class="btn btn-sm btn-outline-secondary copy-btn"
+                    data-target="text-simple">📋 {{ ui.btn_copy }}</button>
+          </div>
+          <div class="card-body">
+            <div id="text-simple" class="answer-box"></div>
+          </div>
+        </div>
+
+        <!-- Box 3 — Rights -->
+        <div class="answer-card card box-rights {% if streaming %}d-none{% endif %}"
+             id="card-rights">
+          <div class="card-header d-flex justify-content-between align-items-center"
+               style="background:#fff8ee;">
+            <span>💪 <strong>{{ ui.box_rights }}</strong>
+              <small class="text-muted fw-normal ms-1">{{ ui.box_rights_sub }}</small></span>
+            <button class="btn btn-sm btn-outline-secondary copy-btn"
+                    data-target="text-rights">📋 {{ ui.btn_copy }}</button>
+          </div>
+          <div class="card-body">
+            <div id="text-rights" class="answer-box"></div>
+          </div>
+        </div>
+
+        <!-- Box 4 — Letter (editable) -->
+        <div class="answer-card card box-letter {% if streaming %}d-none{% endif %}"
+             id="card-letter">
+          <div class="card-header d-flex justify-content-between align-items-center"
+               style="background:#fdf4f4;">
+            <span>✉️ <strong>{{ ui.box_letter }}</strong>
+              <small class="text-muted fw-normal ms-1">{{ ui.box_letter_sub }}</small></span>
+          </div>
+          <div class="card-body p-0">
+            <!-- Toolbar — shown once letter is loaded -->
+            <div id="letterToolbar" style="display:none;">
+              <span class="lt-hint">
+                ✏️
+                {% if lang == "en" %}Click any <span style="color:#7a4200;background:#fff3e0;padding:.05em .3em;border-radius:3px;font-size:.75rem;font-weight:600;border:1px dashed #f0a040;">[PLACEHOLDER]</span> to select it, then type your details. The letter saves as you type.
+                {% elif lang == "sheng" %}Bonyeza <span style="color:#7a4200;background:#fff3e0;padding:.05em .3em;border-radius:3px;font-size:.75rem;font-weight:600;border:1px dashed #f0a040;">[PLACEHOLDER]</span> kisha andika details zako.
+                {% else %}Bonyeza <span style="color:#7a4200;background:#fff3e0;padding:.05em .3em;border-radius:3px;font-size:.75rem;font-weight:600;border:1px dashed #f0a040;">[PLACEHOLDER]</span> kisha andika maelezo yako. Barua inajihifadhi unapoandika.{% endif %}
+              </span>
+              <button id="ltResetBtn" title="Undo all edits and restore original">
+                ↺ {% if lang == "en" %}Reset{% elif lang == "sheng" %}Reset{% else %}Rejesha{% endif %}
+              </button>
+              <button id="ltCopyBtn" class="lt-primary">
+                📋 {% if lang == "en" %}Copy Letter{% elif lang == "sheng" %}Copy Letter{% else %}Nakili Barua{% endif %}
+              </button>
+              <button id="ltDownloadBtn" class="lt-primary">
+                ⬇️ {% if lang == "en" %}Save as PDF{% elif lang == "sheng" %}Save as PDF{% else %}Hifadhi PDF{% endif %}
+              </button>
+            </div>
+            <!-- Editable letter area -->
+            <div id="text-letter"
+                 contenteditable="true"
+                 spellcheck="false"
+                 aria-label="Editable demand letter"
+                 aria-multiline="true"
+                 style="border-radius:0 0 8px 8px;"></div>
+          </div>
+        </div>
+
+
+        <!-- Sources -->
+        <div class="answer-card card {% if streaming %}d-none{% endif %}"
+             id="sourcesCard" style="border-left:5px solid #6c757d;">
+          <div class="card-header" style="background:#f8f9fa;">
+            <span>📚 <strong>{{ ui.sources_heading }}</strong></span>
+          </div>
+          <div class="card-body py-1 px-3">
+            <ul class="list-unstyled mb-0" id="sourcesList">
+              {% if not streaming %}
+              {% for s in sources %}
+              <li>
+                <span class="badge me-1 flex-shrink-0"
+                      style="background:var(--haki-light);color:var(--haki-dark);">{{ forloop.counter }}</span>
+                <span class="source-title">
+                  <strong>{{ s.title }}</strong>
+                  {% if s.section %} — <em class="text-muted">{{ s.section }}</em>{% endif %}
+                </span>
+                {% if s.url %}
+                  <a href="{{ s.url }}" target="_blank" rel="noopener"
+                     class="source-link ms-1">↗ {{ ui.sources_read }}</a>
+                {% endif %}
+              </li>
+              {% endfor %}
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+
+        <!-- 💼 Connect a Lawyer card — loaded after answer arrives -->
+        <div class="answer-card card {% if streaming %}d-none{% endif %}"
+             id="lawyerCard" style="border-left:5px solid var(--haki-gold);display:none!important;">
+          <div class="card-header d-flex align-items-center gap-2" style="background:#fffbf0;">
+            <span>💼</span>
+            <strong>{% if lang == "en" %}Need a Lawyer?{% else %}Unahitaji Wakili?{% endif %}</strong>
+            <small class="text-muted fw-normal ms-1">
+              {% if lang == "en" %}These lawyers are verified by HakiMkononi{% else %}Mawakili hawa wamethibitishwa na HakiMkononi{% endif %}
+            </small>
+          </div>
+          <div class="card-body py-2 px-3" id="lawyerList">
+            <div class="text-muted small text-center py-2">
+              <div class="spinner-border spinner-border-sm" aria-hidden="true"></div>
+              {% if lang == "en" %}Finding lawyers near you…{% else %}Inatafuta mawakili karibu nawe…{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Feedback -->
+        <div class="answer-card card {% if streaming %}d-none{% endif %}"
+             id="feedbackCard" style="border-left:5px solid #adb5bd;">
+          <div class="card-body text-center py-3">
+            <p class="mb-2 fw-semibold text-muted small">{{ ui.feedback_prompt }}</p>
+            <div class="d-flex justify-content-center gap-3" id="feedbackBtns">
+              <button class="btn btn-outline-success btn-sm feedback-btn"
+                      data-score="1">{{ ui.feedback_yes }}</button>
+              <button class="btn btn-outline-danger btn-sm feedback-btn"
+                      data-score="0">{{ ui.feedback_no }}</button>
+            </div>
+            <div id="feedbackThanks" class="d-none text-success small mt-2 fw-semibold">
+              ✅ {{ ui.feedback_thanks }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="d-flex flex-wrap gap-2 mb-3 justify-content-center
+                    {% if streaming %}d-none{% endif %}" id="actionBtns">
+          <a href="{% url 'home' %}?lang={{ lang }}" class="btn btn-haki px-4">
+            🔍 {{ ui.btn_ask_another }}
+          </a>
+          <button class="btn btn-outline-secondary" id="printBtn">
+            ⬇️ {{ ui.btn_print }}
+          </button>
+          <button id="shareBtn" class="btn btn-outline-secondary">
+            🔗 {{ ui.btn_share }}
+          </button>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="alert alert-warning d-flex gap-2 small
+                    {% if streaming %}d-none{% endif %}"
+             id="disclaimerBox" role="note"
+             style="border-radius:10px; border-left:4px solid #ffc107;">
+          <span>⚠️</span>
+          <div>
+            {{ ui.answer_disclaimer }}
+            <a href="https://kenyalaw.org" target="_blank" rel="noopener">kenyalaw.org</a>.
+            {{ ui.answer_nlas }}
+            <a href="https://www.nlas.go.ke" target="_blank" rel="noopener">NLAS</a>.
+          </div>
+        </div>
+
+        <!-- Print-only disclaimer — hidden on screen -->
+        <div id="print-disclaimer" style="display:none; font-size:8pt; color:#555; border-top:1px solid #ccc; padding-top:6pt; margin-top:12pt;">
+          ⚠️ This is legal information only — not legal advice. Verify all sections at kenyalaw.org.
+          For serious cases, contact a lawyer or the National Legal Aid Service (NLAS): www.nlas.go.ke
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+{# ── Copy buttons — copies plain text (innerText strips HTML tags) ──── #}
+<script>
+document.addEventListener("click", function(e) {
+  var btn = e.target.closest(".copy-btn");
+  if (!btn) return;
+  var div = document.getElementById(btn.getAttribute("data-target"));
+  if (!div) return;
+  // innerText gives the rendered text without HTML tags — what the user sees
+  var text = (div.innerText || div.textContent || "").trim();
+  navigator.clipboard.writeText(text).then(function(){
+    var orig = btn.textContent;
+    btn.textContent = "✅ {{ ui.btn_copied }}";
+    btn.classList.add("btn-success"); btn.classList.remove("btn-outline-secondary");
+    setTimeout(function(){
+      btn.textContent = orig;
+      btn.classList.remove("btn-success"); btn.classList.add("btn-outline-secondary");
+    }, 2000);
+  });
+});
+</script>
+
+{% if streaming %}
+{# ── Polling JS — only injected when streaming=True ──────────────────── #}
+{{ story|json_script:"js-story" }}
+{{ county|json_script:"js-county" }}
+<script>
+(function(){
+  var STORY  = JSON.parse(document.getElementById("js-story").textContent);
+  var COUNTY = JSON.parse(document.getElementById("js-county").textContent);
+  var LANG   = "{{ lang }}";
+  var CSRF   = "{{ csrf_token }}";
+
+  var jobId      = null;
+  var startTime  = Date.now();
+  var pollTimer  = null;
+  var POLL_MS    = 5000;   // poll every 5 seconds
+
+  // ── DOM helpers ──────────────────────────────────────────────────────
+  function el(id)   { return document.getElementById(id); }
+  function show(id) { var e=el(id); if(e) e.classList.remove("d-none"); }
+  function hide(id) { var e=el(id); if(e) e.classList.add("d-none");    }
+
+  // ── Progress bar (indeterminate — grows slowly up to 90%) ────────────
+  var progPct = 5;
+  var progTimer = setInterval(function(){
+    progPct = Math.min(progPct + (progPct < 50 ? 2 : 0.5), 90);
+    var bar = el("statusBar__prog");
+    if (bar) bar.style.width = progPct + "%";
+  }, 3000);
+
+  // ── Elapsed timer ────────────────────────────────────────────────────
+  var elapsedTimer = setInterval(function(){
+    var secs = Math.floor((Date.now() - startTime) / 1000);
+    var txt  = secs < 60 ? secs + "s" : Math.floor(secs/60) + "m " + (secs%60) + "s";
+    var el2  = el("statusElapsed");
+    if (el2) el2.textContent = txt;
+
+    // Update status text at milestones
+    var statusText = el("statusText");
+    if (!statusText) return;
+    var msgs = {
+      sw:    ["Inasoma sheria…","Inachanganua hali yako…","Inakaribia kumaliza…"],
+      en:    ["Reading the law for you…","Analysing your situation…","Almost done…"],
+      sheng: ["Inasoma sheria…","Inachunguza situation yako…","Karibu kuisha…"],
+    };
+    var set = msgs[LANG] || msgs["sw"];
+    if      (secs < 60)  statusText.textContent = set[0];
+    else if (secs < 120) statusText.textContent = set[1];
+    else                 statusText.textContent = set[2];
+  }, 1000);
+
+  // ── Render sources list ───────────────────────────────────────────────
+  function renderSources(sources) {
+    var list = el("sourcesList");
+    if (!list || !sources || !sources.length) return;
+    list.innerHTML = "";
+    sources.forEach(function(s, i) {
+      var li = document.createElement("li");
+      var num = '<span class="badge me-1 flex-shrink-0" style="background:var(--haki-light);color:var(--haki-dark);">'+(i+1)+"</span>";
+      // Title + section wrapped in .source-title so they can shrink (ellipsis) if needed
+      var titleText = (s.title||"") + (s.section ? " — " + s.section : "");
+      var title = '<span class="source-title" title="'+titleText+'"><strong>'+(s.title||"")+"</strong>"+(s.section ? " — <em class=\"text-muted\">"+s.section+"</em>" : "")+"</span>";
+      var link = s.url
+        ? '<a href="'+s.url+'" target="_blank" rel="noopener" class="source-link ms-1">↗ {{ ui.sources_read }}</a>'
+        : "";
+      li.innerHTML = num + title + link;
+      list.appendChild(li);
+    });
+  }
+
+  // ── Wire feedback buttons ─────────────────────────────────────────────
+  function wireFeedback(queryId) {
+    document.querySelectorAll(".feedback-btn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        fetch("/api/feedback/", {
+          method: "POST",
+          headers: {"Content-Type":"application/json","X-CSRFToken":CSRF},
+          body: JSON.stringify({query_id: queryId, helpful: btn.getAttribute("data-score")==="1"}),
+        }).finally(function(){
+          hide("feedbackBtns");
+          show("feedbackThanks");
+        });
+      });
+    });
+  }
+
+  // ── Render letter with clickable placeholder chips ───────────────────
+  function renderLetter(text) {
+    var div = el("text-letter");
+    if (!div) return;
+
+    // Strip markdown that slips through from the AI:
+    // **bold** → bold,  *italic* → italic,  __bold__ → bold
+    var clean = text
+      .replace(/\*\*(.+?)\*\*/g, '$1')
+      .replace(/__(.+?)__/g, '$1')
+      .replace(/\*(.+?)\*/g, '$1')
+      .replace(/^#+\s+/gm, '')
+      .replace(/^>\s?/gm, '');
+
+    var escaped = clean
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;");
+
+    // Each [PLACEHOLDER] becomes a clickable chip
+    var html = escaped.replace(
+      /\[([^\]]+)\]/g,
+      '<span class="letter-placeholder" tabindex="0" ' +
+      'title="Click to select, then type your details">[$1]</span>'
+    );
+    div.innerHTML = html;
+  }
+
+  // ── Get plain text of the edited letter (strips HTML) ────────────────
+  function getLetterPlainText() {
+    var div = el("text-letter");
+    if (!div) return "";
+    // Walk text nodes and spans to reconstruct pre-wrap text faithfully
+    // innerText respects white-space:pre-wrap and gives correct line breaks
+    return div.innerText || div.textContent || "";
+  }
+
+  // ── Wire letter toolbar ───────────────────────────────────────────────
+  function wireLetter(originalText) {
+    var toolbar = el("letterToolbar");
+    if (toolbar) toolbar.style.display = "";
+
+    // Click on placeholder chip → select the whole chip text
+    var div = el("text-letter");
+    if (div) {
+      div.addEventListener("click", function(e) {
+        var chip = e.target.closest(".letter-placeholder");
+        if (!chip) return;
+        // Select all text of the chip using Selection API
+        var sel = window.getSelection();
+        var range = document.createRange();
+        range.selectNodeContents(chip);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      });
+
+      // Keyboard: Enter on chip also selects it
+      div.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+          var chip = e.target.closest(".letter-placeholder");
+          if (chip) { e.preventDefault(); chip.click(); }
+        }
+      });
+    }
+
+    // Reset — restore original AI text
+    var resetBtn = el("ltResetBtn");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", function() {
+        if (confirm("{% if lang == 'en' %}Reset letter to original? Your edits will be lost.{% elif lang == 'sheng' %}Reset letter? Edits zako zitapotea.{% else %}Rejesha barua asili? Mabadiliko yako yatapotea.{% endif %}")) {
+          renderLetter(originalText);
+        }
+      });
+    }
+
+    // Copy letter
+    var copyBtn = el("ltCopyBtn");
+    if (copyBtn) {
+      copyBtn.addEventListener("click", function() {
+        var text = getLetterPlainText();
+        navigator.clipboard.writeText(text).then(function() {
+          var orig = copyBtn.textContent;
+          copyBtn.textContent = "✅ {% if lang == 'en' %}Copied!{% elif lang == 'sheng' %}Copied!{% else %}Imenakiliwa!{% endif %}";
+          setTimeout(function() { copyBtn.textContent = orig; }, 2000);
+        });
+      });
+    }
+
+    // Download letter — server generates a real PDF, browser downloads it directly
+    var dlBtn = el("ltDownloadBtn");
+    if (dlBtn) {
+      dlBtn.addEventListener("click", function() {
+        if (!jobId) {
+          // jobId not set yet (shouldn't happen, but guard)
+          alert("{% if lang == 'en' %}Answer not ready yet.{% elif lang == 'sheng' %}Answer bado haijaandaliwa.{% else %}Jibu bado halijatayarishwa.{% endif %}");
+          return;
+        }
+        var origText = dlBtn.textContent;
+        dlBtn.textContent = "⏳ {% if lang == 'en' %}Preparing PDF…{% elif lang == 'sheng' %}Inaandaa PDF…{% else %}Inaandaa PDF…{% endif %}";
+        dlBtn.disabled = true;
+
+        // Fetch the PDF from the server as a binary blob
+        fetch("/api/letter-pdf/" + jobId + "/", { cache: "no-store" })
+          .then(function(r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.blob();
+          })
+          .then(function(blob) {
+            // Trigger a real file download — no new tab opened
+            var url  = URL.createObjectURL(blob);
+            var a2   = document.createElement("a");
+            var date = new Date().toISOString().slice(0, 10);
+            a2.href     = url;
+            a2.download = "Letter-" + date + ".pdf";
+            a2.style.display = "none";
+            document.body.appendChild(a2);
+            a2.click();
+            document.body.removeChild(a2);
+            setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+
+            dlBtn.textContent = "✅ {% if lang == 'en' %}Downloaded!{% elif lang == 'sheng' %}Imedownload!{% else %}Imepakuliwa!{% endif %}";
+            dlBtn.disabled = false;
+            setTimeout(function() { dlBtn.textContent = origText; }, 3000);
+          })
+          .catch(function(err) {
+            dlBtn.textContent = "❌ {% if lang == 'en' %}Failed — try again{% elif lang == 'sheng' %}Imefail — jaribu tena{% else %}Imeshindwa — jaribu tena{% endif %}";
+            dlBtn.disabled = false;
+            setTimeout(function() { dlBtn.textContent = origText; }, 3000);
+          });
+      });
+    }
+  }
+
+  // ── Wire print/download button — full answer PDF ────────────────────────
+  function wirePrintBtn() {
+    var btn = el("printBtn");
+    if (!btn) return;
+    btn.addEventListener("click", function() {
+      if (!jobId) return;
+      var origText = btn.textContent;
+      btn.textContent = "⏳ {% if lang == 'en' %}Preparing PDF…{% elif lang == 'sheng' %}Inaandaa PDF…{% else %}Inaandaa PDF…{% endif %}";
+      btn.disabled = true;
+
+      fetch("/api/answer-pdf/" + jobId + "/", { cache: "no-store" })
+        .then(function(r) {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.blob();
+        })
+        .then(function(blob) {
+          var url  = URL.createObjectURL(blob);
+          var a2   = document.createElement("a");
+          var date = new Date().toISOString().slice(0, 10);
+          a2.href     = url;
+          a2.download = "HakiMkononi-Answer-" + date + ".pdf";
+          a2.style.display = "none";
+          document.body.appendChild(a2);
+          a2.click();
+          document.body.removeChild(a2);
+          setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+          btn.textContent = "✅ {% if lang == 'en' %}Downloaded!{% elif lang == 'sheng' %}Imedownload!{% else %}Imepakuliwa!{% endif %}";
+          btn.disabled = false;
+          setTimeout(function() { btn.textContent = origText; }, 3000);
+        })
+        .catch(function() {
+          btn.textContent = "❌ {% if lang == 'en' %}Failed — try again{% else %}Imeshindwa{% endif %}";
+          btn.disabled = false;
+          setTimeout(function() { btn.textContent = origText; }, 3000);
+        });
+    });
+  }
+
+  // ── Wire share button ─────────────────────────────────────────────────
+  function wireShare(){
+    var btn = el("shareBtn");
+    if (!btn) return;
+    btn.addEventListener("click", function(){
+      if (navigator.share){
+        navigator.share({title:"HakiMkononi",url:location.href}).catch(function(){});
+      } else {
+        navigator.clipboard.writeText(location.href).then(function(){
+          btn.textContent = "✅ {{ ui.btn_copied }}";
+          setTimeout(function(){ btn.textContent = "🔗 {{ ui.btn_share }}"; }, 2000);
+        });
+      }
+    });
+  }
+
+  // ── Show all completed UI ─────────────────────────────────────────────
+  function showResults(data) {
+    clearInterval(progTimer);
+    clearInterval(elapsedTimer);
+    clearInterval(pollTimer);
+
+    // Hide status bar and loading overlay
+    hide("statusBar");
+    if (window.stopLoadingTimer) window.stopLoadingTimer();
+
+    // Serious case
+    if (data.is_serious) show("seriousBanner");
+
+    // Fill boxes — parse markdown so **bold** and > blockquotes render properly
+    var a = data.answer || {};
+    var fill = {
+      "text-law":    a.sheria_inasema || "",
+      "text-simple": a.tafsiri_rahisi || "",
+      "text-rights": a.haki_yako      || "",
+    };
+    // Markdown boxes — parse and render
+    Object.keys(fill).forEach(function(id){
+      var div = el(id);
+      if (!div) return;
+      var md = fill[id];
+      if (md && window.marked) {
+        div.innerHTML = marked.parse(md);
+      } else {
+        div.textContent = md;
+      }
+    });
+
+    // Letter box — editable contenteditable div.
+    // Placeholders like [DATE] become clickable chips that select on click.
+    var letterDiv = el("text-letter");
+    if (letterDiv) {
+      var letterText = a.andika_hivi || "";
+      // Store original so Reset can restore it
+      letterDiv._originalText = letterText;
+
+      renderLetter(letterText);
+      wireLetter(letterText);
+    }
+
+    // Show boxes
+    ["card-law","card-simple","card-rights","card-letter"].forEach(show);
+
+    // Sources
+    renderSources(data.sources || []);
+    show("sourcesCard");
+
+    // Feedback / actions / disclaimer
+    wireFeedback(data.query_id);
+    wireShare();
+    wirePrintBtn();
+
+    // ── Load matching lawyers ────────────────────────────────────────────────
+    if (data.query_id) {
+      fetch('/lawyers/for-query/' + data.query_id + '/', {cache: 'no-store'})
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          var lawyers = d.lawyers || [];
+          var card = el('lawyerCard');
+          var list = el('lawyerList');
+          if (!card || !list || lawyers.length === 0) return;
+
+          var LANG = "{{ lang }}";
+          var html = '';
+          lawyers.forEach(function(l) {
+            var specs = l.specialties.join(', ');
+            var waMsg = LANG === 'en'
+              ? "Hello " + l.name + ", I need legal help. I found you on HakiMkononi."
+              : "Habari " + l.name + ", ninahitaji msaada wa kisheria. Nilikupata kwenye HakiMkononi.";
+            var waLink = "https://wa.me/" + ''; // filled by connect endpoint
+
+            html += '<div class="d-flex align-items-start gap-3 py-2 border-bottom">';
+            html += '<div style="width:42px;height:42px;border-radius:50%;background:var(--haki-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.2rem;">👤</div>';
+            html += '<div class="flex-grow-1 min-w-0">';
+            html += '<div class="fw-semibold">' + l.name + '</div>';
+            if (l.firm) html += '<div class="text-muted small">' + l.firm + '</div>';
+            html += '<div class="small"><span class="badge" style="background:var(--haki-light);color:var(--haki-dark);">📍 ' + l.county + '</span> ';
+            if (specs) html += '<span class="text-muted small">' + specs + '</span>';
+            html += '</div>';
+            if (l.bio) html += '<div class="text-muted small mt-1" style="font-size:.78rem;">' + l.bio + '</div>';
+            html += '</div>';
+            html += '<button class="btn btn-sm btn-haki flex-shrink-0 connect-btn" '
+              + 'data-lawyer="' + l.id + '" data-name="' + l.name + '">'
+              + (LANG === 'en' ? '💬 Connect' : '💬 Wasiliana') + '</button>';
+            html += '</div>';
+          });
+
+          list.innerHTML = html + '<div class="text-muted small text-center mt-2" style="font-size:.73rem;">✅ '
+            + (LANG === 'en' ? 'All lawyers are LSK verified by HakiMkononi' : 'Mawakili wote wamethibitishwa na HakiMkononi')
+            + '</div>';
+
+          card.style.removeProperty('display');
+          card.classList.remove('d-none');
+
+          // Wire connect buttons
+          list.querySelectorAll('.connect-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var lawyerId = btn.getAttribute('data-lawyer');
+              var lawyerName = btn.getAttribute('data-name');
+              btn.textContent = '⏳';
+              btn.disabled = true;
+
+              fetch('/lawyers/connect/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+                body: JSON.stringify({query_id: data.query_id, lawyer_id: parseInt(lawyerId), consent: false}),
+              })
+              .then(function(r) { return r.json(); })
+              .then(function(resp) {
+                if (resp.wa_link) {
+                  window.open(resp.wa_link, '_blank');
+                  btn.textContent = '✅ ' + (LANG === 'en' ? 'Connected!' : 'Imeunganishwa!');
+                } else {
+                  btn.textContent = '❌';
+                  btn.disabled = false;
+                }
+              })
+              .catch(function() {
+                btn.textContent = LANG === 'en' ? '💬 Connect' : '💬 Wasiliana';
+                btn.disabled = false;
+              });
+            });
+          });
+        })
+        .catch(function() {});  // silently fail — lawyers are optional
+    }
+    show("feedbackCard");
+    show("actionBtns");
+    show("disclaimerBox");
+
+    // Complete the progress bar
+    var bar = el("statusBar__prog");
+    if (bar){ bar.style.width="100%"; bar.classList.remove("progress-bar-animated"); }
+
+    // ── Persist answer so page refresh doesn't lose it ────────────────
+    // 1. Update URL with ?job=ID so it's bookmarkable and refresh-safe
+    try {
+      var newUrl = location.pathname + "?job=" + jobId + "&lang=" + LANG;
+      history.replaceState({jobId: jobId}, "", newUrl);
+    } catch(e) {}
+
+    // Fill the print-only question header
+    try {
+      var printQ = document.getElementById('print-question');
+      if (printQ && STORY) printQ.textContent = 'Question: "' + STORY + '"';
+    } catch(e) {}
+
+    // 2. Save full answer to localStorage keyed by job_id
+    try {
+      var saved = {
+        story:      STORY,
+        county:     COUNTY,
+        lang:       LANG,
+        answer:     data.answer,
+        sources:    data.sources,
+        query_id:   data.query_id,
+        is_serious: data.is_serious,
+        saved_at:   Date.now(),
+      };
+      localStorage.setItem("haki_job_" + jobId, JSON.stringify(saved));
+      // Keep only last 10 answers — avoids filling storage
+      var allKeys = Object.keys(localStorage).filter(function(k){ return k.startsWith("haki_job_"); });
+      if (allKeys.length > 10) {
+        allKeys.sort();
+        localStorage.removeItem(allKeys[0]);
+      }
+    } catch(e) {}
+  }
+
+  // ── Show error ────────────────────────────────────────────────────────
+  function showError(msg) {
+    clearInterval(progTimer);
+    clearInterval(elapsedTimer);
+    clearInterval(pollTimer);
+    hide("statusBar");
+    if (window.stopLoadingTimer) window.stopLoadingTimer();
+    var box = el("pollError");
+    box.textContent = msg;
+    box.classList.remove("d-none");
+    show("actionBtns"); // still show "Ask another question"
+  }
+
+  // ── Poll /api/status/<job_id>/ ────────────────────────────────────────
+  function poll() {
+    if (!jobId) return;
+    fetch("/api/status/" + jobId + "/", {cache:"no-store"})
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (data.status === "done")  { showResults(data); return; }
+        if (data.status === "error") {
+          var errMsgs = {
+            sw:    "❌ Kuna tatizo la kiufundi. Tafadhali jaribu tena.",
+            en:    "❌ A technical error occurred. Please try again.",
+            sheng: "❌ Kuna technical issue. Jaribu tena.",
+          };
+          showError((data.message || "") + "\n" + (errMsgs[LANG]||errMsgs["sw"]));
+        }
+        // still pending — keep polling
+      })
+      .catch(function(){ /* network blip — will retry */ });
+  }
+
+  // ── Submit job then start polling ─────────────────────────────────────
+  function start() {
+    if (window.startLoadingTimer) window.startLoadingTimer();
+
+    fetch("/api/submit/", {
+      method: "POST",
+      headers: {"Content-Type":"application/json","X-CSRFToken":CSRF},
+      body: JSON.stringify({story:STORY, county:COUNTY, lang:LANG}),
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (!data.job_id) { showError(data.error || "Submission failed."); return; }
+      jobId = data.job_id;
+      // Hide loading overlay now — status bar takes over
+      if (window.stopLoadingTimer) window.stopLoadingTimer();
+      // Start polling
+      pollTimer = setInterval(poll, POLL_MS);
+      poll(); // immediate first poll
+    })
+    .catch(function(err){
+      showError("{% if lang == 'en' %}Connection error. Please try again.{% elif lang == 'sheng' %}Kuna connection issue. Jaribu tena.{% else %}Kuna tatizo la muunganisho. Jaribu tena.{% endif %}");
+    });
+  }
+
+  wireShare();
+
+  // ── Boot: restore from localStorage if ?job=ID in URL, else submit fresh ──
+  (function boot() {
+    var params  = new URLSearchParams(location.search);
+    var savedId = params.get("job");
+
+    if (savedId) {
+      // First try localStorage (instant, no network)
+      try {
+        var raw = localStorage.getItem("haki_job_" + savedId);
+        if (raw) {
+          var saved = JSON.parse(raw);
+          if (Date.now() - (saved.saved_at || 0) < 86400000) {
+            jobId = savedId;
+            if (saved.story) {
+              var quoteEl = document.querySelector('.story-quote');
+              if (quoteEl) {
+                var truncated = saved.story.length > 180 ? saved.story.slice(0,180)+'…' : saved.story;
+                quoteEl.textContent = '"' + truncated + '"';
+                quoteEl.style.display = 'block';
+              }
+              var printQ = document.getElementById('print-question');
+              if (printQ) printQ.textContent = 'Question: "' + saved.story + '"';
+            }
+            showResults({
+              answer:     saved.answer,
+              sources:    saved.sources,
+              query_id:   saved.query_id,
+              is_serious: saved.is_serious,
+            });
+            hide("statusBar");
+            return;
+          }
+        }
+      } catch(e) {}
+
+      // localStorage miss — job exists on server, poll it once to get the answer
+      jobId = savedId;
+      show("statusBar");
+      var restoreTimer = setInterval(function() {
+        fetch("/api/status/" + savedId + "/", {cache:"no-store"})
+          .then(function(r){ return r.json(); })
+          .then(function(data){
+            if (data.status === "done") {
+              clearInterval(restoreTimer);
+              showResults(data);
+            } else if (data.status === "error") {
+              clearInterval(restoreTimer);
+              showError(data.message || "Could not load answer.");
+            }
+            // if pending, keep polling
+          })
+          .catch(function(){ clearInterval(restoreTimer); });
+      }, 2000);
+      // Also poll immediately
+      fetch("/api/status/" + savedId + "/", {cache:"no-store"})
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          if (data.status === "done") {
+            clearInterval(restoreTimer);
+            showResults(data);
+          } else if (data.status === "error") {
+            clearInterval(restoreTimer);
+            showError(data.message || "Could not load answer.");
+          }
+        }).catch(function(){});
+      return; // don't submit a new job
+    }
+
+    // No job in URL — submit fresh
+    setTimeout(start, 100);
+  })();
+
+})();
+</script>
+{% endif %}
+
+{% endblock %}
+{# render markdown in statically-filled boxes #}

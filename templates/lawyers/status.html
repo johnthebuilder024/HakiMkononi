@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Application Status — HakiMkononi{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-7">
+        <div class="card card-haki">
+          <div class="card-header bg-white border-bottom py-3">
+            <h2 class="h5 mb-0 fw-bold" style="color:var(--haki-green);">
+              Application Status — {{ lawyer.full_name }}
+            </h2>
+          </div>
+          <div class="card-body p-4 text-center">
+
+            {% if lawyer.kyc_status == 'pending' %}
+              <div style="font-size:3rem;">⏳</div>
+              <h3 class="fw-bold mt-2">Application Received</h3>
+              <p class="text-muted">Your application is in our queue. Please upload your documents to proceed.</p>
+              <a href="/lawyers/documents/{{ lawyer.pk }}/" class="btn btn-haki mt-2">Upload Documents →</a>
+
+            {% elif lawyer.kyc_status == 'level1_pass' %}
+              <div style="font-size:3rem;">📋</div>
+              <h3 class="fw-bold mt-2">Step 1 Complete — Upload Documents</h3>
+              <p class="text-muted">Your basic information has been validated. Please upload your KYC documents to continue.</p>
+              <a href="/lawyers/documents/{{ lawyer.pk }}/" class="btn btn-haki mt-2">Upload Documents →</a>
+
+            {% elif lawyer.kyc_status == 'docs_submitted' %}
+              <div style="font-size:3rem;">🔍</div>
+              <h3 class="fw-bold mt-2">Documents Under Review</h3>
+              <p class="text-muted">
+                Your documents have been submitted and are being reviewed by our team.<br>
+                This usually takes <strong>24–48 hours</strong>.<br>
+                You will receive a WhatsApp message at <strong>{{ lawyer.display_phone }}</strong> when approved.
+              </p>
+              <div class="alert alert-info mt-3" style="font-size:.83rem;">
+                <strong>LSK Number submitted:</strong> {{ lawyer.lsk_number }}<br>
+                <strong>County:</strong> {{ lawyer.county }}<br>
+                <strong>Submitted:</strong> {{ lawyer.updated_at|date:"d M Y H:i" }}
+              </div>
+
+            {% elif lawyer.kyc_status == 'verified' %}
+              <div style="font-size:3rem;">✅</div>
+              <h3 class="fw-bold mt-2" style="color:var(--haki-green);">You Are Verified!</h3>
+              <p class="text-muted">
+                Congratulations — your profile is now live on HakiMkononi.<br>
+                Wanjiku can now see you and connect with you for legal help.
+              </p>
+              <div class="alert alert-success mt-3" style="font-size:.83rem;">
+                <strong>Verified on:</strong> {{ lawyer.verified_at|date:"d M Y" }}<br>
+                <strong>Specialties:</strong> {{ lawyer.specialty_labels|join:", " }}<br>
+                <strong>County:</strong> {{ lawyer.county }}
+              </div>
+
+            {% elif lawyer.kyc_status == 'rejected' %}
+              <div style="font-size:3rem;">❌</div>
+              <h3 class="fw-bold mt-2 text-danger">Application Rejected</h3>
+              {% if lawyer.kyc_rejection_reason %}
+              <div class="alert alert-danger mt-3">
+                <strong>Reason:</strong> {{ lawyer.kyc_rejection_reason }}
+              </div>
+              {% endif %}
+              <p class="text-muted">
+                If you believe this is a mistake, contact us at
+                <a href="mailto:admin@hakimkononi.co.ke">admin@hakimkononi.co.ke</a>
+              </p>
+
+            {% elif lawyer.kyc_status == 'suspended' %}
+              <div style="font-size:3rem;">⚠️</div>
+              <h3 class="fw-bold mt-2 text-warning">Account Suspended</h3>
+              <p class="text-muted">Your account has been suspended. Contact us for more information.</p>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,30 @@
+# Environment
+.env
+
+# Django
+db.sqlite3
+*.pyc
+__pycache__/
+staticfiles/
+media/
+
+# Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Data — PDFs are large, don't commit them
+data/*.pdf
+
+# AI model cache — large download
+.cache/
+
+# Binaries
+ngrok.exe
+
+# Audit/utility scripts (optional - keep if you want)
+# audit_*.py
+# check_*.py

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HakiMkononi — Learning Dashboard</title>
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+  <style>
+    :root {
+      --haki-green: #1a7a3c;
+      --haki-dark:  #0f4d26;
+      --haki-gold:  #c9a84c;
+      --haki-light: #e8f5ee;
+    }
+    body { background: #f4f6f9; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+    /* Top bar */
+    .dash-header {
+      background: var(--haki-green);
+      border-bottom: 3px solid var(--haki-gold);
+      padding: .75rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .dash-header .brand { color: #fff; font-weight: 800; font-size: 1.2rem; text-decoration: none; }
+    .dash-header .brand span { color: var(--haki-gold); }
+    .dash-header .nav-links a { color: rgba(255,255,255,.85); text-decoration: none; margin-left: 1.2rem; font-size: .88rem; }
+    .dash-header .nav-links a:hover { color: #fff; }
+
+    /* Stat cards */
+    .stat-card {
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+      padding: 1.25rem 1.5rem;
+      border-left: 4px solid var(--haki-green);
+    }
+    .stat-card.red   { border-left-color: #dc3545; }
+    .stat-card.gold  { border-left-color: var(--haki-gold); }
+    .stat-card.blue  { border-left-color: #0077b6; }
+    .stat-card .num  { font-size: 2rem; font-weight: 800; color: #1a1a2e; line-height: 1.1; }
+    .stat-card .label { font-size: .8rem; color: #666; text-transform: uppercase; letter-spacing: .5px; margin-top: .2rem; }
+    .stat-card .sub  { font-size: .75rem; color: #999; margin-top: .2rem; }
+
+    /* Section cards */
+    .section-card {
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+      margin-bottom: 1.5rem;
+    }
+    .section-card .sc-header {
+      padding: .85rem 1.25rem;
+      border-bottom: 1px solid #f0f0f0;
+      font-weight: 700; font-size: .92rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .section-card .sc-body { padding: 1rem 1.25rem; }
+
+    /* Satisfaction bar */
+    .sat-bar { height: 10px; border-radius: 5px; background: #e9ecef; overflow: hidden; }
+    .sat-fill { height: 100%; border-radius: 5px; background: var(--haki-green); transition: width .5s; }
+
+    /* Query review rows */
+    .review-row {
+      border: 1px solid #f0f0f0; border-radius: 8px;
+      margin-bottom: .75rem; overflow: hidden;
+    }
+    .review-row .rr-head {
+      background: #fff8f8; padding: .6rem 1rem;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      border-bottom: 1px solid #f0f0f0; gap: 1rem;
+    }
+    .review-row .rr-story { font-size: .88rem; color: #333; font-style: italic; flex: 1; }
+    .review-row .rr-meta  { font-size: .75rem; color: #999; white-space: nowrap; }
+    .review-row .rr-body  { padding: .75rem 1rem; background: #fff; }
+    .review-row .rr-law   { font-size: .82rem; color: #444; margin-bottom: .5rem; max-height: 80px; overflow-y: auto; border-left: 3px solid var(--haki-green); padding-left: .5rem; }
+    .review-row .rr-sources { font-size: .78rem; color: #888; margin-bottom: .6rem; }
+    .badge-section { background: #f0f8f3; color: var(--haki-dark); font-size: .75rem; padding: .2em .5em; border-radius: 4px; border: 1px solid #b6d9c3; margin-right: .3rem; }
+
+    /* Chart bars */
+    .chart-bar-wrap { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+    .chart-bar-col  { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .chart-bar      { width: 100%; background: var(--haki-green); border-radius: 3px 3px 0 0; min-height: 2px; transition: height .3s; }
+    .chart-label    { font-size: .65rem; color: #999; text-align: center; white-space: nowrap; }
+    .chart-count    { font-size: .7rem; color: var(--haki-dark); font-weight: 600; }
+
+    /* Fix message */
+    .fix-msg { padding: .5rem 1rem; border-radius: 6px; font-size: .85rem; margin-bottom: 1rem; }
+    .fix-msg.ok  { background: #d1e7dd; color: #0a3622; }
+    .fix-msg.err { background: #f8d7da; color: #58151c; }
+
+    .page-title { font-size: 1.4rem; font-weight: 800; color: #1a1a2e; margin-bottom: .2rem; }
+    .page-sub   { font-size: .85rem; color: #666; }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="dash-header">
+  <a href="/" class="brand">⚖️ Haki<span>Mkononi</span></a>
+  <div class="nav-links">
+    <a href="/">🌐 Website</a>
+    <a href="/admin/">⚙️ Admin Panel</a>
+    <a href="/admin/cases/query/?was_helpful__exact=0">📋 All 👎 Queries</a>
+    <a href="/admin/cases/slangkeyword/">🗣️ Slang Keywords</a>
+  </div>
+</div>
+
+<div class="container-fluid py-4 px-4">
+
+  <!-- Title -->
+  <div class="mb-4">
+    <div class="page-title">📊 Learning Dashboard</div>
+    <div class="page-sub">Review 👎 answers, add corrections, and track how HakiMkononi is growing.</div>
+  </div>
+
+  {% if fix_message %}
+  <div class="fix-msg {% if '✅' in fix_message %}ok{% else %}err{% endif %}">
+    {{ fix_message }}
+  </div>
+  {% endif %}
+
+  <!-- Stat cards row 1 -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="num">{{ total_queries }}</div>
+        <div class="label">Total Questions</div>
+        <div class="sub">All time</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card blue">
+        <div class="num">{{ queries_7d }}</div>
+        <div class="label">This Week</div>
+        <div class="sub">{{ queries_today }} today</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card {% if satisfaction < 60 %}red{% else %}{% endif %}">
+        <div class="num">{{ satisfaction }}%</div>
+        <div class="label">Satisfaction</div>
+        <div class="sub">{{ helpful }} 👍 / {{ not_helpful }} 👎 / {{ no_feedback }} pending</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card gold">
+        <div class="num">{{ total_law_sections }}</div>
+        <div class="label">Law Sections</div>
+        <div class="sub">{{ total_acts }} acts loaded</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stat cards row 2 — bot users -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="num">{{ total_bot_users }}</div>
+        <div class="label">Bot Users</div>
+        <div class="sub">All channels</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card blue">
+        <div class="num">{{ tg_users }}</div>
+        <div class="label">Telegram</div>
+        <div class="sub">Active users</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="num">{{ wa_users }}</div>
+        <div class="label">WhatsApp</div>
+        <div class="sub">Twilio sandbox</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="num">{{ meta_users }}</div>
+        <div class="label">Meta WA</div>
+        <div class="sub">{{ sms_users }} SMS</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Left column -->
+    <div class="col-12 col-lg-4">
+
+      <!-- Satisfaction bar -->
+      <div class="section-card mb-4">
+        <div class="sc-header">📈 Satisfaction Rate</div>
+        <div class="sc-body">
+          <div class="d-flex justify-content-between mb-1">
+            <small class="text-success fw-bold">{{ helpful }} 👍 Helped</small>
+            <small class="text-danger fw-bold">{{ not_helpful }} 👎 Didn't help</small>
+          </div>
+          <div class="sat-bar mb-2">
+            <div class="sat-fill" style="width: {{ satisfaction }}%"></div>
+          </div>
+          <div class="text-center"><strong>{{ satisfaction }}%</strong> of rated answers were helpful</div>
+          {% if no_feedback > 0 %}
+          <div class="text-center text-muted mt-1" style="font-size:.78rem;">{{ no_feedback }} questions have no feedback yet</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 7-day chart -->
+      <div class="section-card mb-4">
+        <div class="sc-header">📅 Last 7 Days</div>
+        <div class="sc-body">
+          {% with max_count=daily_counts|length %}
+          <div class="chart-bar-wrap">
+            {% for day in daily_counts %}
+            {% with pct=day.count|stringformat:"d" %}
+            <div class="chart-bar-col">
+              <div class="chart-count">{{ day.count }}</div>
+              <div class="chart-bar" style="height: {% if day.count > 0 %}{{ day.count }}0px{% else %}2px{% endif %}; max-height: 60px;"></div>
+              <div class="chart-label">{{ day.date }}</div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+          </div>
+          {% endwith %}
+        </div>
+      </div>
+
+      <!-- Top counties -->
+      <div class="section-card mb-4">
+        <div class="sc-header">📍 Top Counties</div>
+        <div class="sc-body p-0">
+          <table class="table table-sm mb-0" style="font-size:.83rem;">
+            <thead><tr><th>County</th><th class="text-end">Questions</th></tr></thead>
+            <tbody>
+              {% for c in top_counties %}
+              <tr>
+                <td>{{ c.county }}</td>
+                <td class="text-end fw-bold">{{ c.count }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="2" class="text-muted text-center">No county data yet</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Most cited laws -->
+      <div class="section-card">
+        <div class="sc-header">📚 Most Cited Laws</div>
+        <div class="sc-body p-0">
+          <table class="table table-sm mb-0" style="font-size:.8rem;">
+            <thead><tr><th>Law Section</th><th class="text-end">Times Used</th></tr></thead>
+            <tbody>
+              {% for law in top_laws %}
+              <tr>
+                <td>
+                  <div style="font-size:.75rem;color:#666;">{{ law.title|truncatechars:35 }}</div>
+                  <div>{{ law.section }}</div>
+                </td>
+                <td class="text-end fw-bold">{{ law.query_count }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="2" class="text-muted text-center">No data yet — needs queries with laws_used linked</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right column — 👎 review queue -->
+    <div class="col-12 col-lg-8">
+      <div class="section-card">
+        <div class="sc-header">
+          👎 Answers That Didn't Help
+          <span class="badge bg-danger ms-1">{{ not_helpful }}</span>
+          <small class="text-muted fw-normal ms-2">Review each one and add the correct section</small>
+        </div>
+        <div class="sc-body">
+
+          {% if not unhelpful_queries %}
+          <div class="text-center text-success py-4">
+            <div style="font-size:2rem;">🎉</div>
+            <div class="fw-bold">No unhelpful answers yet!</div>
+            <div class="text-muted small">When Wanjiku clicks 👎, the query will appear here for review.</div>
+          </div>
+          {% endif %}
+
+          {% for q in unhelpful_queries %}
+          <div class="review-row">
+            <div class="rr-head">
+              <div class="rr-story">"{{ q.story|truncatechars:120 }}"</div>
+              <div class="rr-meta">
+                #{{ q.pk }}<br>
+                {% if q.county %}<span class="badge bg-secondary">{{ q.county }}</span>{% endif %}<br>
+                {{ q.created_at|date:"d M Y H:i" }}
+              </div>
+            </div>
+            <div class="rr-body">
+              <!-- What the AI answered -->
+              <div class="rr-law">{{ q.answer_law|truncatechars:200 }}</div>
+
+              <!-- Laws used -->
+              {% if q.laws_used.all %}
+              <div class="rr-sources">
+                <strong>Sections used:</strong>
+                {% for law in q.laws_used.all %}
+                <span class="badge-section">{{ law.title|truncatechars:30 }} — {{ law.section }}</span>
+                {% endfor %}
+              </div>
+              {% endif %}
+
+              <!-- Existing correction if any -->
+              {% if q.correct_section %}
+              <div class="alert alert-success py-1 px-2 mb-2" style="font-size:.8rem;">
+                ✅ Correction saved: <strong>{{ q.correct_section }}</strong>
+                {% if q.what_actually_happened %}<br>Note: {{ q.what_actually_happened }}{% endif %}
+              </div>
+              {% endif %}
+
+              <!-- Correction form -->
+              <form method="POST" action="/dashboard/" class="mt-2">
+                {% csrf_token %}
+                <input type="hidden" name="query_id" value="{{ q.pk }}">
+                <div class="row g-2">
+                  <div class="col-12 col-md-5">
+                    <input type="text" name="correct_section" class="form-control form-control-sm"
+                           placeholder="Correct section e.g. Employment Act S.35"
+                           value="{{ q.correct_section }}"
+                           style="font-size:.8rem;">
+                  </div>
+                  <div class="col-12 col-md-5">
+                    <input type="text" name="what_actually_happened" class="form-control form-control-sm"
+                           placeholder="What actually happened / notes"
+                           value="{{ q.what_actually_happened }}"
+                           style="font-size:.8rem;">
+                  </div>
+                  <div class="col-12 col-md-2">
+                    <button type="submit" class="btn btn-sm w-100"
+                            style="background:var(--haki-green);color:#fff;font-size:.8rem;">
+                      Save Fix
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+
+          {% if not_helpful > 50 %}
+          <div class="text-center text-muted small mt-2">
+            Showing latest 50 of {{ not_helpful }} unhelpful queries.
+            <a href="/admin/cases/query/?was_helpful__exact=0">See all in admin →</a>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /row -->
+
+  <!-- Quick actions footer -->
+  <div class="row g-3 mt-2">
+    <div class="col-12">
+      <div class="section-card">
+        <div class="sc-header">⚡ Quick Actions</div>
+        <div class="sc-body d-flex flex-wrap gap-2">
+          <a href="/admin/cases/slangkeyword/add/" class="btn btn-sm btn-outline-success">
+            ➕ Add Slang Keyword
+          </a>
+          <a href="/admin/cases/law/add/" class="btn btn-sm btn-outline-primary">
+            📄 Add Law Section
+          </a>
+          <a href="/admin/cases/query/?was_helpful__exact=0" class="btn btn-sm btn-outline-danger">
+            👎 All Unhelpful Queries
+          </a>
+          <a href="/admin/cases/query/?was_helpful__exact=1" class="btn btn-sm btn-outline-success">
+            👍 All Helpful Queries
+          </a>
+          <a href="/admin/cases/slangkeyword/" class="btn btn-sm btn-outline-secondary">
+            🗣️ Manage Slang Keywords
+          </a>
+          <a href="/admin/" class="btn btn-sm btn-outline-secondary">
+            ⚙️ Full Admin Panel
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<footer style="background:#0f4d26;color:rgba(255,255,255,.6);font-size:.8rem;padding:.75rem 1.5rem;margin-top:2rem;display:flex;justify-content:space-between;">
+  <span>⚖️ HakiMkononi Admin Dashboard</span>
+  <span>Staff only — <a href="/admin/logout/" style="color:#c9a84c;">Logout</a></span>
+</footer>
+
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

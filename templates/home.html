@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}HakiMkononi — {{ ui.hero_title }}{% endblock %}
+
+{% block content %}
+
+<!-- ══ Hero ══════════════════════════════════════════════════════════════ -->
+<section class="py-5" style="background: linear-gradient(135deg, var(--haki-green) 0%, var(--haki-dark) 100%);">
+  <div class="container text-center text-white py-2">
+    <div class="mb-3" style="font-size:3rem;">⚖️</div>
+    <h1 class="display-5 fw-bold mb-2">{{ ui.hero_title }}</h1>
+    <p class="lead mb-1" style="color:rgba(255,255,255,.85);">{{ ui.hero_sub }}</p>
+    <p class="small mb-0" style="color:rgba(255,255,255,.55);">{{ ui.hero_note }}</p>
+  </div>
+</section>
+
+<!-- ══ Form ═══════════════════════════════════════════════════════════════ -->
+<section class="py-4">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-8">
+
+        <!-- Error block -->
+        {% if error %}
+        <div class="alert alert-danger d-flex align-items-start gap-2 mb-4" role="alert">
+          <span style="font-size:1.3rem;">⚠️</span>
+          <div>
+            <strong>{{ ui.error_heading }}</strong> {{ error }}
+            <div class="mt-1 small text-muted">{{ ui.error_retry_hint }}</div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Question card -->
+        <div class="card card-haki mb-4">
+          <div class="card-header bg-white border-bottom py-3">
+            <h2 class="h5 mb-0 fw-bold" style="color:var(--haki-green);">📝 {{ ui.form_heading }}</h2>
+          </div>
+          <div class="card-body p-4">
+            <form method="POST" action="{% url 'ask_web' %}" id="askForm" novalidate>
+              {% csrf_token %}
+              <!-- Pass current language along with the form so ask_web picks it up -->
+              <input type="hidden" name="lang" value="{{ lang }}">
+
+              <!-- Story -->
+              <div class="mb-3">
+                <label for="story" class="form-label fw-semibold">
+                  {{ ui.field_story }} <span class="text-danger">*</span>
+                </label>
+                <textarea id="story" name="story" class="form-control" rows="6"
+                          required
+                          placeholder="{{ ui.story_placeholder }}"
+                          aria-describedby="storyHelp storyCount"
+                          style="resize:vertical; min-height:120px;"
+                >{% if story %}{{ story }}{% endif %}</textarea>
+                <div class="d-flex justify-content-between mt-1">
+                  <small id="storyHelp" class="text-muted">{{ ui.story_help }}</small>
+                  <small id="storyCount" class="text-muted">
+                    <span id="charCount">0</span> {% if lang == "en" %}characters{% else %}herufi{% endif %}
+                    <span id="longWarn" class="text-warning d-none">
+                      — {% if lang == "en" %}long story may take more time{% else %}hadithi ndefu inachukua muda zaidi{% endif %}
+                    </span>
+                  </small>
+                </div>
+
+                <!-- 🎤 Voice input button -->
+                <div class="mt-2 d-flex align-items-center gap-2">
+                  <button type="button" id="micBtn"
+                          class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+                          title="{% if lang == 'en' %}Speak your question{% else %}Sema swali lako{% endif %}"
+                          style="border-radius:20px;">
+                    🎤 <span id="micLabel">{% if lang == "en" %}Speak{% else %}Sema{% endif %}</span>
+                  </button>
+                  <span id="micStatus" class="text-muted small"></span>
+                </div>
+              </div>
+
+              <!-- County -->
+              <div class="mb-3">
+                <label for="county" class="form-label fw-semibold">{{ ui.field_county }}</label>
+                <select id="county" name="county" class="form-select">
+                  <option value="">{{ ui.county_default }}</option>
+                  {% for c in counties %}
+                  <option value="{{ c }}"{% if county == c %} selected{% endif %}>{{ c }}</option>
+                  {% endfor %}
+                </select>
+                <small class="text-muted">{{ ui.county_help }}</small>
+              </div>
+
+              <!-- Submit -->
+              <div class="d-grid">
+                <button type="submit" class="btn btn-haki btn-lg" id="submitBtn">
+                  <span id="btnText">🔍 {{ ui.btn_submit }}</span>
+                  <span id="btnSpinner" class="d-none">
+                    <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                    {{ ui.btn_loading }}
+                  </span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Example chips -->
+        <div class="mb-2">
+          <p class="text-muted small fw-semibold mb-2">💡 {{ ui.chips_label }}</p>
+          <div class="d-flex flex-wrap gap-2">
+            {% for chip in ui.chips %}
+            <span class="chip" onclick="fillExample(this)">{{ chip }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ How it works ════════════════════════════════════════════════════════ -->
+<section class="py-5 bg-white border-top">
+  <div class="container">
+    <h2 class="text-center fw-bold mb-4" style="color:var(--haki-green);">{{ ui.how_title }}</h2>
+    <div class="row g-4 text-center">
+      <div class="col-12 col-md-4">
+        <div class="p-3">
+          <div style="font-size:2.5rem;">✍️</div>
+          <h5 class="fw-bold mt-2">{{ ui.how_1_title }}</h5>
+          <p class="text-muted small">{{ ui.how_1_body }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="p-3">
+          <div style="font-size:2.5rem;">🤖</div>
+          <h5 class="fw-bold mt-2">{{ ui.how_2_title }}</h5>
+          <p class="text-muted small">{{ ui.how_2_body }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="p-3">
+          <div style="font-size:2.5rem;">📋</div>
+          <h5 class="fw-bold mt-2">{{ ui.how_3_title }}</h5>
+          <p class="text-muted small">{{ ui.how_3_body }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ Disclaimer strip ════════════════════════════════════════════════════ -->
+<section class="py-3" style="background:var(--haki-light);">
+  <div class="container">
+    <p class="text-center small text-muted mb-0">
+      ⚠️ {{ ui.disclaimer }} &nbsp;|&nbsp;
+      <a href="https://kenyalaw.org" target="_blank" rel="noopener"
+         style="color:var(--haki-green);">Kenya Law ↗</a>
+    </p>
+  </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+  const storyEl  = document.getElementById('story');
+  const countEl  = document.getElementById('charCount');
+
+  function updateCount() {
+    var n = storyEl.value.length;
+    countEl.textContent = n;
+    var warn = document.getElementById('longWarn');
+    if (warn) {
+      if (n > 2000) { warn.classList.remove('d-none'); }
+      else          { warn.classList.add('d-none'); }
+    }
+  }
+  storyEl.addEventListener('input', updateCount);
+  updateCount();
+
+  function fillExample(el) {
+    storyEl.value = el.textContent.trim();
+    storyEl.classList.remove('is-invalid');
+    updateCount();
+    storyEl.focus();
+    storyEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  document.getElementById('askForm').addEventListener('submit', function(e) {
+    if (storyEl.value.trim().length < 3) {
+      e.preventDefault();
+      storyEl.classList.add('is-invalid');
+      storyEl.focus();
+      return;
+    }
+    storyEl.classList.remove('is-invalid');
+    document.getElementById('btnText').classList.add('d-none');
+    document.getElementById('btnSpinner').classList.remove('d-none');
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('loadingOverlay').classList.add('show');
+    if (window.startLoadingTimer) window.startLoadingTimer();
+  });
+
+  storyEl.addEventListener('input', function() { this.classList.remove('is-invalid'); });
+
+  // ── 🎤 Voice input ─────────────────────────────────────────────────────────
+  var mediaRecorder = null;
+  var audioChunks   = [];
+  var isRecording   = false;
+  var micBtn        = document.getElementById('micBtn');
+  var micLabel      = document.getElementById('micLabel');
+  var micStatus     = document.getElementById('micStatus');
+  var LANG          = "{{ lang }}";
+
+  var msgs = {
+    sw: { speak: 'Sema', recording: '🔴 Inarekodia… bonyeza tena kusimama',
+          transcribing: '⏳ Inatafsiri…', done: '✅ Imetafsiriwa', error: '❌ Hitilafu — jaribu tena',
+          unsupported: '❌ Kivinjari chako hakisaidii kurekodi' },
+    en: { speak: 'Speak', recording: '🔴 Recording… tap again to stop',
+          transcribing: '⏳ Transcribing…', done: '✅ Done', error: '❌ Error — try again',
+          unsupported: '❌ Your browser does not support recording' },
+  };
+  var M = msgs[LANG] || msgs['sw'];
+
+  if (!navigator.mediaDevices || !window.MediaRecorder) {
+    micBtn.title = M.unsupported;
+    micBtn.disabled = true;
+    micBtn.style.opacity = '.4';
+  }
+
+  micBtn.addEventListener('click', async function() {
+    if (isRecording) {
+      // Stop recording
+      mediaRecorder.stop();
+      return;
+    }
+
+    // Start recording
+    try {
+      var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks   = [];
+      mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+
+      mediaRecorder.ondataavailable = function(e) {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = async function() {
+        isRecording = false;
+        micBtn.classList.remove('btn-danger');
+        micBtn.classList.add('btn-outline-secondary');
+        micLabel.textContent = M.speak;
+        micStatus.textContent = M.transcribing;
+
+        // Stop all tracks
+        stream.getTracks().forEach(function(t) { t.stop(); });
+
+        // Send to server
+        var blob    = new Blob(audioChunks, { type: 'audio/webm' });
+        var formData = new FormData();
+        formData.append('audio', blob, 'recording.webm');
+        formData.append('lang', LANG);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        try {
+          var resp = await fetch('/api/transcribe/', { method: 'POST', body: formData });
+          var data = await resp.json();
+          if (data.transcript) {
+            storyEl.value = data.transcript;
+            updateCount();
+            storyEl.focus();
+            micStatus.textContent = M.done;
+            setTimeout(function() { micStatus.textContent = ''; }, 3000);
+          } else {
+            micStatus.textContent = M.error;
+          }
+        } catch(err) {
+          micStatus.textContent = M.error;
+        }
+      };
+
+      mediaRecorder.start();
+      isRecording = true;
+      micBtn.classList.remove('btn-outline-secondary');
+      micBtn.classList.add('btn-danger');
+      micLabel.textContent = M.recording.replace('🔴 ', '');
+      micStatus.textContent = M.recording;
+
+    } catch(err) {
+      micStatus.textContent = '❌ ' + (err.message || 'Microphone access denied');
+    }
+  });
+</script>
+{% endblock %}

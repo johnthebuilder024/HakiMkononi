@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Register as a Lawyer — HakiMkononi{% endblock %}
+
+{% block content %}
+<section class="py-4" style="background:linear-gradient(135deg,var(--haki-green),var(--haki-dark));">
+  <div class="container text-white text-center py-2">
+    <div style="font-size:2.5rem;">⚖️</div>
+    <h1 class="h3 fw-bold">Register as a Verified Lawyer</h1>
+    <p style="color:rgba(255,255,255,.8);">Help Wanjiku find justice. Join HakiMkononi's verified lawyer network.</p>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-8">
+
+        <!-- Steps indicator -->
+        <div class="d-flex gap-3 mb-4 align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--haki-green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">1</div>
+            <span class="fw-semibold">Basic Info</span>
+          </div>
+          <div style="flex:1;height:2px;background:#dee2e6;"></div>
+          <div class="d-flex align-items-center gap-2 text-muted">
+            <div style="width:32px;height:32px;border-radius:50%;background:#dee2e6;color:#666;display:flex;align-items:center;justify-content:center;font-weight:700;">2</div>
+            <span>Upload Documents</span>
+          </div>
+          <div style="flex:1;height:2px;background:#dee2e6;"></div>
+          <div class="d-flex align-items-center gap-2 text-muted">
+            <div style="width:32px;height:32px;border-radius:50%;background:#dee2e6;color:#666;display:flex;align-items:center;justify-content:center;font-weight:700;">3</div>
+            <span>Verification</span>
+          </div>
+        </div>
+
+        <div class="card card-haki">
+          <div class="card-header bg-white border-bottom py-3">
+            <h2 class="h5 mb-0 fw-bold" style="color:var(--haki-green);">Step 1: Basic Information</h2>
+          </div>
+          <div class="card-body p-4">
+            <form method="POST" novalidate>
+              {% csrf_token %}
+
+              <div class="row g-3">
+
+                <!-- Full name -->
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                  <input type="text" name="full_name" class="form-control {% if errors.full_name %}is-invalid{% endif %}"
+                         value="{{ data.full_name|default:'' }}" required>
+                  {% if errors.full_name %}<div class="invalid-feedback">{{ errors.full_name }}</div>{% endif %}
+                  <small class="text-muted">Exactly as on your LSK practicing certificate</small>
+                </div>
+
+                <!-- Email -->
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                  <input type="email" name="email" class="form-control {% if errors.email %}is-invalid{% endif %}"
+                         value="{{ data.email|default:'' }}" required>
+                  {% if errors.email %}<div class="invalid-feedback">{{ errors.email }}</div>{% endif %}
+                </div>
+
+                <!-- Phone -->
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
+                  <input type="tel" name="phone" class="form-control {% if errors.phone %}is-invalid{% endif %}"
+                         value="{{ data.phone|default:'' }}" placeholder="+254712345678" required>
+                  {% if errors.phone %}<div class="invalid-feedback">{{ errors.phone }}</div>{% endif %}
+                </div>
+
+                <!-- WhatsApp -->
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold">WhatsApp Number</label>
+                  <input type="tel" name="whatsapp" class="form-control"
+                         value="{{ data.whatsapp|default:'' }}" placeholder="+254712345678">
+                  <small class="text-muted">Clients will be connected here. Leave blank to use phone.</small>
+                </div>
+
+                <!-- LSK Number -->
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold">LSK Number <span class="text-danger">*</span></label>
+                  <input type="text" name="lsk_number" class="form-control {% if errors.lsk_number %}is-invalid{% endif %}"
+                         value="{{ data.lsk_number|default:'' }}" placeholder="P.105/1234/2024"
+                         style="font-family:monospace;" required>
+                  {% if errors.lsk_number %}<div class="invalid-feedback">{{ errors.lsk_number }}</div>{% endif %}
+                  <small class="text-muted">Format: P.XXX/XXXX/YYYY</small>
+                </div>
+
+                <!-- LSK Name -->
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold">Name on LSK Register</label>
+                  <input type="text" name="lsk_name" class="form-control"
+                         value="{{ data.lsk_name|default:'' }}"
+                         placeholder="As it appears on kenyalaw.org">
+                </div>
+
+                <!-- County -->
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold">Primary County <span class="text-danger">*</span></label>
+                  <select name="county" class="form-select {% if errors.county %}is-invalid{% endif %}" required>
+                    <option value="">-- Select county --</option>
+                    {% for c in counties %}
+                    <option value="{{ c }}" {% if data.county == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                  </select>
+                  {% if errors.county %}<div class="invalid-feedback">{{ errors.county }}</div>{% endif %}
+                </div>
+
+                <!-- Secondary County -->
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold">Second County (optional)</label>
+                  <select name="county_secondary" class="form-select">
+                    <option value="">-- None --</option>
+                    {% for c in counties %}
+                    <option value="{{ c }}" {% if data.county_secondary == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <!-- Specialties -->
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Specialties <span class="text-danger">*</span></label>
+                  {% if errors.specialties %}<div class="text-danger small mb-1">{{ errors.specialties }}</div>{% endif %}
+                  <div class="row g-2">
+                    {% for code, label in specialty_choices %}
+                    <div class="col-6 col-md-4">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="specialties"
+                               value="{{ code }}" id="spec_{{ code }}"
+                               {% if code in data.specialties %}checked{% endif %}>
+                        <label class="form-check-label" for="spec_{{ code }}">{{ label }}</label>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <!-- Years experience -->
+                <div class="col-12 col-md-4">
+                  <label class="form-label fw-semibold">Years of Experience</label>
+                  <input type="number" name="years_experience" class="form-control" min="0" max="50"
+                         value="{{ data.years_experience|default:'0' }}">
+                </div>
+
+                <!-- Firm name -->
+                <div class="col-12 col-md-8">
+                  <label class="form-label fw-semibold">Law Firm Name (optional)</label>
+                  <input type="text" name="firm_name" class="form-control"
+                         value="{{ data.firm_name|default:'' }}">
+                </div>
+
+                <!-- Bio -->
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Professional Bio <span class="text-danger">*</span></label>
+                  <textarea name="bio" class="form-control {% if errors.bio %}is-invalid{% endif %}"
+                            rows="3" maxlength="500"
+                            placeholder="Brief professional bio — why should Wanjiku trust you? (max 500 chars)">{{ data.bio|default:'' }}</textarea>
+                  {% if errors.bio %}<div class="invalid-feedback">{{ errors.bio }}</div>{% endif %}
+                </div>
+
+              </div>
+
+              <div class="alert alert-info mt-4 d-flex gap-2" style="font-size:.85rem;">
+                <span>ℹ️</span>
+                <div>
+                  After submitting this form you will be asked to upload verification documents
+                  (Practicing Certificate, National ID, Selfie with ID, KRA PIN).
+                  Your application will be reviewed by our team within 24 hours.
+                </div>
+              </div>
+
+              <div class="d-grid mt-3">
+                <button type="submit" class="btn btn-haki btn-lg">
+                  Continue to Document Upload →
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,236 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ ui.html_lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="HakiMkononi — {{ ui.hero_sub }}">
+  <title>{% block title %}HakiMkononi{% endblock %}</title>
+
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+
+  <style>
+    :root {
+      --haki-green:  #1a7a3c;
+      --haki-dark:   #0f4d26;
+      --haki-light:  #e8f5ee;
+      --haki-gold:   #c9a84c;
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #f9fafb; color: #1a1a2e;
+      min-height: 100vh; display: flex; flex-direction: column;
+    }
+    main { flex: 1; }
+
+    /* Navbar */
+    .navbar-haki { background: var(--haki-green); border-bottom: 3px solid var(--haki-gold); }
+    .navbar-haki .navbar-brand { font-weight: 800; font-size: 1.3rem; color: #fff !important; letter-spacing: .4px; }
+    .navbar-haki .navbar-brand span { color: var(--haki-gold); }
+    .navbar-haki .nav-link { color: rgba(255,255,255,.85) !important; font-weight: 500; transition: color .15s; }
+    .navbar-haki .nav-link:hover, .navbar-haki .nav-link.active { color: #fff !important; }
+    .navbar-toggler { border: none; }
+    .navbar-toggler-icon { filter: invert(1); }
+
+    /* Language pills */
+    .lang-pill {
+      display: inline-block; padding: .25em .75em; border-radius: 50px;
+      font-size: .8rem; font-weight: 600; text-decoration: none;
+      border: 1.5px solid rgba(255,255,255,.45); color: rgba(255,255,255,.85);
+      transition: background .15s, color .15s, border-color .15s; white-space: nowrap;
+    }
+    .lang-pill:hover { background: rgba(255,255,255,.15); color: #fff; border-color: #fff; }
+    .lang-pill.active { background: var(--haki-gold); color: #000; border-color: var(--haki-gold); }
+
+    /* Buttons */
+    .btn-haki { background: var(--haki-green); border-color: var(--haki-green); color: #fff; font-weight: 600; }
+    .btn-haki:hover, .btn-haki:focus { background: var(--haki-dark); border-color: var(--haki-dark); color: #fff; }
+
+    /* Cards */
+    .card-haki { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+    .card-haki .card-header { border-radius: 12px 12px 0 0 !important; font-weight: 700; font-size: .92rem; }
+
+    /* Answer box accents */
+    .box-law    { border-left: 5px solid var(--haki-green); }
+    .box-simple { border-left: 5px solid #0077b6; }
+    .box-rights { border-left: 5px solid #f77f00; }
+    .box-letter { border-left: 5px solid #9b2226; }
+
+    /* Chips */
+    .chip {
+      display: inline-block; padding: .32em .85em; border-radius: 50px;
+      font-size: .82rem; font-weight: 500; cursor: pointer;
+      background: var(--haki-light); color: var(--haki-dark);
+      border: 1px solid #b6d9c3; transition: background .15s, color .15s;
+    }
+    .chip:hover { background: var(--haki-green); color: #fff; border-color: var(--haki-green); }
+
+    /* Footer */
+    footer { background: var(--haki-dark); color: rgba(255,255,255,.75); font-size: .85rem; padding: 1.2rem 0; margin-top: auto; }
+    footer a { color: var(--haki-gold); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* Loading overlay */
+    #loadingOverlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.6); z-index: 9999;
+      flex-direction: column; align-items: center; justify-content: center; color: #fff;
+    }
+    #loadingOverlay.show { display: flex; }
+
+    /* Serious-case banner */
+    .serious-banner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    @media (max-width: 576px) {
+      .display-5 { font-size: 1.55rem; }
+      .lang-pill  { font-size: .75rem; padding: .2em .6em; }
+    }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-haki sticky-top shadow-sm">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'home' %}">⚖️ Haki<span>Mkononi</span></a>
+    <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse" data-bs-target="#mainNav"
+            aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav me-auto gap-1">
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+             href="{% url 'home' %}">🏠 {{ ui.nav_home }}</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}"
+             href="{% url 'about' %}">ℹ️ {{ ui.nav_about }}</a>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0"
+           role="navigation" aria-label="Language selector">
+        {% for l in supported_langs %}
+        <a href="?lang={{ l.lang_code }}"
+           class="lang-pill {% if lang == l.lang_code %}active{% endif %}"
+           title="{{ l.lang_name }}">{{ l.lang_name }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Loading overlay with live elapsed timer -->
+<div id="loadingOverlay" role="status" aria-live="polite">
+  <div class="text-center px-4" style="max-width:380px;">
+    <div class="spinner-border text-light mb-3"
+         style="width:3.5rem;height:3.5rem;" aria-hidden="true"></div>
+    <h5 class="fw-semibold mb-1">{{ ui.loading_title }}</h5>
+    <p class="text-white-50 small mb-3">{{ ui.loading_sub }}</p>
+
+    <div class="rounded p-3" style="background:rgba(255,255,255,.1);">
+      <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+        <span style="width:10px;height:10px;border-radius:50%;background:#4ade80;
+                     display:inline-block;animation:pulse 1.2s infinite;"></span>
+        <span class="text-white fw-semibold small">
+          {% if lang == "en" %}Working…{% elif lang == "sheng" %}Inawork…{% else %}Inafanya kazi…{% endif %}
+        </span>
+        <span class="text-white fw-bold" id="elapsedTime">0s</span>
+      </div>
+      <div class="progress" style="height:6px;background:rgba(255,255,255,.2);">
+        <div id="timerBar" class="progress-bar bg-success"
+             style="width:0%;transition:width 1s linear;"></div>
+      </div>
+      <p class="text-white-50 mt-2 mb-0 small" id="timerHint">
+        {% if lang == "en" %}Reading the law for you — results appear as they are ready.
+        {% elif lang == "sheng" %}Inasoma sheria — majibu yataonekana mara mara.
+        {% else %}Inasoma sheria — majibu yataonekana mara mara.{% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Main content -->
+<main>{% block content %}{% endblock %}</main>
+
+<!-- Footer -->
+<footer>
+  <div class="container d-flex flex-column flex-md-row
+              justify-content-between align-items-center gap-2">
+    <span>© 2024 <strong>HakiMkononi</strong> — {{ ui.footer_tagline }}</span>
+    <span>
+      <a href="{% url 'about' %}">{{ ui.nav_about }}</a> &nbsp;·&nbsp;
+      <a href="https://kenyalaw.org" target="_blank" rel="noopener">Kenya Law</a>
+    </span>
+    <span class="text-white-50">{{ ui.footer_legal }}</span>
+  </div>
+</footer>
+
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+<!-- Keep current page path when switching language -->
+<script>
+  document.querySelectorAll('.lang-pill').forEach(function(a) {
+    var code = new URL(a.href, location.href).searchParams.get('lang');
+    var url  = new URL(location.href);
+    url.searchParams.set('lang', code);
+    a.href = url.toString();
+  });
+</script>
+
+<!-- Live elapsed timer for the loading overlay -->
+<script>
+  var _timerInterval = null;
+  var _timeoutSecs   = 1200; // 20 min display max — server has its own real timeout
+
+  window.startLoadingTimer = function() {
+    var start   = Date.now();
+    var bar     = document.getElementById('timerBar');
+    var elapsed = document.getElementById('elapsedTime');
+    var hint    = document.getElementById('timerHint');
+    if (!bar) return;
+
+    var lang = '{{ lang }}';
+    var at60 = {
+      sw:    'Bado inaendelea — HakiMkononi inasoma sheria kwa makini…',
+      en:    'Still going — reading the law carefully for you…',
+      sheng: 'Bado inaendelea — inasoma sheria kwa makini…'
+    };
+    var at120 = {
+      sw:    'Karibu kumaliza — subiri kidogo zaidi…',
+      en:    'Almost there — just a little longer…',
+      sheng: 'Karibu kuisha — subiri kidogo tu buda…'
+    };
+
+    _timerInterval = setInterval(function() {
+      var secs = Math.floor((Date.now() - start) / 1000);
+      var pct  = Math.min((secs / _timeoutSecs) * 100, 100);
+
+      elapsed.textContent = secs < 60
+        ? secs + 's'
+        : Math.floor(secs / 60) + 'm ' + (secs % 60) + 's';
+      bar.style.width = pct + '%';
+
+      if      (pct > 80) bar.className = 'progress-bar bg-danger';
+      else if (pct > 50) bar.className = 'progress-bar bg-warning';
+      else               bar.className = 'progress-bar bg-success';
+
+      if (secs === 60  && at60[lang])  hint.textContent = at60[lang];
+      if (secs === 120 && at120[lang]) hint.textContent = at120[lang];
+    }, 1000);
+  };
+
+  window.stopLoadingTimer = function() {
+    if (_timerInterval) { clearInterval(_timerInterval); _timerInterval = null; }
+    document.getElementById('loadingOverlay').classList.remove('show');
+  };
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

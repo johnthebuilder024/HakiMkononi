@@ -1,0 +1,4 @@
+PASS [Employment — Kiswahili]
+PASS [Land / Landlord — English]
+PASS [Criminal — Sheng]
+PASS [Employment — Sheng (fired without notice)]
