@@ -10,12 +10,7 @@ dj-database-url
 
 # AI / ML
 openai
-sentence-transformers
 numpy
-torch
-transformers
-huggingface-hub
-tokenizers
 
 # PDF parsing
 pdfplumber

@@ -11,12 +11,15 @@ The AI can only cite what is in our database.
 """
 
 import json
+import os
 import time
 import numpy as np
-from sentence_transformers import SentenceTransformer
+import requests as _requests
 
-# Load once at startup — model is cached after first load
-_model = None
+# ── Groq embedding API — zero RAM cost, replaces sentence-transformers ────────
+# Model: nomic-embed-text-v1.5  (free on Groq, 768-dim output)
+_GROQ_EMBED_URL = "https://api.groq.com/openai/v1/embeddings"
+_GROQ_EMBED_MODEL = "nomic-embed-text-v1.5"
 
 # ── Slang keyword cache — refreshes every 5 minutes ──────────────────────────
 _slang_cache: dict = {}
@@ -41,20 +44,19 @@ def _load_slang_from_db() -> dict:
         return _slang_cache or {}
 
 
-def get_model():
-    global _model
-    if _model is None:
-        print("[RAG] Loading SentenceTransformer model...")
-        _model = SentenceTransformer('all-MiniLM-L6-v2')
-        print("[RAG] Model loaded.")
-    return _model
-
-
 def embed_text(text: str) -> list:
-    """Convert a string to a vector (list of floats)."""
-    model = get_model()
-    vector = model.encode(text, normalize_embeddings=True)
-    return vector.tolist()
+    """Convert a string to a vector using Groq's embedding API (no RAM cost)."""
+    api_key = os.getenv("GROQ_API_KEY", "")
+    if not api_key:
+        raise RuntimeError("GROQ_API_KEY not set — cannot generate embeddings.")
+    resp = _requests.post(
+        _GROQ_EMBED_URL,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        json={"model": _GROQ_EMBED_MODEL, "input": text},
+        timeout=15,
+    )
+    resp.raise_for_status()
+    return resp.json()["data"][0]["embedding"]
 
 
 def cosine_similarity(vec_a: list, vec_b: list) -> float:

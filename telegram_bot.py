@@ -33,7 +33,7 @@ from telegram.ext import (
 
 from cases.models import WhatsAppUser
 from asgiref.sync import sync_to_async
-from cases.rag import find_relevant_laws, get_model
+from cases.rag import find_relevant_laws
 from cases.ai_engine import (
     _call_groq, SYSTEM_PROMPTS, _USER_MESSAGES,
     format_law_context, parse_answer_sections, is_serious_criminal,
@@ -49,9 +49,6 @@ logger = logging.getLogger("hakimkononi_bot")
 # ── Conversation states ───────────────────────────────────────────────────────
 CHOOSING_LANG = 1
 ANSWERING     = 2
-
-# ── Pre-warm RAG model at startup ─────────────────────────────────────────────
-threading.Thread(target=get_model, daemon=True).start()
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

@@ -20,19 +20,8 @@ from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 
 from cases.models import Law, Query, AnswerJob
-from cases.rag import find_relevant_laws, get_model   # get_model pre-warms RAG
+from cases.rag import find_relevant_laws
 from cases.ai_engine import get_answer
-
-# ── Pre-warm the SentenceTransformer at import time so the first WhatsApp
-#    message doesn't pay the 8-10s cold-start penalty.
-def _prewarm():
-    try:
-        get_model()
-        print("[Startup] SentenceTransformer model pre-warmed.")
-    except Exception as e:
-        print(f"[Startup] Model pre-warm failed: {e}")
-
-threading.Thread(target=_prewarm, daemon=True).start()
 
 
 # ─── Background worker ───────────────────────────────────────────────────────
