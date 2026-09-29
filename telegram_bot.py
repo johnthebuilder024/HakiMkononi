@@ -659,7 +659,6 @@ async def handle_letter_phone(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def cmd_skip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-async def cmd_skip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """User skipped name or phone step — send letter with remaining placeholders."""
     lang         = context.user_data.get('letter_lang', 'en')
     name         = context.user_data.get('letter_name', '')
