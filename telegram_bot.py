@@ -540,5 +540,32 @@ def main():
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
+def run_bot_in_thread():
+    """
+    Start the Telegram bot in a background daemon thread.
+    Called from cases/apps.py AppConfig.ready() so it runs
+    inside the same gunicorn process — no second Render service needed.
+    """
+    import threading
+    import asyncio
+
+    def _run():
+        token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+        if not token or token == "your-token-here":
+            print("[TelegramBot] TELEGRAM_BOT_TOKEN not set — bot disabled.")
+            return
+        try:
+            # Each thread needs its own event loop
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            main()
+        except Exception as e:
+            print(f"[TelegramBot] Crashed: {e}")
+
+    t = threading.Thread(target=_run, daemon=True, name="telegram-bot")
+    t.start()
+    print("[TelegramBot] Started in background thread.")
+
+
 if __name__ == "__main__":
     main()
