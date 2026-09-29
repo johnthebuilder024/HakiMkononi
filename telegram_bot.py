@@ -47,6 +47,7 @@ logger = logging.getLogger("hakimkononi_bot")
 # ── Conversation states ───────────────────────────────────────────────────────
 CHOOSING_LANG = 1
 ANSWERING     = 2
+FILLING_LETTER = 3
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -79,7 +80,26 @@ async def _set_user_state(user: WhatsAppUser, state: str):
     await _db()
 
 
-def _lang_keyboard():
+def _fill_letter(template: str, name: str) -> str:
+    """Replace [YOUR NAME] and [DATE] placeholders with real values."""
+    from datetime import date
+    today = date.today().strftime("%-d %B %Y") if hasattr(date.today(), 'strftime') else date.today().isoformat()
+    # Windows-safe date formatting
+    try:
+        from datetime import date as _date
+        today = _date.today().strftime("%d %B %Y").lstrip("0")
+    except Exception:
+        today = date.today().isoformat()
+
+    result = template
+    result = result.replace("[YOUR NAME]", name)
+    result = result.replace("[JINA LAKO]", name)
+    result = result.replace("[DATE]", today)
+    result = result.replace("[TAREHE]", today)
+    # Leave address blank with a hint
+    result = result.replace("[YOUR ADDRESS]", "[Your address]")
+    result = result.replace("[ANWANI YAKO]", "[Anwani yako]")
+    return result
     return ReplyKeyboardMarkup(
         [["1️⃣ Kiswahili", "2️⃣ English"]],
         one_time_keyboard=True,
@@ -472,6 +492,26 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             for chunk in chunks:
                 await update.message.reply_text(chunk, parse_mode="Markdown")
 
+        # ── If letter was generated, ask for name to personalise it ──────────
+        if answer.get('letter') and '[YOUR NAME]' in answer['letter'] or \
+           answer.get('letter') and '[JINA LAKO]' in answer['letter']:
+            context.user_data['pending_letter'] = answer['letter']
+            context.user_data['letter_lang']    = reply_lang
+            name_prompt = {
+                'sw': (
+                    "✍️ *Barua ipo tayari!*\n\n"
+                    "Niambie *jina lako kamili* ili niijaze barua yako:\n"
+                    "_(au andika /skip kuruka hatua hii)_"
+                ),
+                'en': (
+                    "✍️ *Your letter is ready!*\n\n"
+                    "Type your *full name* and I'll fill it in for you:\n"
+                    "_(or type /skip to skip this step)_"
+                ),
+            }.get(reply_lang, "✍️ Type your full name to complete the letter:")
+            await update.message.reply_text(name_prompt, parse_mode="Markdown")
+            return FILLING_LETTER
+
         followup = {
             'sw': '❓ Una swali lingine? Andika hapa.',
             'en': '❓ Have another question? Just type it.',
@@ -490,6 +530,75 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         }.get(lang, '❌ Sorry, please try again.')
         await update.message.reply_text(err)
 
+    return ANSWERING
+
+
+async def handle_letter_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """User replied with their name — fill the letter and send it."""
+    name = update.message.text.strip()
+    lang = context.user_data.get('letter_lang', 'en')
+    letter_template = context.user_data.get('pending_letter', '')
+
+    # Clear stored letter
+    context.user_data.pop('pending_letter', None)
+    context.user_data.pop('letter_lang', None)
+
+    if not letter_template:
+        await update.message.reply_text(
+            '❓ Una swali lingine? Andika hapa.' if lang == 'sw'
+            else '❓ Have another question? Just type it.'
+        )
+        return ANSWERING
+
+    filled = _fill_letter(letter_template, name)
+
+    intro = {
+        'sw': f"✅ *Barua yako, {name}:*\n\n",
+        'en': f"✅ *Your completed letter, {name}:*\n\n",
+    }.get(lang, f"✅ *Your letter:*\n\n")
+
+    full_letter = intro + f"```\n{filled}\n```"
+
+    # Telegram max message is 4096 chars
+    if len(full_letter) <= 4000:
+        await update.message.reply_text(full_letter, parse_mode="Markdown")
+    else:
+        # Split into intro + letter body
+        await update.message.reply_text(intro, parse_mode="Markdown")
+        # Send letter in chunks of 3500
+        for i in range(0, len(filled), 3500):
+            await update.message.reply_text(f"```\n{filled[i:i+3500]}\n```", parse_mode="Markdown")
+
+    tip = {
+        'sw': (
+            "💡 *Vidokezo:*\n"
+            "• Badilisha \[Anwani yako\] na anwani yako halisi\n"
+            "• Tuma kwa barua pepe au mkono\n"
+            "• Hifadhi nakala moja\n\n"
+            "❓ Una swali lingine? Andika hapa."
+        ),
+        'en': (
+            "💡 *Tips:*\n"
+            "• Replace \[Your address\] with your actual address\n"
+            "• Send by email or hand-deliver\n"
+            "• Keep a copy for yourself\n\n"
+            "❓ Have another question? Just type it."
+        ),
+    }.get(lang, "❓ Have another question? Just type it.")
+    await update.message.reply_text(tip, parse_mode="Markdown")
+    return ANSWERING
+
+
+async def cmd_skip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """User skipped the name step."""
+    lang = context.user_data.get('letter_lang', 'en')
+    context.user_data.pop('pending_letter', None)
+    context.user_data.pop('letter_lang', None)
+    msg = {
+        'sw': '👍 Sawa. Unaweza kubadilisha \[JINA LAKO\] mwenyewe.\n\n❓ Una swali lingine?',
+        'en': '👍 OK. You can replace \[YOUR NAME\] yourself.\n\n❓ Have another question?',
+    }.get(lang, '❓ Have another question?')
+    await update.message.reply_text(msg, parse_mode="Markdown")
     return ANSWERING
 
 
@@ -521,11 +630,18 @@ def _build_app(token: str):
                 MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question),
             ],
+            FILLING_LETTER: [
+                CommandHandler("skip",     cmd_skip),
+                CommandHandler("language", cmd_language),
+                CommandHandler("start",    cmd_start),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_letter_name),
+            ],
         },
         fallbacks=[
             CommandHandler("start",    cmd_start),
             CommandHandler("language", cmd_language),
             CommandHandler("help",     cmd_help),
+            CommandHandler("skip",     cmd_skip),
         ],
         per_user=True,
         per_chat=True,
