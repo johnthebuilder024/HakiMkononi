@@ -16,10 +16,9 @@ import time
 import numpy as np
 import requests as _requests
 
-# ── Groq embedding API — zero RAM cost, replaces sentence-transformers ────────
-# Model: nomic-embed-text-v1.5  (free on Groq, 768-dim output)
-_GROQ_EMBED_URL = "https://api.groq.com/openai/v1/embeddings"
-_GROQ_EMBED_MODEL = "nomic-embed-text-v1.5"
+# ── Google Gemini Embedding API — free tier, no credit card ──────────────────
+# Model: gemini-embedding-001  (768-dim, free on Google AI Studio)
+_GEMINI_EMBED_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent"
 
 # ── Slang keyword cache — refreshes every 5 minutes ──────────────────────────
 _slang_cache: dict = {}
@@ -45,18 +44,21 @@ def _load_slang_from_db() -> dict:
 
 
 def embed_text(text: str) -> list:
-    """Convert a string to a vector using Groq's embedding API (no RAM cost)."""
-    api_key = os.getenv("GROQ_API_KEY", "")
+    """Convert a string to a vector using Google Gemini embedding API (free, no RAM cost)."""
+    api_key = os.getenv("GEMINI_API_KEY", "")
     if not api_key:
-        raise RuntimeError("GROQ_API_KEY not set — cannot generate embeddings.")
+        raise RuntimeError("GEMINI_API_KEY not set — cannot generate embeddings.")
     resp = _requests.post(
-        _GROQ_EMBED_URL,
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-        json={"model": _GROQ_EMBED_MODEL, "input": text},
+        f"{_GEMINI_EMBED_URL}?key={api_key}",
+        headers={"Content-Type": "application/json"},
+        json={
+            "model": "models/gemini-embedding-001",
+            "content": {"parts": [{"text": text}]},
+        },
         timeout=15,
     )
     resp.raise_for_status()
-    return resp.json()["data"][0]["embedding"]
+    return resp.json()["embedding"]["values"]
 
 
 def cosine_similarity(vec_a: list, vec_b: list) -> float:
