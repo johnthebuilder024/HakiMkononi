@@ -20,6 +20,69 @@ import requests as _requests
 # Model: gemini-embedding-001  (3072-dim, free on Google AI Studio)
 _GEMINI_EMBED_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent"
 
+# ── Law section in-memory cache ───────────────────────────────────────────────
+# Loaded once at first query, then reused forever (or until invalidated).
+# Each entry is a plain dict — no ORM overhead, no DB hit per question.
+# Structure: {id, title, section, category, source_url, vec (np.ndarray)}
+#
+# RAM estimate: 4,231 sections × 3,072 floats × 4 bytes ≈ 52 MB
+# Well within Render's 512 MB free-tier limit now that torch is gone.
+#
+# To force a reload (e.g. after loading new laws) call: invalidate_law_cache()
+
+_law_cache: list = []           # list of dicts, one per section
+_law_cache_loaded: bool = False  # True once loaded
+_law_cache_lock = __import__('threading').Lock()
+
+
+def _load_law_cache():
+    """Load all embedded law sections from DB into memory. Called once."""
+    global _law_cache, _law_cache_loaded
+    from cases.models import Law
+    print("[RAG] Loading law sections into memory cache...")
+    rows = Law.objects.exclude(embedding_json='').exclude(embedding_json__isnull=True) \
+                      .values('id', 'title', 'section', 'category', 'source_url', 'embedding_json')
+    cache = []
+    for r in rows:
+        try:
+            vec = np.array(json.loads(r['embedding_json']), dtype=np.float32)
+            cache.append({
+                'id':         r['id'],
+                'title':      r['title'],
+                'section':    r['section'],
+                'category':   r['category'],
+                'source_url': r['source_url'],
+                'vec':        vec,
+            })
+        except Exception:
+            continue
+    _law_cache = cache
+    _law_cache_loaded = True
+    print(f"[RAG] ✅ Cached {len(cache)} law sections in memory.")
+
+
+def _get_law_cache() -> list:
+    """Return the cache, loading it first if needed. Thread-safe."""
+    global _law_cache_loaded
+    if not _law_cache_loaded:
+        with _law_cache_lock:
+            if not _law_cache_loaded:   # double-checked locking
+                _load_law_cache()
+    return _law_cache
+
+
+def invalidate_law_cache():
+    """
+    Call this after adding/updating law sections so the next query
+    reloads from DB. E.g. after running load_pdf management command.
+    """
+    global _law_cache, _law_cache_loaded
+    with _law_cache_lock:
+        _law_cache = []
+        _law_cache_loaded = False
+    print("[RAG] Law cache invalidated — will reload on next query.")
+
+
 # ── Slang keyword cache — refreshes every 5 minutes ──────────────────────────
 _slang_cache: dict = {}
 _slang_cache_time: float = 0.0
@@ -181,10 +244,9 @@ def _expand_query(text: str) -> str:
 def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = None):
     """
     Given a user story, return the top_n most relevant Law objects.
-    Uses query expansion for Swahili/Sheng to improve embedding similarity.
+    Uses in-memory cache for embeddings — zero DB hits for the search itself.
+    Only fetches the top N matching Law objects from DB at the end.
     """
-    from cases.models import Law
-
     # ── Query expansion: add English equivalents for Swahili/Sheng words ────
     expanded_story = _expand_query(user_story)
     story_vector   = embed_text(expanded_story)
@@ -277,64 +339,68 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     topic_detected    = is_employment or is_land or is_criminal or is_family or is_data or is_consumer
     OFF_TOPIC_MIN_SCORE = 0.48
 
-    laws = Law.objects.exclude(embedding_json='').exclude(embedding_json__isnull=True)
+    # ── Use in-memory cache — zero DB hits ────────────────────────────────────
+    story_vec = np.array(story_vector, dtype=np.float32)
+    cached_laws = _get_law_cache()
 
     scored = []
-    for law in laws:
-        law_vector = law.get_embedding()
-        if law_vector is None:
-            continue
-        raw_score = cosine_similarity(story_vector, law_vector)
+    for entry in cached_laws:
+        raw_score = float(np.dot(story_vec, entry['vec']))
 
         # Drop off-topic low-scorers
-        if topic_detected and law.category not in on_topic_cats:
+        if topic_detected and entry['category'] not in on_topic_cats:
             if raw_score < OFF_TOPIC_MIN_SCORE:
                 continue
 
         score = raw_score
 
         # Constitution boost
-        if category_boost and law.category in category_boost:
+        if category_boost and entry['category'] in category_boost:
             score += 0.12
 
-        # Topic-specific boosts — stronger than constitution boost so
-        # primary-topic sections rank above generic constitution articles
-        if is_employment and law.category == 'employment':
+        # Topic-specific boosts
+        if is_employment and entry['category'] == 'employment':
             score += 0.14
-        if is_land and law.category == 'land':
+        if is_land and entry['category'] == 'land':
             score += 0.14
-        if is_land and law.category == 'landlord_tenant':
+        if is_land and entry['category'] == 'landlord_tenant':
             score += 0.10
-        if is_criminal and law.category == 'criminal_procedure':
+        if is_criminal and entry['category'] == 'criminal_procedure':
             score += 0.14
-        if is_consumer and law.category == 'consumer':
+        if is_consumer and entry['category'] == 'consumer':
             score += 0.14
-        if is_family and law.category == 'other' and any(
-            k in (law.title or '').lower()
+        if is_family and entry['category'] == 'other' and any(
+            k in (entry['title'] or '').lower()
             for k in ['marriage', 'succession', 'children', 'matrimonial',
                       'domestic', 'protection against', 'widows']
         ):
             score += 0.14
-        if is_data and law.category == 'other' and 'data protection' in (law.title or '').lower():
+        if is_data and entry['category'] == 'other' and 'data protection' in (entry['title'] or '').lower():
             score += 0.14
 
-        scored.append((score, law))
+        scored.append((score, entry))
 
     scored.sort(key=lambda x: x[0], reverse=True)
 
-    result = [law for _, law in scored[:top_n]]
+    # Fetch only the top_n Law objects from DB by ID — one tiny query
+    top_entries = [e for _, e in scored[:top_n]]
+    top_ids     = [e['id'] for e in top_entries]
 
-    # ── Guarantee at least one primary-topic section ──────────────────────────
+    # Guarantee at least one primary-topic section
     if topic_detected:
-        result_cats = {l.category for l in result}
+        top_cats     = {e['category'] for e in top_entries}
         primary_cats = on_topic_cats - {'constitution'}
-        if primary_cats and not (result_cats & primary_cats):
-            for score, law in scored[top_n:]:
-                if law.category in primary_cats:
-                    result[-1] = law
+        if primary_cats and not (top_cats & primary_cats):
+            for _, entry in scored[top_n:]:
+                if entry['category'] in primary_cats:
+                    top_entries[-1] = entry
+                    top_ids[-1]     = entry['id']
                     break
 
-    return result
+    from cases.models import Law
+    law_map = {l.pk: l for l in Law.objects.filter(pk__in=top_ids)}
+    # Return in scored order, preserving ranking
+    return [law_map[eid] for eid in top_ids if eid in law_map]
 
 
 def build_embeddings_for_all_laws():
