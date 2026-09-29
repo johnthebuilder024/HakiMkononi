@@ -347,20 +347,24 @@ def parse_answer_sections(raw: str, lang: str = "sw") -> dict:
         ["## SHERIA INASEMA NINI", "## STORY Yake KWA MANENO RAHISI","## HAKI ZAKO NA WAPI WALIMESS",      "## ANDIKA HIVI (BARUA YA KUDAI)"],
     ]
     order = ["law", "simple", "loophole", "letter"]
+    # Use uppercase for case-insensitive matching
+    raw_upper = raw.upper()
     for marker_set in marker_sets:
-        if not any(m in raw for m in marker_set):
+        markers_upper = [m.upper() for m in marker_set]
+        if not any(m in raw_upper for m in markers_upper):
             continue
         for i, key in enumerate(order):
-            start = raw.find(marker_set[i])
+            start = raw_upper.find(markers_upper[i])
             if start == -1:
                 continue
-            start += len(marker_set[i])
-            end = raw.find(marker_set[i + 1]) if i + 1 < len(order) else len(raw)
+            start += len(markers_upper[i])
+            end = raw_upper.find(markers_upper[i + 1]) if i + 1 < len(order) else len(raw)
             if end == -1:
                 end = len(raw)
             sections[key] = raw[start:end].strip()
         break
     if not any(sections.values()):
+        # Fallback: put the whole response in the law box so something shows
         sections["law"] = raw.strip()
     return sections
 
@@ -422,7 +426,18 @@ def _call_groq(messages: list) -> str:
         timeout=_TIMEOUT,
     )
     resp.raise_for_status()
-    return resp.json()["choices"][0]["message"]["content"].strip()
+    result = resp.json()["choices"][0]["message"]["content"]
+    if result is None:
+        result = ""
+    result = result.strip()
+    if not result:
+        logger.warning("[AI] Groq returned empty response — retrying once...")
+        resp2 = http_requests.post(
+            GROQ_URL, headers=_groq_headers(), json=payload, timeout=_TIMEOUT
+        )
+        resp2.raise_for_status()
+        result = (resp2.json()["choices"][0]["message"]["content"] or "").strip()
+    return result
 
 
 def _call_with_fallback(messages: list, lang: str = "sw") -> str:

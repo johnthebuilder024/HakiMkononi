@@ -222,6 +222,13 @@ _EXPANSION_MAP = {
     'bidhaa mbaya':     'defective goods product consumer',
     'duka lilikataa':   'shop refused refund consumer rights',
     'hawakurejesha':    'no refund consumer protection',
+    # County enforcement / Kanjo
+    'kanjo':            'county enforcement officer business permit license confiscate',
+    'county askari':    'county enforcement officer business permit',
+    'kaounti':          'county government enforcement by-law',
+    'kibanda changu':   'business premises shop stall',
+    'wamechukua mali':  'confiscated goods property county enforcement',
+    'wamefunga duka':   'closed shop business county enforcement license',
 }
 
 
@@ -287,7 +294,7 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         'polisi', 'kufungwa', 'watuhumiwa', 'dhamana', 'mashtaka', 'uhalifu',
         'kizuizini', 'kortini', 'warrant', 'kushikwa', 'askari', 'afande',
         'kukamatwa', 'haki zangu', 'haki zake', 'kushtakiwa', 'kifungo', 'gereza',
-        'karao', 'karau', 'sanse', 'makarao', 'ma-karao', 'kanjo',
+        'karao', 'karau', 'sanse', 'makarao', 'ma-karao',
         'kunishika', 'walinishika', 'amenishika', 'wamenishika',
         'seleli', 'ndani ya seleli', 'lock-up', 'station',
         'hawakusomea', 'hawakuambia', 'hawakunitajia', 'rights zangu', 'miranda',
@@ -319,6 +326,17 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         'bidhaa mbaya', 'duka lilikataa', 'hawakurejesha', 'bidhaa bandia',
         'walimnyang\'anya', 'walidanganya', 'bei ya juu',
     ]
+    _county_en = [
+        'kanjo', 'county enforcement', 'county officer', 'county askari',
+        'business permit', 'trade license', 'hawker', 'street vendor',
+        'county by-law', 'county government', 'nairobi city', 'confiscated',
+        'county council',
+    ]
+    _county_sw = [
+        'kanjo', 'county askari', 'kaounti', 'kibanda changu',
+        'wamechukua mali', 'wamefunga duka', 'leseni ya biashara',
+        'ruhusa ya biashara', 'hawkers', 'wafanyabiashara',
+    ]
 
     is_employment = any(k in story_lower for k in _emp_en + _emp_sw + db_slang.get('employment', []))
     is_land       = any(k in story_lower for k in _land_en + _land_sw + db_slang.get('land', []))
@@ -326,6 +344,10 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     is_family     = any(k in story_lower for k in _family_en + _family_sw + db_slang.get('family', []))
     is_data       = any(k in story_lower for k in _data_en + _data_sw + db_slang.get('other', []))
     is_consumer   = any(k in story_lower for k in _consumer_en + _consumer_sw)
+    is_county     = any(k in story_lower for k in _county_en + _county_sw)
+    # County enforcement overrides criminal classification for kanjo queries
+    if is_county:
+        is_criminal = False
 
     # ── On-topic categories ───────────────────────────────────────────────────
     on_topic_cats = {'constitution'}
@@ -335,8 +357,9 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     if is_family:     on_topic_cats.add('other')
     if is_data:       on_topic_cats.add('other')
     if is_consumer:   on_topic_cats.add('consumer')
+    if is_county:     on_topic_cats.add('other')   # county acts sit under 'other'
 
-    topic_detected    = is_employment or is_land or is_criminal or is_family or is_data or is_consumer
+    topic_detected = is_employment or is_land or is_criminal or is_family or is_data or is_consumer or is_county
     OFF_TOPIC_MIN_SCORE = 0.48
 
     # ── Use in-memory cache — zero DB hits ────────────────────────────────────
@@ -377,6 +400,12 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
             score += 0.14
         if is_data and entry['category'] == 'other' and 'data protection' in (entry['title'] or '').lower():
             score += 0.14
+        if is_county and entry['category'] == 'other' and any(
+            k in (entry['title'] or '').lower()
+            for k in ['county', 'local government', 'trade', 'hawker',
+                      'physical planning', 'fair administrative', 'business']
+        ):
+            score += 0.16
 
         scored.append((score, entry))
 
