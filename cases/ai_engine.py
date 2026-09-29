@@ -417,7 +417,7 @@ def _call_groq(messages: list) -> str:
         "model":       GROQ_MODEL,
         "messages":    messages,
         "temperature": 0.2,
-        "max_tokens":  2500,
+        "max_tokens":  3500,
     }
     resp = http_requests.post(
         GROQ_URL,
