@@ -40,6 +40,8 @@ from cases.ai_engine import (
 )
 
 # ── Logging ───────────────────────────────────────────────────────────────────
+# Use the root logger config — gunicorn inherits it so all bot logs
+# appear in the same Render log stream as the web server.
 logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
     level=logging.INFO,
@@ -135,6 +137,8 @@ def _format_answer(answer: dict, top_laws: list, lang: str) -> str:
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = await _get_user(update.effective_user.id)
     await _set_user_state(user, WhatsAppUser.STATE_NEW)
+    tg_user = update.effective_user
+    logger.info(f"[TelegramBot] /start — user {tg_user.id} (@{tg_user.username})")
 
     await update.message.reply_text(
         "👋 *Karibu HakiMkononi!*\n\n"
@@ -403,6 +407,7 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     user    = await _get_user(update.effective_user.id)
     lang    = user.lang
     message = update.message.text.strip()
+    logger.info(f"[TelegramBot] Question from {update.effective_user.id} [{lang}]: {message[:80]}")
 
     # If still in NEW state, show full welcome
     if user.state == WhatsAppUser.STATE_NEW:
@@ -530,14 +535,10 @@ def main():
 
     app.add_handler(conv)
 
-    print("=" * 55)
-    print("⚖️  HakiMkononi Telegram Bot — RUNNING")
-    print("=" * 55)
-    print("Open Telegram and search for your bot to chat.")
-    print("Press Ctrl+C to stop.")
-    print("=" * 55)
-
+    print("[TelegramBot] ✅ Bot is ONLINE — polling Telegram servers...")
+    logger.info("[TelegramBot] ✅ Bot is ONLINE — polling Telegram servers...")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
+    logger.info("[TelegramBot] ⛔ Bot polling stopped.")
 
 
 def run_bot_in_thread():
@@ -555,16 +556,16 @@ def run_bot_in_thread():
             print("[TelegramBot] TELEGRAM_BOT_TOKEN not set — bot disabled.")
             return
         try:
-            # Each thread needs its own event loop
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
+            logger.info("[TelegramBot] Starting polling thread...")
             main()
         except Exception as e:
-            print(f"[TelegramBot] Crashed: {e}")
+            logger.error(f"[TelegramBot] Crashed: {e}", exc_info=True)
 
     t = threading.Thread(target=_run, daemon=True, name="telegram-bot")
     t.start()
-    print("[TelegramBot] Started in background thread.")
+    print("[TelegramBot] Background thread launched.")
 
 
 if __name__ == "__main__":
