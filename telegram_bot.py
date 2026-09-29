@@ -749,7 +749,7 @@ def main():
 
     print("[TelegramBot] ✅ Bot is ONLINE — polling Telegram servers...")
     logger.info("[TelegramBot] ✅ Bot is ONLINE — polling Telegram servers...")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    app.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
     logger.info("[TelegramBot] ⛔ Bot polling stopped.")
 
 
@@ -764,7 +764,10 @@ async def _run_polling_async(token: str):
 
     await app.initialize()
     await app.start()
-    await app.updater.start_polling(allowed_updates=Update.ALL_TYPES)
+    await app.updater.start_polling(
+        allowed_updates=Update.ALL_TYPES,
+        drop_pending_updates=True,   # drop stale updates from previous session on restart
+    )
 
     logger.info("[TelegramBot] ✅ Bot is ONLINE — polling Telegram servers...")
     print("[TelegramBot] ✅ Bot is ONLINE — polling Telegram servers...")
