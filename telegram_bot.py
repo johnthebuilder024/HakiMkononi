@@ -506,9 +506,10 @@ def _build_app(token: str):
     conv = ConversationHandler(
         entry_points=[
             CommandHandler("start", cmd_start),
-            # Any first message (text or voice) → language picker
-            MessageHandler(filters.VOICE | filters.AUDIO, cmd_start),
-            MessageHandler(filters.TEXT & ~filters.COMMAND, cmd_start),
+            # Any first message without /start → handle_question checks STATE_NEW
+            # and shows the welcome/language picker itself
+            MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
+            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question),
         ],
         states={
             CHOOSING_LANG: [
