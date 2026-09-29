@@ -495,19 +495,20 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-def main():
-    token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
-    if not token or token == "your-token-here":
-        print("ERROR: Set TELEGRAM_BOT_TOKEN in .env")
-        return
-
+def _build_app(token: str):
+    """
+    Build the Application with ConversationHandler.
+    Entry points always route to cmd_start so new users always get
+    language selection — regardless of their DB state.
+    """
     app = Application.builder().token(token).build()
 
     conv = ConversationHandler(
         entry_points=[
             CommandHandler("start", cmd_start),
-            MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
-            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question),
+            # Any first message (text or voice) → language picker
+            MessageHandler(filters.VOICE | filters.AUDIO, cmd_start),
+            MessageHandler(filters.TEXT & ~filters.COMMAND, cmd_start),
         ],
         states={
             CHOOSING_LANG: [
@@ -528,8 +529,17 @@ def main():
         per_user=True,
         per_chat=True,
     )
-
     app.add_handler(conv)
+    return app
+
+
+def main():
+    token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    if not token or token == "your-token-here":
+        print("ERROR: Set TELEGRAM_BOT_TOKEN in .env")
+        return
+
+    app = _build_app(token)
 
     print("[TelegramBot] ✅ Bot is ONLINE — polling Telegram servers...")
     logger.info("[TelegramBot] ✅ Bot is ONLINE — polling Telegram servers...")
@@ -541,38 +551,10 @@ async def _run_polling_async(token: str):
     """
     Runs the bot without signal handlers — safe to call from a background thread.
     run_polling() registers OS signals which only works in the main thread.
-    This replaces it with the equivalent manual async steps.
     """
     import asyncio
 
-    app = Application.builder().token(token).build()
-
-    conv = ConversationHandler(
-        entry_points=[
-            CommandHandler("start", cmd_start),
-            MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
-            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question),
-        ],
-        states={
-            CHOOSING_LANG: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_language_choice),
-            ],
-            ANSWERING: [
-                CommandHandler("language", cmd_language),
-                CommandHandler("help",     cmd_help),
-                MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question),
-            ],
-        },
-        fallbacks=[
-            CommandHandler("start",    cmd_start),
-            CommandHandler("language", cmd_language),
-            CommandHandler("help",     cmd_help),
-        ],
-        per_user=True,
-        per_chat=True,
-    )
-    app.add_handler(conv)
+    app = _build_app(token)
 
     await app.initialize()
     await app.start()
@@ -581,7 +563,6 @@ async def _run_polling_async(token: str):
     logger.info("[TelegramBot] ✅ Bot is ONLINE — polling Telegram servers...")
     print("[TelegramBot] ✅ Bot is ONLINE — polling Telegram servers...")
 
-    # Keep running until the thread is killed (daemon thread dies with gunicorn)
     try:
         while True:
             await asyncio.sleep(3600)
