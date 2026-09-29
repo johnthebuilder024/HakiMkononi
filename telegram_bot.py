@@ -537,11 +537,68 @@ def main():
     logger.info("[TelegramBot] ⛔ Bot polling stopped.")
 
 
+async def _run_polling_async(token: str):
+    """
+    Runs the bot without signal handlers — safe to call from a background thread.
+    run_polling() registers OS signals which only works in the main thread.
+    This replaces it with the equivalent manual async steps.
+    """
+    import asyncio
+
+    app = Application.builder().token(token).build()
+
+    conv = ConversationHandler(
+        entry_points=[
+            CommandHandler("start", cmd_start),
+            MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
+            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question),
+        ],
+        states={
+            CHOOSING_LANG: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_language_choice),
+            ],
+            ANSWERING: [
+                CommandHandler("language", cmd_language),
+                CommandHandler("help",     cmd_help),
+                MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question),
+            ],
+        },
+        fallbacks=[
+            CommandHandler("start",    cmd_start),
+            CommandHandler("language", cmd_language),
+            CommandHandler("help",     cmd_help),
+        ],
+        per_user=True,
+        per_chat=True,
+    )
+    app.add_handler(conv)
+
+    await app.initialize()
+    await app.start()
+    await app.updater.start_polling(allowed_updates=Update.ALL_TYPES)
+
+    logger.info("[TelegramBot] ✅ Bot is ONLINE — polling Telegram servers...")
+    print("[TelegramBot] ✅ Bot is ONLINE — polling Telegram servers...")
+
+    # Keep running until the thread is killed (daemon thread dies with gunicorn)
+    try:
+        while True:
+            await asyncio.sleep(3600)
+    except asyncio.CancelledError:
+        pass
+    finally:
+        await app.updater.stop()
+        await app.stop()
+        await app.shutdown()
+        logger.info("[TelegramBot] ⛔ Bot stopped.")
+
+
 def run_bot_in_thread():
     """
     Start the Telegram bot in a background daemon thread.
-    Called from cases/apps.py AppConfig.ready() so it runs
-    inside the same gunicorn process — no second Render service needed.
+    Uses _run_polling_async() instead of run_polling() to avoid the
+    'set_wakeup_fd only works in main thread' error.
     """
     import threading
     import asyncio
@@ -555,9 +612,13 @@ def run_bot_in_thread():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             logger.info("[TelegramBot] Starting polling thread...")
-            main()
+            loop.run_until_complete(_run_polling_async(token))
         except Exception as e:
             logger.error(f"[TelegramBot] Crashed: {e}", exc_info=True)
+
+    t = threading.Thread(target=_run, daemon=True, name="telegram-bot")
+    t.start()
+    print("[TelegramBot] Background thread launched.")
 
     t = threading.Thread(target=_run, daemon=True, name="telegram-bot")
     t.start()
