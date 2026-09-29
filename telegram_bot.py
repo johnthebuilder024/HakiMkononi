@@ -113,7 +113,7 @@ def _format_answer(answer: dict, top_laws: list, lang: str) -> str:
     if answer.get('loophole'):
         parts.append(f"{L['rights']}\n{clean(answer['loophole'])}")
     if answer.get('letter'):
-        letter = answer['letter'][:600]
+        letter = answer['letter'][:1500]
         parts.append(f"{L['letter']}\n```\n{letter}\n```")
     if top_laws:
         src = '\n'.join(f"  {i+1}. {l.title} — {l.section}" for i, l in enumerate(top_laws[:4]))
