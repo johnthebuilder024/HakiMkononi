@@ -18,12 +18,15 @@ import re
 import logging
 import threading
 
+# Only call django.setup() when running standalone (python telegram_bot.py).
+# When imported by Django (via apps.py), Django is already set up.
 import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sheria_ai.settings")
-django.setup()
+if not django.apps.apps.ready:
+    django.setup()
 
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
