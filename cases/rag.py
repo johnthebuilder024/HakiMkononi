@@ -17,7 +17,7 @@ import numpy as np
 import requests as _requests
 
 # ── Google Gemini Embedding API — free tier, no credit card ──────────────────
-# Model: gemini-embedding-001  (768-dim, free on Google AI Studio)
+# Model: gemini-embedding-001  (3072-dim, free on Google AI Studio)
 _GEMINI_EMBED_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent"
 
 # ── Slang keyword cache — refreshes every 5 minutes ──────────────────────────

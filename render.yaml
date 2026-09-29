@@ -22,5 +22,7 @@ services:
         sync: false
       - key: META_VERIFY_TOKEN
         value: hakimkononi2026
+      - key: GEMINI_API_KEY
+        sync: false
       - key: ALLOWED_HOSTS
         sync: false
