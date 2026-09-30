@@ -735,21 +735,32 @@ async def cmd_clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     # Clear all pending data (letter, phone, name)
     context.user_data.clear()
 
-    # Reset conversation state to new but keep language preference
+    # Reset conversation state to active but keep language preference
     await _set_user_state(user, WhatsAppUser.STATE_ACTIVE)
 
     msg = {
         'sw': (
-            "🗑️ *Mazungumzo yamefutwa!*\n\n"
-            "Sasa uko tayari kuanza upya. Niambie tatizo lako jipya la kisheria.\n\n"
-            "_Lugha yako bado ni Kiswahili. Andika /language kubadilisha._"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "🗑️ *Mazungumzo yamefutwa*\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "Anza upya. Niambie tatizo lako jipya la kisheria.\n\n"
+            "_Lugha yako bado ni Kiswahili._\n"
+            "_Andika /language kubadilisha._"
         ),
         'en': (
-            "🗑️ *Chat cleared!*\n\n"
-            "You're starting fresh. Tell me your new legal problem.\n\n"
-            "_Your language is still English. Type /language to change it._"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "🗑️ *Chat cleared*\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "Starting fresh. Tell me your new legal problem.\n\n"
+            "_Your language is still English._\n"
+            "_Type /language to change it._"
         ),
-    }.get(lang, "🗑️ Cleared! Tell me your new legal problem.")
+    }.get(lang, (
+        "━━━━━━━━━━━━━━━━━━━━━━\n"
+        "🗑️ *Chat cleared*\n"
+        "━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "Starting fresh. Tell me your new legal problem."
+    ))
 
     await update.message.reply_text(
         msg,
