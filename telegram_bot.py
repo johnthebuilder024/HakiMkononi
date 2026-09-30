@@ -236,6 +236,7 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             "📌 *Amri:*\n"
             "/language — Badilisha lugha\n"
             "/start — Anza upya\n"
+            "/stop — Maliza mazungumzo\n"
             "/help — Msaada huu"
         ),
         'en': (
@@ -249,6 +250,7 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             "📌 *Commands:*\n"
             "/language — Change language\n"
             "/start — Start over\n"
+            "/stop — End this conversation\n"
             "/help — This help message"
         ),
     }
@@ -658,6 +660,37 @@ async def handle_letter_phone(update: Update, context: ContextTypes.DEFAULT_TYPE
     return ANSWERING
 
 
+async def cmd_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """User wants to end the conversation."""
+    user = await _get_user(update.effective_user.id)
+    lang = user.lang
+
+    # Clear any pending letter data
+    context.user_data.clear()
+
+    msg = {
+        'sw': (
+            "👋 *Kwaheri!*\n\n"
+            "Nimefurahi kukusaidia leo. Ukihitaji msaada wa kisheria tena, "
+            "andika /start wakati wowote.\n\n"
+            "HakiMkononi iko hapa kila wakati. 🇰🇪"
+        ),
+        'en': (
+            "👋 *Goodbye!*\n\n"
+            "Happy to have helped you today. Whenever you need legal help again, "
+            "just type /start.\n\n"
+            "HakiMkononi is here whenever you need it. 🇰🇪"
+        ),
+    }.get(lang, "👋 Goodbye! Type /start to chat again anytime.")
+
+    await update.message.reply_text(
+        msg,
+        parse_mode="Markdown",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    return ConversationHandler.END
+
+
 async def cmd_skip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """User skipped name or phone step — send letter with remaining placeholders."""
     lang         = context.user_data.get('letter_lang', 'en')
@@ -710,17 +743,20 @@ def _build_app(token: str):
             ANSWERING: [
                 CommandHandler("language", cmd_language),
                 CommandHandler("help",     cmd_help),
+                CommandHandler("stop",     cmd_stop),
                 MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question),
             ],
             FILLING_LETTER: [
                 CommandHandler("skip",     cmd_skip),
+                CommandHandler("stop",     cmd_stop),
                 CommandHandler("language", cmd_language),
                 CommandHandler("start",    cmd_start),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_letter_name),
             ],
             FILLING_PHONE: [
                 CommandHandler("skip",     cmd_skip),
+                CommandHandler("stop",     cmd_stop),
                 CommandHandler("language", cmd_language),
                 CommandHandler("start",    cmd_start),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_letter_phone),
@@ -731,6 +767,7 @@ def _build_app(token: str):
             CommandHandler("language", cmd_language),
             CommandHandler("help",     cmd_help),
             CommandHandler("skip",     cmd_skip),
+            CommandHandler("stop",     cmd_stop),
         ],
         per_user=True,
         per_chat=True,
