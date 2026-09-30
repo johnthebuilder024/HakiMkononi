@@ -36,26 +36,38 @@ _law_cache_lock = __import__('threading').Lock()
 
 
 def _load_law_cache():
-    """Load all embedded law sections from DB into memory. Called once."""
+    """Load all embedded law sections from DB into memory in chunks to avoid OOM."""
     global _law_cache, _law_cache_loaded
     from cases.models import Law
-    print("[RAG] Loading law sections into memory cache...")
-    rows = Law.objects.exclude(embedding_json='').exclude(embedding_json__isnull=True) \
-                      .values('id', 'title', 'section', 'category', 'source_url', 'embedding_json')
+    print("[RAG] Loading law sections into memory cache (chunked)...")
+
+    # Get all IDs first — lightweight
+    ids = list(
+        Law.objects.exclude(embedding_json='')
+                   .exclude(embedding_json__isnull=True)
+                   .values_list('id', flat=True)
+    )
+
     cache = []
-    for r in rows:
-        try:
-            vec = np.array(json.loads(r['embedding_json']), dtype=np.float32)
-            cache.append({
-                'id':         r['id'],
-                'title':      r['title'],
-                'section':    r['section'],
-                'category':   r['category'],
-                'source_url': r['source_url'],
-                'vec':        vec,
-            })
-        except Exception:
-            continue
+    CHUNK = 100  # process 100 rows at a time — keeps peak RAM low
+    for i in range(0, len(ids), CHUNK):
+        chunk_ids = ids[i:i + CHUNK]
+        for r in Law.objects.filter(id__in=chunk_ids).values(
+            'id', 'title', 'section', 'category', 'source_url', 'embedding_json'
+        ):
+            try:
+                vec = np.array(json.loads(r['embedding_json']), dtype=np.float32)
+                cache.append({
+                    'id':         r['id'],
+                    'title':      r['title'],
+                    'section':    r['section'],
+                    'category':   r['category'],
+                    'source_url': r['source_url'],
+                    'vec':        vec,
+                })
+            except Exception:
+                continue
+
     _law_cache = cache
     _law_cache_loaded = True
     print(f"[RAG] ✅ Cached {len(cache)} law sections in memory.")
