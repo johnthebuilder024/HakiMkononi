@@ -321,7 +321,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             groq_key     = os.environ.get('GROQ_API_KEY', '').strip()
             lang_map     = {'sw': 'sw', 'en': 'en'}
             whisper_lang = lang_map.get(lang)
-            data = {'model': 'whisper-large-v3', 'response_format': 'json', 'temperature': '0'}
+            data = {'model': 'whisper-large-v3', 'response_format': 'verbose_json', 'temperature': '0'}
             if whisper_lang:
                 data['language'] = whisper_lang
             r = _req.post(
@@ -331,9 +331,12 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
                 data=data,
                 timeout=30,
             )
-            return r.json().get('text', '').strip() if r.status_code == 200 else ''
+            if r.status_code != 200:
+                return '', ''
+            result = r.json()
+            return result.get('text', '').strip(), result.get('language', '')
 
-        transcript = await do_transcribe()
+        transcript, detected_lang = await do_transcribe()
 
         if not transcript:
             await ack_msg.edit_text(
@@ -342,7 +345,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             )
             return ANSWERING
 
-        # Show what was heard then process
+        # Show what was heard so user can verify accuracy
         heard = '🎤 Nilisikia: ' if lang == 'sw' else '🎤 I heard: '
         await ack_msg.edit_text(
             f"{heard}_\"{transcript[:100]}\"_\n\n"
@@ -398,6 +401,29 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             if current: chunks.append(current)
             for chunk in chunks:
                 await update.message.reply_text(chunk, parse_mode="Markdown")
+
+        # ── Letter personalisation — same flow as typed questions ────────
+        if answer.get('letter') and (
+            '[YOUR NAME]' in answer['letter'] or '[JINA LAKO]' in answer['letter']
+        ):
+            from cases.rag import _repair_letter
+            repaired = _repair_letter(answer['letter'], reply_lang)
+            context.user_data['pending_letter'] = repaired
+            context.user_data['letter_lang']    = reply_lang
+            name_prompt = {
+                'sw': (
+                    "✍️ *Barua ipo tayari!*\n\n"
+                    "Niambie *jina lako kamili* ili niijaze barua yako:\n"
+                    "_(au andika /skip kuruka hatua hii)_"
+                ),
+                'en': (
+                    "✍️ *Your letter is ready!*\n\n"
+                    "Type your *full name* and I'll fill it in for you:\n"
+                    "_(or type /skip to skip this step)_"
+                ),
+            }.get(reply_lang, "✍️ Type your full name to complete the letter:")
+            await update.message.reply_text(name_prompt, parse_mode="Markdown")
+            return FILLING_LETTER
 
         await update.message.reply_text(
             '❓ Una swali lingine? Andika au tuma sauti.' if lang == 'sw'

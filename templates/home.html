@@ -64,15 +64,48 @@
                   </small>
                 </div>
 
-                <!-- 🎤 Voice input button -->
-                <div class="mt-2 d-flex align-items-center gap-2">
-                  <button type="button" id="micBtn"
-                          class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
-                          title="{% if lang == 'en' %}Speak your question{% else %}Sema swali lako{% endif %}"
-                          style="border-radius:20px;">
-                    🎤 <span id="micLabel">{% if lang == "en" %}Speak{% else %}Sema{% endif %}</span>
-                  </button>
-                  <span id="micStatus" class="text-muted small"></span>
+                <!-- 🎤 Voice input -->
+                <div class="mt-3">
+                  <p class="text-muted small fw-semibold mb-2">
+                    🎤 {% if lang == "en" %}Or speak your question:{% else %}Au sema swali lako:{% endif %}
+                  </p>
+                  <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <button type="button" id="micBtn"
+                            title="{% if lang == 'en' %}Tap to speak{% else %}Bonyeza kusema{% endif %}"
+                            style="
+                              display: flex;
+                              align-items: center;
+                              gap: .5rem;
+                              padding: .6rem 1.4rem;
+                              border-radius: 30px;
+                              border: 2px solid var(--haki-green);
+                              background: #fff;
+                              color: var(--haki-green);
+                              font-weight: 600;
+                              font-size: .95rem;
+                              cursor: pointer;
+                              transition: all .2s;
+                              white-space: nowrap;
+                            ">
+                      <span id="micIcon" style="font-size:1.3rem;">🎤</span>
+                      <span id="micLabel">{% if lang == "en" %}Speak{% else %}Sema{% endif %}</span>
+                    </button>
+                    <span id="micStatus" class="text-muted small" style="flex:1;min-width:120px;"></span>
+                  </div>
+                  <!-- Recording pulse indicator -->
+                  <div id="micRecordingBar" style="display:none; margin-top:.6rem;">
+                    <div style="
+                      height: 6px;
+                      border-radius: 3px;
+                      background: linear-gradient(90deg, #dc3545 0%, #ff6b6b 50%, #dc3545 100%);
+                      background-size: 200% 100%;
+                      animation: micPulse 1.2s ease-in-out infinite;
+                      max-width: 260px;
+                    "></div>
+                    <small class="text-danger fw-semibold" style="font-size:.78rem;">
+                      {% if lang == "en" %}🔴 Recording… tap button again to stop{% else %}🔴 Inarekodia… bonyeza tena kusimama{% endif %}
+                    </small>
+                  </div>
                 </div>
               </div>
 
@@ -162,6 +195,23 @@
 
 
 {% block extra_js %}
+<style>
+@keyframes micPulse {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+#micBtn:hover {
+  background: var(--haki-green) !important;
+  color: #fff !important;
+}
+#micBtn.recording {
+  background: #dc3545 !important;
+  border-color: #dc3545 !important;
+  color: #fff !important;
+  animation: micPulse 1.2s ease-in-out infinite;
+}
+</style>
 <script>
   const storyEl  = document.getElementById('story');
   const countEl  = document.getElementById('charCount');
@@ -208,16 +258,22 @@
   var audioChunks   = [];
   var isRecording   = false;
   var micBtn        = document.getElementById('micBtn');
+  var micIcon       = document.getElementById('micIcon');
   var micLabel      = document.getElementById('micLabel');
   var micStatus     = document.getElementById('micStatus');
+  var micRecordingBar = document.getElementById('micRecordingBar');
   var LANG          = "{{ lang }}";
 
   var msgs = {
-    sw: { speak: 'Sema', recording: '🔴 Inarekodia… bonyeza tena kusimama',
-          transcribing: '⏳ Inatafsiri…', done: '✅ Imetafsiriwa', error: '❌ Hitilafu — jaribu tena',
+    sw: { speak: 'Sema', recording: 'Simama',
+          transcribing: '⏳ Inatafsiri sauti yako…',
+          done: '✅ Imetafsiriwa! Sasa hariri kama unataka.',
+          error: '❌ Hitilafu — jaribu tena',
           unsupported: '❌ Kivinjari chako hakisaidii kurekodi' },
-    en: { speak: 'Speak', recording: '🔴 Recording… tap again to stop',
-          transcribing: '⏳ Transcribing…', done: '✅ Done', error: '❌ Error — try again',
+    en: { speak: 'Speak', recording: 'Stop',
+          transcribing: '⏳ Transcribing your voice…',
+          done: '✅ Done! Edit the text above if needed.',
+          error: '❌ Error — try again',
           unsupported: '❌ Your browser does not support recording' },
   };
   var M = msgs[LANG] || msgs['sw'];
@@ -226,20 +282,25 @@
     micBtn.title = M.unsupported;
     micBtn.disabled = true;
     micBtn.style.opacity = '.4';
+    micStatus.textContent = M.unsupported;
   }
 
   micBtn.addEventListener('click', async function() {
     if (isRecording) {
-      // Stop recording
       mediaRecorder.stop();
       return;
     }
 
-    // Start recording
     try {
       var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioChunks   = [];
-      mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+
+      // Pick best supported mimeType
+      var mimeType = 'audio/webm';
+      if (!MediaRecorder.isTypeSupported('audio/webm')) {
+        mimeType = MediaRecorder.isTypeSupported('audio/ogg') ? 'audio/ogg' : 'audio/mp4';
+      }
+      mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
 
       mediaRecorder.ondataavailable = function(e) {
         if (e.data.size > 0) audioChunks.push(e.data);
@@ -247,18 +308,19 @@
 
       mediaRecorder.onstop = async function() {
         isRecording = false;
-        micBtn.classList.remove('btn-danger');
-        micBtn.classList.add('btn-outline-secondary');
+        // Reset button
+        micBtn.classList.remove('recording');
+        micIcon.textContent = '🎤';
         micLabel.textContent = M.speak;
+        micRecordingBar.style.display = 'none';
         micStatus.textContent = M.transcribing;
+        micStatus.style.color = '';
 
-        // Stop all tracks
         stream.getTracks().forEach(function(t) { t.stop(); });
 
-        // Send to server
-        var blob    = new Blob(audioChunks, { type: 'audio/webm' });
+        var blob     = new Blob(audioChunks, { type: mimeType });
         var formData = new FormData();
-        formData.append('audio', blob, 'recording.webm');
+        formData.append('audio', blob, 'recording.' + mimeType.split('/')[1]);
         formData.append('lang', LANG);
         formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
@@ -270,24 +332,38 @@
             updateCount();
             storyEl.focus();
             micStatus.textContent = M.done;
-            setTimeout(function() { micStatus.textContent = ''; }, 3000);
+            micStatus.style.color = 'var(--haki-green)';
+            // Scroll textarea into view so user sees the filled text
+            storyEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(function() {
+              micStatus.textContent = '';
+              micStatus.style.color = '';
+            }, 4000);
           } else {
             micStatus.textContent = M.error;
+            micStatus.style.color = '#dc3545';
           }
         } catch(err) {
           micStatus.textContent = M.error;
+          micStatus.style.color = '#dc3545';
         }
       };
 
       mediaRecorder.start();
       isRecording = true;
-      micBtn.classList.remove('btn-outline-secondary');
-      micBtn.classList.add('btn-danger');
-      micLabel.textContent = M.recording.replace('🔴 ', '');
-      micStatus.textContent = M.recording;
+      micBtn.classList.add('recording');
+      micIcon.textContent = '⏹️';
+      micLabel.textContent = M.recording;
+      micRecordingBar.style.display = 'block';
+      micStatus.textContent = '';
 
     } catch(err) {
-      micStatus.textContent = '❌ ' + (err.message || 'Microphone access denied');
+      var errMsg = err.name === 'NotAllowedError'
+        ? (LANG === 'sw' ? '❌ Ruhusa ya mic ilikataliwa. Ruhusu kwenye mipangilio ya kivinjari.'
+                          : '❌ Microphone permission denied. Allow it in browser settings.')
+        : '❌ ' + (err.message || 'Microphone error');
+      micStatus.textContent = errMsg;
+      micStatus.style.color = '#dc3545';
     }
   });
 </script>
