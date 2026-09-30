@@ -515,6 +515,37 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
         return CHOOSING_LANG
 
+    # ── Greeting / too-short message detection ───────────────────────────
+    _GREETINGS = {
+        'hello', 'hi', 'hey', 'hii', 'habari', 'habari yako', 'sasa',
+        'mambo', 'niaje', 'vipi', 'sup', 'hola', 'salamu', 'karibu',
+        'good morning', 'good afternoon', 'good evening', 'good day',
+        'asubuhi njema', 'ok', 'okay', 'sawa', 'thanks', 'thank you',
+        'asante', 'fine', 'yes', 'no', 'ndiyo', 'hapana', '👋', '😊',
+    }
+    msg_lower_stripped = message.lower().strip().rstrip('!?.,:')
+    is_greeting = msg_lower_stripped in _GREETINGS or len(message.strip()) < 8
+
+    if is_greeting:
+        nudge = {
+            'sw': (
+                "👋 Habari!\n\n"
+                "Niambie tatizo lako la kisheria ili nikusaidie.\n\n"
+                "*Mfano:*\n"
+                "_Nilifukuzwa kazi bila notisi na mwajiri wangu._\n\n"
+                "Andika tatizo lako na nitakusaidia kuelewa haki zako."
+            ),
+            'en': (
+                "👋 Hello!\n\n"
+                "Tell me your legal problem and I'll help you.\n\n"
+                "*Example:*\n"
+                "_My employer fired me without notice._\n\n"
+                "Describe your situation and I'll explain your rights."
+            ),
+        }.get(lang, "👋 Hello! Tell me your legal problem and I'll help.")
+        await update.message.reply_text(nudge, parse_mode="Markdown")
+        return ANSWERING
+
     # Serious case
     if is_serious_criminal(message):
         serious = {
