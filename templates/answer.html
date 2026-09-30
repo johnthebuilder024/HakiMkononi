@@ -132,6 +132,36 @@
   padding: 0; cursor: text;
 }
 
+/* ── Placeholder counter badge ───────────────────────────────────────── */
+#ltPlaceholderCount {
+  font-size: .73rem;
+  font-weight: 700;
+  padding: .15em .6em;
+  border-radius: 20px;
+  background: #fff3e0;
+  color: #7a4200;
+  border: 1px solid #f0a040;
+  white-space: nowrap;
+  transition: background .2s, color .2s;
+}
+#ltPlaceholderCount.all-filled {
+  background: #e8f5e9;
+  color: #1a7a3c;
+  border-color: #a5d6a7;
+}
+
+/* ── Inline reset confirm ────────────────────────────────────────────── */
+#ltResetConfirm {
+  display: none;
+  align-items: center;
+  gap: .4rem;
+  font-size: .76rem;
+  color: #5a2222;
+  flex: 1 1 100%;
+  margin-top: .2rem;
+}
+#ltResetConfirm.show { display: flex; }
+
 /* ── Letter toolbar ──────────────────────────────────────────────── */
 #letterToolbar {
   display: flex;
@@ -566,18 +596,24 @@
             <div id="letterToolbar" style="display:none;">
               <span class="lt-hint">
                 ✏️
-                {% if lang == "en" %}Click any <span style="color:#7a4200;background:#fff3e0;padding:.05em .3em;border-radius:3px;font-size:.75rem;font-weight:600;border:1px dashed #f0a040;">[PLACEHOLDER]</span> to select it, then type your details. The letter saves as you type.
-                {% elif lang == "sheng" %}Bonyeza <span style="color:#7a4200;background:#fff3e0;padding:.05em .3em;border-radius:3px;font-size:.75rem;font-weight:600;border:1px dashed #f0a040;">[PLACEHOLDER]</span> kisha andika details zako.
-                {% else %}Bonyeza <span style="color:#7a4200;background:#fff3e0;padding:.05em .3em;border-radius:3px;font-size:.75rem;font-weight:600;border:1px dashed #f0a040;">[PLACEHOLDER]</span> kisha andika maelezo yako. Barua inajihifadhi unapoandika.{% endif %}
+                {% if lang == "en" %}Click any <span style="color:#7a4200;background:#fff3e0;padding:.05em .3em;border-radius:3px;font-size:.75rem;font-weight:600;border:1px dashed #f0a040;">[PLACEHOLDER]</span> to select it, then type your details.
+                {% else %}Bonyeza <span style="color:#7a4200;background:#fff3e0;padding:.05em .3em;border-radius:3px;font-size:.75rem;font-weight:600;border:1px dashed #f0a040;">[PLACEHOLDER]</span> kisha andika maelezo yako.{% endif %}
               </span>
+              <span id="ltPlaceholderCount"></span>
               <button id="ltResetBtn" title="Undo all edits and restore original">
-                ↺ {% if lang == "en" %}Reset{% elif lang == "sheng" %}Reset{% else %}Rejesha{% endif %}
+                ↺ {% if lang == "en" %}Reset{% else %}Rejesha{% endif %}
               </button>
+              <!-- Inline confirm — shown instead of browser confirm() -->
+              <div id="ltResetConfirm">
+                <span>{% if lang == "en" %}Reset? Edits will be lost.{% else %}Rejesha? Mabadiliko yatapotea.{% endif %}</span>
+                <button id="ltResetYes" style="background:#9b2226;color:#fff;border-color:#9b2226;">{% if lang == "en" %}Yes, reset{% else %}Ndio{% endif %}</button>
+                <button id="ltResetNo">{% if lang == "en" %}Cancel{% else %}Ghairi{% endif %}</button>
+              </div>
               <button id="ltCopyBtn" class="lt-primary">
-                📋 {% if lang == "en" %}Copy Letter{% elif lang == "sheng" %}Copy Letter{% else %}Nakili Barua{% endif %}
+                📋 {% if lang == "en" %}Copy Letter{% else %}Nakili Barua{% endif %}
               </button>
               <button id="ltDownloadBtn" class="lt-primary">
-                ⬇️ {% if lang == "en" %}Save as PDF{% elif lang == "sheng" %}Save as PDF{% else %}Hifadhi PDF{% endif %}
+                ⬇️ {% if lang == "en" %}Save as PDF{% else %}Hifadhi PDF{% endif %}
               </button>
             </div>
             <!-- Editable letter area -->
@@ -734,6 +770,7 @@ document.addEventListener("click", function(e) {
   var startTime  = Date.now();
   var pollTimer  = null;
   var POLL_MS    = 5000;   // poll every 5 seconds
+  var MAX_WAIT_MS = 180000; // 3-minute timeout
 
   // ── DOM helpers ──────────────────────────────────────────────────────
   function el(id)   { return document.getElementById(id); }
@@ -754,6 +791,16 @@ document.addEventListener("click", function(e) {
     var txt  = secs < 60 ? secs + "s" : Math.floor(secs/60) + "m " + (secs%60) + "s";
     var el2  = el("statusElapsed");
     if (el2) el2.textContent = txt;
+
+    // ── 3-minute timeout ──────────────────────────────────────────────
+    if (Date.now() - startTime > MAX_WAIT_MS) {
+      var timeoutMsgs = {
+        sw: "⏱️ Inachukua muda mrefu. Tafadhali jaribu tena.",
+        en: "⏱️ This is taking longer than usual. Please try again.",
+      };
+      showError(timeoutMsgs[LANG] || timeoutMsgs["en"]);
+      return;
+    }
 
     // Update status text at milestones
     var statusText = el("statusText");
@@ -841,18 +888,33 @@ document.addEventListener("click", function(e) {
     return div.innerText || div.textContent || "";
   }
 
+  // ── Count unfilled placeholders and update badge ─────────────────────
+  function updatePlaceholderCount() {
+    var div = el("text-letter");
+    var badge = el("ltPlaceholderCount");
+    if (!div || !badge) return;
+    var chips = div.querySelectorAll(".letter-placeholder:not(.filled)");
+    var n = chips.length;
+    if (n === 0) {
+      badge.textContent = LANG === 'sw' ? '✅ Imekamilika' : '✅ All filled';
+      badge.classList.add("all-filled");
+    } else {
+      badge.textContent = n + (LANG === 'sw' ? ' kubadilisha' : ' left to fill');
+      badge.classList.remove("all-filled");
+    }
+  }
+
   // ── Wire letter toolbar ───────────────────────────────────────────────
   function wireLetter(originalText) {
     var toolbar = el("letterToolbar");
     if (toolbar) toolbar.style.display = "";
 
-    // Click on placeholder chip → select the whole chip text
     var div = el("text-letter");
     if (div) {
+      // Click on placeholder chip → select the whole chip text
       div.addEventListener("click", function(e) {
         var chip = e.target.closest(".letter-placeholder");
         if (!chip) return;
-        // Select all text of the chip using Selection API
         var sel = window.getSelection();
         var range = document.createRange();
         range.selectNodeContents(chip);
@@ -860,81 +922,141 @@ document.addEventListener("click", function(e) {
         sel.addRange(range);
       });
 
-      // Keyboard: Enter on chip also selects it
+      // Keyboard: Enter/Space on chip also selects it
       div.addEventListener("keydown", function(e) {
         if (e.key === "Enter" || e.key === " ") {
           var chip = e.target.closest(".letter-placeholder");
           if (chip) { e.preventDefault(); chip.click(); }
         }
       });
-    }
 
-    // Reset — restore original AI text
-    var resetBtn = el("ltResetBtn");
-    if (resetBtn) {
-      resetBtn.addEventListener("click", function() {
-        if (confirm("{% if lang == 'en' %}Reset letter to original? Your edits will be lost.{% elif lang == 'sheng' %}Reset letter? Edits zako zitapotea.{% else %}Rejesha barua asili? Mabadiliko yako yatapotea.{% endif %}")) {
-          renderLetter(originalText);
-        }
+      // When user types inside a chip — mark it as filled so chip style vanishes
+      div.addEventListener("input", function() {
+        div.querySelectorAll(".letter-placeholder").forEach(function(chip) {
+          // If chip no longer starts with [ it has been partially/fully replaced
+          var txt = chip.textContent || "";
+          if (!txt.startsWith("[")) {
+            chip.classList.add("filled");
+          } else {
+            chip.classList.remove("filled");
+          }
+        });
+        updatePlaceholderCount();
       });
     }
 
-    // Copy letter
+    updatePlaceholderCount();
+
+    // ── Inline Reset (replaces browser confirm()) ─────────────────────
+    var resetBtn     = el("ltResetBtn");
+    var resetConfirm = el("ltResetConfirm");
+    var resetYes     = el("ltResetYes");
+    var resetNo      = el("ltResetNo");
+
+    if (resetBtn && resetConfirm) {
+      resetBtn.addEventListener("click", function() {
+        resetConfirm.classList.add("show");
+        resetBtn.style.display = "none";
+      });
+      resetNo.addEventListener("click", function() {
+        resetConfirm.classList.remove("show");
+        resetBtn.style.display = "";
+      });
+      resetYes.addEventListener("click", function() {
+        resetConfirm.classList.remove("show");
+        resetBtn.style.display = "";
+        renderLetter(originalText);
+        updatePlaceholderCount();
+      });
+    }
+
+    // ── Copy letter — warn if unfilled chips remain ───────────────────
     var copyBtn = el("ltCopyBtn");
     if (copyBtn) {
       copyBtn.addEventListener("click", function() {
+        var unfilled = (el("text-letter") || {}).querySelectorAll
+          ? el("text-letter").querySelectorAll(".letter-placeholder:not(.filled)").length
+          : 0;
+        if (unfilled > 0) {
+          var warn = LANG === 'sw'
+            ? "⚠️ Bado " + unfilled + " nafasi zimebaki. Je, unajua kuzijaza kwanza?"
+            : "⚠️ " + unfilled + " placeholder" + (unfilled > 1 ? "s" : "") + " still unfilled. Fill them first for a complete letter?";
+          // Show inline warning below toolbar for 3s
+          showLetterWarning(warn);
+          return;
+        }
         var text = getLetterPlainText();
-        navigator.clipboard.writeText(text).then(function() {
-          var orig = copyBtn.textContent;
-          copyBtn.textContent = "✅ {% if lang == 'en' %}Copied!{% elif lang == 'sheng' %}Copied!{% else %}Imenakiliwa!{% endif %}";
-          setTimeout(function() { copyBtn.textContent = orig; }, 2000);
-        });
+        try {
+          navigator.clipboard.writeText(text).then(function() {
+            var orig = copyBtn.textContent;
+            copyBtn.textContent = LANG === 'sw' ? "✅ Imenakiliwa!" : "✅ Copied!";
+            setTimeout(function() { copyBtn.textContent = orig; }, 2000);
+          });
+        } catch(e) {}
       });
     }
 
-    // Download letter — server generates a real PDF, browser downloads it directly
+    // ── Download PDF — warn if unfilled chips remain ──────────────────
     var dlBtn = el("ltDownloadBtn");
     if (dlBtn) {
       dlBtn.addEventListener("click", function() {
+        var unfilled = (el("text-letter") || {}).querySelectorAll
+          ? el("text-letter").querySelectorAll(".letter-placeholder:not(.filled)").length
+          : 0;
+        if (unfilled > 0) {
+          var warn = LANG === 'sw'
+            ? "⚠️ Bado " + unfilled + " nafasi zimebaki — PDF itakuwa na nafasi tupu."
+            : "⚠️ " + unfilled + " placeholder" + (unfilled > 1 ? "s" : "") + " unfilled — PDF will have blank fields.";
+          showLetterWarning(warn);
+          // Still allow download after warning
+        }
         if (!jobId) {
-          // jobId not set yet (shouldn't happen, but guard)
-          alert("{% if lang == 'en' %}Answer not ready yet.{% elif lang == 'sheng' %}Answer bado haijaandaliwa.{% else %}Jibu bado halijatayarishwa.{% endif %}");
+          alert(LANG === 'sw' ? "Jibu bado halijatayarishwa." : "Answer not ready yet.");
           return;
         }
         var origText = dlBtn.textContent;
-        dlBtn.textContent = "⏳ {% if lang == 'en' %}Preparing PDF…{% elif lang == 'sheng' %}Inaandaa PDF…{% else %}Inaandaa PDF…{% endif %}";
+        dlBtn.textContent = LANG === 'sw' ? "⏳ Inaandaa PDF…" : "⏳ Preparing PDF…";
         dlBtn.disabled = true;
 
-        // Fetch the PDF from the server as a binary blob
         fetch("/api/letter-pdf/" + jobId + "/", { cache: "no-store" })
           .then(function(r) {
             if (!r.ok) throw new Error("HTTP " + r.status);
             return r.blob();
           })
           .then(function(blob) {
-            // Trigger a real file download — no new tab opened
             var url  = URL.createObjectURL(blob);
             var a2   = document.createElement("a");
             var date = new Date().toISOString().slice(0, 10);
-            a2.href     = url;
-            a2.download = "Letter-" + date + ".pdf";
+            a2.href = url; a2.download = "Letter-" + date + ".pdf";
             a2.style.display = "none";
             document.body.appendChild(a2);
             a2.click();
             document.body.removeChild(a2);
             setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
-
-            dlBtn.textContent = "✅ {% if lang == 'en' %}Downloaded!{% elif lang == 'sheng' %}Imedownload!{% else %}Imepakuliwa!{% endif %}";
+            dlBtn.textContent = LANG === 'sw' ? "✅ Imepakuliwa!" : "✅ Downloaded!";
             dlBtn.disabled = false;
             setTimeout(function() { dlBtn.textContent = origText; }, 3000);
           })
-          .catch(function(err) {
-            dlBtn.textContent = "❌ {% if lang == 'en' %}Failed — try again{% elif lang == 'sheng' %}Imefail — jaribu tena{% else %}Imeshindwa — jaribu tena{% endif %}";
+          .catch(function() {
+            dlBtn.textContent = LANG === 'sw' ? "❌ Imeshindwa — jaribu tena" : "❌ Failed — try again";
             dlBtn.disabled = false;
             setTimeout(function() { dlBtn.textContent = origText; }, 3000);
           });
       });
     }
+  }
+
+  // ── Show a transient warning below the letter toolbar ────────────────
+  function showLetterWarning(msg) {
+    var existing = el("ltWarning");
+    if (existing) existing.remove();
+    var warn = document.createElement("div");
+    warn.id = "ltWarning";
+    warn.style.cssText = "padding:.4rem .75rem;font-size:.78rem;color:#7a4200;background:#fff3e0;border:1px solid #f0a040;border-top:none;border-radius:0 0 6px 6px;";
+    warn.textContent = msg;
+    var toolbar = el("letterToolbar");
+    if (toolbar) toolbar.after(warn);
+    setTimeout(function() { if (warn.parentNode) warn.remove(); }, 4000);
   }
 
   // ── Wire print/download button — full answer PDF ────────────────────────
@@ -1033,10 +1155,18 @@ document.addEventListener("click", function(e) {
 
       renderLetter(letterText);
       wireLetter(letterText);
+      // Initial count shown immediately
+      updatePlaceholderCount();
     }
 
     // Show boxes
     ["card-law","card-simple","card-rights","card-letter"].forEach(show);
+
+    // ── Smooth scroll to first answer box ─────────────────────────────
+    setTimeout(function() {
+      var firstCard = el("card-law");
+      if (firstCard) firstCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
 
     // Sources
     renderSources(data.sources || []);
