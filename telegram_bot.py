@@ -798,17 +798,24 @@ def run_bot_in_thread():
         if not token or token == "your-token-here":
             print("[TelegramBot] TELEGRAM_BOT_TOKEN not set — bot disabled.")
             return
-        try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            logger.info("[TelegramBot] Starting polling thread...")
-            loop.run_until_complete(_run_polling_async(token))
-        except Exception as e:
-            logger.error(f"[TelegramBot] Crashed: {e}", exc_info=True)
-
-    t = threading.Thread(target=_run, daemon=True, name="telegram-bot")
-    t.start()
-    print("[TelegramBot] Background thread launched.")
+        retry = 0
+        while True:
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                logger.info(f"[TelegramBot] Starting polling (attempt {retry + 1})...")
+                loop.run_until_complete(_run_polling_async(token))
+                break  # clean exit
+            except Exception as e:
+                err = str(e)
+                if "Conflict" in err:
+                    retry += 1
+                    wait = min(30 * retry, 120)  # 30s, 60s, 90s, then cap at 120s
+                    logger.warning(f"[TelegramBot] Conflict — waiting {wait}s before retry...")
+                    import time; time.sleep(wait)
+                else:
+                    logger.error(f"[TelegramBot] Crashed: {e}", exc_info=True)
+                    break
 
     t = threading.Thread(target=_run, daemon=True, name="telegram-bot")
     t.start()
