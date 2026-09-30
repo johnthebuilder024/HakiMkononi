@@ -244,6 +244,7 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             "📌 *Amri:*\n"
             "/language — Badilisha lugha\n"
             "/start — Anza upya\n"
+            "/clear — Futa mazungumzo, anza upya\n"
             "/stop — Maliza mazungumzo\n"
             "/help — Msaada huu"
         ),
@@ -258,6 +259,7 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             "📌 *Commands:*\n"
             "/language — Change language\n"
             "/start — Start over\n"
+            "/clear — Clear chat, start fresh\n"
             "/stop — End this conversation\n"
             "/help — This help message"
         ),
@@ -725,6 +727,38 @@ async def cmd_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 
+async def cmd_clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Clear conversation history and start fresh — user keeps their language preference."""
+    user = await _get_user(update.effective_user.id)
+    lang = user.lang
+
+    # Clear all pending data (letter, phone, name)
+    context.user_data.clear()
+
+    # Reset conversation state to new but keep language preference
+    await _set_user_state(user, WhatsAppUser.STATE_ACTIVE)
+
+    msg = {
+        'sw': (
+            "🗑️ *Mazungumzo yamefutwa!*\n\n"
+            "Sasa uko tayari kuanza upya. Niambie tatizo lako jipya la kisheria.\n\n"
+            "_Lugha yako bado ni Kiswahili. Andika /language kubadilisha._"
+        ),
+        'en': (
+            "🗑️ *Chat cleared!*\n\n"
+            "You're starting fresh. Tell me your new legal problem.\n\n"
+            "_Your language is still English. Type /language to change it._"
+        ),
+    }.get(lang, "🗑️ Cleared! Tell me your new legal problem.")
+
+    await update.message.reply_text(
+        msg,
+        parse_mode="Markdown",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    return ANSWERING
+
+
 async def cmd_skip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """User skipped name or phone step — send letter with remaining placeholders."""
     lang         = context.user_data.get('letter_lang', 'en')
@@ -778,12 +812,14 @@ def _build_app(token: str):
                 CommandHandler("language", cmd_language),
                 CommandHandler("help",     cmd_help),
                 CommandHandler("stop",     cmd_stop),
+                CommandHandler("clear",    cmd_clear),
                 MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question),
             ],
             FILLING_LETTER: [
                 CommandHandler("skip",     cmd_skip),
                 CommandHandler("stop",     cmd_stop),
+                CommandHandler("clear",    cmd_clear),
                 CommandHandler("language", cmd_language),
                 CommandHandler("start",    cmd_start),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_letter_name),
@@ -791,6 +827,7 @@ def _build_app(token: str):
             FILLING_PHONE: [
                 CommandHandler("skip",     cmd_skip),
                 CommandHandler("stop",     cmd_stop),
+                CommandHandler("clear",    cmd_clear),
                 CommandHandler("language", cmd_language),
                 CommandHandler("start",    cmd_start),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_letter_phone),
@@ -802,6 +839,7 @@ def _build_app(token: str):
             CommandHandler("help",     cmd_help),
             CommandHandler("skip",     cmd_skip),
             CommandHandler("stop",     cmd_stop),
+            CommandHandler("clear",    cmd_clear),
         ],
         per_user=True,
         per_chat=True,
