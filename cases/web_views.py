@@ -35,7 +35,7 @@ UI = {
         # Form
         "form_heading":     "Eleza Hali Yako",
         "field_story":      "Tatizo lako la kisheria",
-        "story_help":       "Andika kwa lugha yoyote — Kiswahili, Kingereza, au mchanganyiko — sentensi 1–3 zinatosha.",
+        "story_help":       "Andika kwa lugha yoyote. Kiswahili, Kingereza, au mchanganyiko. Sentensi 1 au 2 zinatosha.",
         "field_county":     "Kaunti yako (si lazima)",
         "county_default":   "-- Chagua kaunti --",
         "county_help":      "Husaidia kupata msaada wa mahali ulipo.",
@@ -58,9 +58,9 @@ UI = {
         # How it works
         "how_title":        "Inafanya Kazi Vipi?",
         "how_1_title":      "1. Eleza Tatizo",
-        "how_1_body":       "Andika hali yako kwa lugha yoyote — sentensi 1–3.",
+        "how_1_body":       "Andika hali yako kwa lugha yoyote. Sentensi moja au mbili zinatosha.",
         "how_2_title":      "2. AI Inasoma Sheria",
-        "how_2_body":       "Mfumo wetu unasoma Katiba, Sheria ya Ajira na sheria zingine za Kenya.",
+        "how_2_body":       "Mfumo wetu unasoma Katiba, Sheria ya Ajira na sheria nyingine za Kenya.",
         "how_3_title":      "3. Pata Jibu Lako",
         "how_3_body":       "Unapata maelezo ya kisheria, haki zako, na barua ya kudai haki.",
 
@@ -71,7 +71,7 @@ UI = {
         "error_no_laws":    "Sheria bado hazijapakiwa. Tafadhali subiri.",
 
         # Disclaimer
-        "disclaimer":       "HakiMkononi inatoa taarifa za kisheria tu — si ushauri wa kisheria. Kwa kesi ngumu, wasiliana na wakili.",
+        "disclaimer":       "HakiMkononi inatoa taarifa za kisheria tu. Si ushauri wa kisheria. Kwa kesi ngumu, wasiliana na wakili.",
 
         # Answer page
         "answer_heading":   "Jibu la Kisheria",
@@ -81,7 +81,7 @@ UI = {
         "box_simple":       "Tafsiri Rahisi",
         "box_simple_sub":   "Plain language",
         "box_rights":       "Haki Yako",
-        "box_rights_sub":   "Your rights & next steps",
+        "box_rights_sub":   "Your rights and next steps",
         "box_letter":       "Andika Hivi",
         "box_letter_sub":   "Draft letter / complaint",
         "sources_heading":  "Vyanzo vya Sheria",
@@ -97,28 +97,28 @@ UI = {
         "btn_copied":       "Imenakiliwa",
         "serious_warning":  "Kesi hii ni nyeti — tafadhali wasiliana na wakili.",
         "serious_nlas":     "Unaweza kupata msaada bila malipo kupitia",
-        "answer_disclaimer":"Taarifa hii ni ya kisheria tu — si ushauri wa kisheria. Thibitisha vifungu kwenye",
+        "answer_disclaimer":"Taarifa hii ni ya kisheria tu. Si ushauri wa kisheria. Thibitisha vifungu kwenye",
         "answer_nlas":      "Kwa kesi ngumu, wasiliana na wakili au",
 
         # About
         "about_title":      "Kuhusu HakiMkononi",
-        "about_hero_sub":   "Tunaamini kila Mkenya anastahili kuelewa haki zake — bila malipo, bila wasiwasi.",
+        "about_hero_sub":   "Tunaamini kila Mkenya anastahili kuelewa haki zake. Bila malipo. Bila wasiwasi.",
         "about_mission_h":  "Dhamira Yetu",
-        "about_mission_1":  "HakiMkononi iliundwa kwa ajili ya Wanjiku — mtu wa kawaida Kenya ambaye ana tatizo la kisheria lakini hawezi kumudu wakili, au hajui hata pa kuanza.",
-        "about_mission_2":  "Mara nyingi watu wanafukuzwa kazi vibaya, wanabaguliwa, au wananyanyaswa — lakini hawajui haki zao. Sheria ya Kenya ipo, lakini imeandikwa kwa lugha ngumu.",
-        "about_mission_3":  "Sisi tunabadilisha hilo. Unauliza swali kwa lugha yoyote — sisi tunakuambia sheria inasema nini, haki zako ni zipi, na hata tunakuandikia barua ya kudai haki yako.",
+        "about_mission_1":  "HakiMkononi iliundwa kwa ajili ya Wanjiku. Mtu wa kawaida Kenya ambaye ana tatizo la kisheria lakini hawezi kumudu wakili, au hajui hata pa kuanza.",
+        "about_mission_2":  "Watu wengi wanafukuzwa kazi bila haki, wanabaguliwa, au wananyanyaswa. Hawajui haki zao. Sheria ya Kenya ipo, lakini imeandikwa kwa lugha ngumu sana.",
+        "about_mission_3":  "Sisi tunabadilisha hilo. Unauliza swali kwa lugha yoyote. Sisi tunakuambia sheria inasema nini, haki zako ni zipi, na tunakuandikia barua ya kudai haki yako.",
         "about_tech_h":     "Teknolojia Yetu",
         "about_laws_h":     "Sheria Tulizopakia",
-        "about_limits_h":   "Mipaka Yetu",
+        "about_limits_h":   "Mambo Muhimu ya Kujua",
         "about_cta":        "Uliza Swali la Kisheria",
 
         # Footer
         "footer_tagline":   "Sheria yako, mkononi mwako 🇰🇪",
-        "footer_legal":     "Taarifa ya kisheria tu — si ushauri wa kisheria.",
+        "footer_legal":     "Taarifa ya kisheria tu. Si ushauri wa kisheria.",
 
         # Loading overlay
         "loading_title":    "Inashughulikia ombi lako…",
-        "loading_sub":      "Inasoma sheria — majibu yataonekana mara mara.",
+        "loading_sub":      "Inasoma sheria. Majibu yataonekana mara mara.",
     },
 
     "en": {
@@ -135,7 +135,7 @@ UI = {
 
         "form_heading":     "Describe Your Situation",
         "field_story":      "Your legal problem",
-        "story_help":       "Type in any language — English, Swahili, or a mix — 1–3 sentences is enough.",
+        "story_help":       "Type in any language. English, Swahili, or a mix. One or two sentences is enough.",
         "field_county":     "Your county (optional)",
         "county_default":   "-- Select county --",
         "county_help":      "Helps us find local resources near you.",
@@ -156,7 +156,7 @@ UI = {
 
         "how_title":        "How It Works",
         "how_1_title":      "1. Describe the Problem",
-        "how_1_body":       "Type your situation in any language — 1–3 sentences.",
+        "how_1_body":       "Type your situation in any language. One or two sentences is enough.",
         "how_2_title":      "2. AI Reads the Law",
         "how_2_body":       "Our system searches the Constitution, Employment Act and other Kenyan laws.",
         "how_3_title":      "3. Get Your Answer",
@@ -167,7 +167,7 @@ UI = {
         "error_retry_hint": "Please try again, or write a shorter question.",
         "error_no_laws":    "Law data not loaded yet. Please wait.",
 
-        "disclaimer":       "HakiMkononi provides legal information only — not legal advice. For complex cases, consult a lawyer.",
+        "disclaimer":       "HakiMkononi provides legal information only. Not legal advice. For complex cases, consult a lawyer.",
 
         "answer_heading":   "Legal Answer",
         "back_home":        "← Back Home",
@@ -176,7 +176,7 @@ UI = {
         "box_simple":       "Plain Explanation",
         "box_simple_sub":   "Tafsiri rahisi",
         "box_rights":       "Your Rights",
-        "box_rights_sub":   "& what went wrong",
+        "box_rights_sub":   "what went wrong",
         "box_letter":       "Write This",
         "box_letter_sub":   "Demand letter / complaint",
         "sources_heading":  "Legal Sources",
@@ -191,25 +191,25 @@ UI = {
         "btn_copied":       "Copied!",
         "serious_warning":  "This is a serious case — please contact a lawyer urgently.",
         "serious_nlas":     "You can get free help through",
-        "answer_disclaimer":"This is legal information only — not legal advice. Verify sections at",
+        "answer_disclaimer":"This is legal information only. Not legal advice. Verify sections at",
         "answer_nlas":      "For serious cases, contact a lawyer or",
 
         "about_title":      "About HakiMkononi",
-        "about_hero_sub":   "We believe every Kenyan deserves to understand their rights — free of charge, free of fear.",
+        "about_hero_sub":   "We believe every Kenyan deserves to understand their rights. Free of charge. Free of fear.",
         "about_mission_h":  "Our Mission",
-        "about_mission_1":  "HakiMkononi was built for the ordinary Kenyan who has a legal problem but can't afford a lawyer — or doesn't even know where to start.",
-        "about_mission_2":  "People are fired unfairly, discriminated against, or harassed — but they don't know their rights. Kenyan law exists, but it's written in complex language.",
-        "about_mission_3":  "We're changing that. You ask a question in any language — we tell you what the law says, what your rights are, and we even write you a demand letter.",
-        "about_tech_h":     "Our Technology",
-        "about_laws_h":     "Laws We've Loaded",
-        "about_limits_h":   "Our Limitations",
+        "about_mission_1":  "HakiMkononi was built for the ordinary Kenyan who has a legal problem but cannot afford a lawyer or does not even know where to start.",
+        "about_mission_2":  "People get fired unfairly, locked out of their homes, or arrested without being told their rights. The law is there to protect them but it is written in language most people cannot read.",
+        "about_mission_3":  "We are changing that. You ask a question in any language. We tell you what the law says, what your rights are, and we write you a demand letter you can actually use.",
+        "about_tech_h":     "How We Built It",
+        "about_laws_h":     "Laws We Have Loaded",
+        "about_limits_h":   "Important Things to Know",
         "about_cta":        "Ask a Legal Question",
 
         "footer_tagline":   "Your rights, in your hands 🇰🇪",
-        "footer_legal":     "Legal information only — not legal advice.",
+        "footer_legal":     "Legal information only. Not legal advice.",
 
         "loading_title":    "Processing your request…",
-        "loading_sub":      "Reading the law for you — results appear as they are ready.",
+        "loading_sub":      "Reading the law for you. Results will appear shortly.",
     },
 
 }

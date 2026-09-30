@@ -5,12 +5,12 @@
 
 {% block content %}
 
-<!-- ══ Hero ══════════════════════════════════════════════════════════════ -->
+<!-- Hero -->
 <section class="py-5" style="background: linear-gradient(135deg, var(--haki-green) 0%, var(--haki-dark) 100%);">
   <div class="container text-center text-white py-2">
     <div class="mb-3" style="font-size:3rem;">⚖️</div>
     <h1 class="display-5 fw-bold mb-2">{{ ui.about_title }}</h1>
-    <p class="lead mb-0" style="color:rgba(255,255,255,.8);">{{ ui.about_hero_sub }}</p>
+    <p class="lead mb-0" style="color:rgba(255,255,255,.85);">{{ ui.about_hero_sub }}</p>
   </div>
 </section>
 
@@ -25,9 +25,90 @@
             <h2 class="h5 fw-bold mb-0" style="color:var(--haki-green);">🎯 {{ ui.about_mission_h }}</h2>
           </div>
           <div class="card-body p-4">
-            <p class="mb-3">{{ ui.about_mission_1 }}</p>
+            <p class="mb-3" style="font-size:1.05rem;">{{ ui.about_mission_1 }}</p>
             <p class="mb-3">{{ ui.about_mission_2 }}</p>
             <p class="mb-0">{{ ui.about_mission_3 }}</p>
+          </div>
+        </div>
+
+        <!-- What you get -->
+        <div class="card card-haki mb-4">
+          <div class="card-header py-3" style="background:var(--haki-light);">
+            <h2 class="h5 fw-bold mb-0" style="color:var(--haki-green);">
+              {% if lang == "en" %}✅ What You Get{% else %}✅ Unapata Nini{% endif %}
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <div class="col-12 col-sm-6">
+                <div class="d-flex gap-3 align-items-start">
+                  <span style="font-size:1.6rem;">📜</span>
+                  <div>
+                    <h6 class="fw-bold mb-1">
+                      {% if lang == "en" %}What the law says{% else %}Sheria inasema nini{% endif %}
+                    </h6>
+                    <p class="text-muted small mb-0">
+                      {% if lang == "en" %}
+                        The exact sections from Kenyan law that apply to your situation. With section numbers so you can verify them yourself.
+                      {% else %}
+                        Vifungu halisi vya sheria ya Kenya vinavyohusiana na hali yako. Na nambari za vifungu ili uweze kuthibitisha mwenyewe.
+                      {% endif %}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="d-flex gap-3 align-items-start">
+                  <span style="font-size:1.6rem;">💬</span>
+                  <div>
+                    <h6 class="fw-bold mb-1">
+                      {% if lang == "en" %}Plain explanation{% else %}Maelezo rahisi{% endif %}
+                    </h6>
+                    <p class="text-muted small mb-0">
+                      {% if lang == "en" %}
+                        No legal jargon. We explain what the law means for your specific situation in simple everyday language.
+                      {% else %}
+                        Hakuna lugha ngumu. Tunakueleza sheria inamaanisha nini kwa hali yako haswa kwa lugha ya kawaida.
+                      {% endif %}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="d-flex gap-3 align-items-start">
+                  <span style="font-size:1.6rem;">💪</span>
+                  <div>
+                    <h6 class="fw-bold mb-1">
+                      {% if lang == "en" %}Your rights{% else %}Haki zako{% endif %}
+                    </h6>
+                    <p class="text-muted small mb-0">
+                      {% if lang == "en" %}
+                        What you are entitled to. What the other party did wrong. What you can do next.
+                      {% else %}
+                        Unastahili nini. Mwingine alikosea wapi. Unaweza kufanya nini sasa hivi.
+                      {% endif %}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="d-flex gap-3 align-items-start">
+                  <span style="font-size:1.6rem;">✉️</span>
+                  <div>
+                    <h6 class="fw-bold mb-1">
+                      {% if lang == "en" %}A ready demand letter{% else %}Barua ya kudai haki{% endif %}
+                    </h6>
+                    <p class="text-muted small mb-0">
+                      {% if lang == "en" %}
+                        A proper demand letter citing the exact law. Fill in your name and send it. No lawyer needed for step one.
+                      {% else %}
+                        Barua rasmi inayotaja sheria husika. Jaza jina lako na uitume. Huhitaji wakili kwa hatua ya kwanza.
+                      {% endif %}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -37,79 +118,33 @@
             <h2 class="h5 fw-bold mb-0" style="color:var(--haki-green);">🔬 {{ ui.about_tech_h }}</h2>
           </div>
           <div class="card-body p-4">
+            <p class="mb-3 text-muted small">
+              {% if lang == "en" %}
+                We use a method called RAG (Retrieval Augmented Generation). This means the AI only answers using real Kenyan laws we have loaded. It cannot make up a law that does not exist.
+              {% else %}
+                Tunatumia njia inayoitwa RAG. Hii inamaanisha AI inajibu kwa kutumia sheria halisi za Kenya tulizopakia. Haiwezi kubuni sheria ambazo hazipo.
+              {% endif %}
+            </p>
             <div class="row g-3">
-              <div class="col-12 col-sm-6">
-                <div class="d-flex gap-3 align-items-start">
-                  <span style="font-size:1.8rem;">📚</span>
-                  <div>
-                    <h6 class="fw-bold mb-1">
-                      {% if lang == "en" %}Law Library{% elif lang == "sheng" %}Law Library{% else %}Maktaba ya Sheria{% endif %}
-                    </h6>
-                    <p class="text-muted small mb-0">
-                      {% if lang == "en" %}
-                        We've loaded the Kenya Constitution 2010, Employment Act 2007, Criminal Procedure Code, and more.
-                      {% elif lang == "sheng" %}
-                        Tumeload Kenya Constitution 2010, Employment Act 2007, Criminal Procedure Code, na zingine.
-                      {% else %}
-                        Tumehifadhi Katiba ya Kenya 2010, Sheria ya Ajira 2007, Kanuni ya Mwenendo wa Jinai, na zaidi.
-                      {% endif %}
-                    </p>
-                  </div>
+              <div class="col-12 col-sm-4 text-center">
+                <div class="p-3 rounded" style="background:var(--haki-light);">
+                  <div style="font-size:2rem;">📚</div>
+                  <div class="fw-semibold small mt-1">{% if lang == "en" %}4,231 law sections{% else %}Vifungu 4,231{% endif %}</div>
+                  <div class="text-muted" style="font-size:.75rem;">{% if lang == "en" %}from 43 Kenyan laws{% else %}kutoka sheria 43 za Kenya{% endif %}</div>
                 </div>
               </div>
-              <div class="col-12 col-sm-6">
-                <div class="d-flex gap-3 align-items-start">
-                  <span style="font-size:1.8rem;">🔍</span>
-                  <div>
-                    <h6 class="fw-bold mb-1">RAG</h6>
-                    <p class="text-muted small mb-0">
-                      {% if lang == "en" %}
-                        Our system finds the law sections most relevant to your situation using AI-powered semantic search.
-                      {% elif lang == "sheng" %}
-                        System yetu inasearch vifungu vya sheria vinavyohusiana na situation yako using AI.
-                      {% else %}
-                        Mfumo wetu unatafuta vifungu vya sheria vinavyohusiana na hali yako kwa kutumia AI.
-                      {% endif %}
-                    </p>
-                  </div>
+              <div class="col-12 col-sm-4 text-center">
+                <div class="p-3 rounded" style="background:#e7f3fb;">
+                  <div style="font-size:2rem;">🔍</div>
+                  <div class="fw-semibold small mt-1">{% if lang == "en" %}Semantic search{% else %}Utafutaji wa akili{% endif %}</div>
+                  <div class="text-muted" style="font-size:.75rem;">{% if lang == "en" %}finds relevant sections{% else %}inapata vifungu husika{% endif %}</div>
                 </div>
               </div>
-              <div class="col-12 col-sm-6">
-                <div class="d-flex gap-3 align-items-start">
-                  <span style="font-size:1.8rem;">🤖</span>
-                  <div>
-                    <h6 class="fw-bold mb-1">
-                      {% if lang == "en" %}Language AI{% elif lang == "sheng" %}AI ya Lugha{% else %}AI ya Lugha{% endif %}
-                    </h6>
-                    <p class="text-muted small mb-0">
-                      {% if lang == "en" %}
-                        A large language model answers in your chosen language — Swahili, English, or Sheng.
-                      {% elif lang == "sheng" %}
-                        LLM inakujibu kwa lugha uliyochagua — Swahili, English, au Sheng yako.
-                      {% else %}
-                        Mfano mkubwa wa lugha unajibu kwa lugha uliyochagua — Kiswahili, Kingereza, au Sheng.
-                      {% endif %}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-12 col-sm-6">
-                <div class="d-flex gap-3 align-items-start">
-                  <span style="font-size:1.8rem;">🔒</span>
-                  <div>
-                    <h6 class="fw-bold mb-1">
-                      {% if lang == "en" %}Your Privacy{% elif lang == "sheng" %}Privacy Yako{% else %}Faragha Yako{% endif %}
-                    </h6>
-                    <p class="text-muted small mb-0">
-                      {% if lang == "en" %}
-                        No sign-up needed. Questions are stored only on our server and never shared.
-                      {% elif lang == "sheng" %}
-                        Hauhitaji ku-register. Maswali yanabaki kwa server yetu tu — hayashare na mtu.
-                      {% else %}
-                        Hauhitaji kujiandikisha. Maswali yanakaa kwenye seva yetu tu — hayashirikishwi.
-                      {% endif %}
-                    </p>
-                  </div>
+              <div class="col-12 col-sm-4 text-center">
+                <div class="p-3 rounded" style="background:#fff4e0;">
+                  <div style="font-size:2rem;">🤖</div>
+                  <div class="fw-semibold small mt-1">{% if lang == "en" %}Groq AI writes{% else %}Groq AI inaandika{% endif %}</div>
+                  <div class="text-muted" style="font-size:.75rem;">{% if lang == "en" %}your personalised answer{% else %}jibu lako maalum{% endif %}</div>
                 </div>
               </div>
             </div>
@@ -122,17 +157,32 @@
             <h2 class="h5 fw-bold mb-0" style="color:var(--haki-green);">📋 {{ ui.about_laws_h }}</h2>
           </div>
           <div class="card-body p-4">
+            <p class="text-muted small mb-3">
+              {% if lang == "en" %}
+                These are the main laws currently in our system. We are adding more every month.
+              {% else %}
+                Hizi ndizo sheria kuu zilizopo kwenye mfumo wetu sasa hivi. Tunaendelea kuongeza zaidi kila mwezi.
+              {% endif %}
+            </p>
             <div class="row g-2">
+              {% for law in about_laws %}
+              <div class="col-12 col-sm-6">
+                <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:{{ law.bg }};">
+                  <span>{{ law.icon }}</span>
+                  <div>
+                    <div class="fw-semibold small">{{ law.name }}</div>
+                    <div class="text-muted" style="font-size:.75rem;">{{ law.desc }}</div>
+                  </div>
+                </div>
+              </div>
+              {% empty %}
+              <!-- Static fallback if view doesn't pass about_laws -->
               <div class="col-12 col-sm-6">
                 <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:var(--haki-light);">
                   <span>🇰🇪</span>
                   <div>
-                    <div class="fw-semibold small">
-                      {% if lang == "en" %}Kenya Constitution 2010{% else %}Katiba ya Kenya 2010{% endif %}
-                    </div>
-                    <div class="text-muted" style="font-size:.78rem;">
-                      {% if lang == "en" %}Fundamental rights{% elif lang == "sheng" %}Rights za msingi{% else %}Haki za msingi za binadamu{% endif %}
-                    </div>
+                    <div class="fw-semibold small">{% if lang == "en" %}Kenya Constitution 2010{% else %}Katiba ya Kenya 2010{% endif %}</div>
+                    <div class="text-muted" style="font-size:.75rem;">{% if lang == "en" %}Fundamental rights{% else %}Haki za msingi{% endif %}</div>
                   </div>
                 </div>
               </div>
@@ -141,9 +191,7 @@
                   <span>💼</span>
                   <div>
                     <div class="fw-semibold small">Employment Act 2007</div>
-                    <div class="text-muted" style="font-size:.78rem;">
-                      {% if lang == "en" %}Work, salary, dismissal{% elif lang == "sheng" %}Kazi, mshahara, kufukuzwa{% else %}Kazi, mshahara, kufukuzwa{% endif %}
-                    </div>
+                    <div class="text-muted" style="font-size:.75rem;">{% if lang == "en" %}Work, salary, dismissal{% else %}Kazi, mshahara, kufukuzwa{% endif %}</div>
                   </div>
                 </div>
               </div>
@@ -152,56 +200,162 @@
                   <span>⚖️</span>
                   <div>
                     <div class="fw-semibold small">Criminal Procedure Code</div>
-                    <div class="text-muted" style="font-size:.78rem;">
-                      {% if lang == "en" %}Arrest rights, prosecution{% elif lang == "sheng" %}Rights za kushikiliwa, kushtakiwa{% else %}Haki za kushikiliwa, kushtakiwa{% endif %}
-                    </div>
+                    <div class="text-muted" style="font-size:.75rem;">{% if lang == "en" %}Arrest rights, court process{% else %}Haki za kushikiliwa, mahakama{% endif %}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:#f0faf3;">
+                  <span>🏠</span>
+                  <div>
+                    <div class="fw-semibold small">{% if lang == "en" %}Land and Landlord Acts{% else %}Sheria za Ardhi na Pango{% endif %}</div>
+                    <div class="text-muted" style="font-size:.75rem;">{% if lang == "en" %}Eviction, title deeds, rent{% else %}Kufukuzwa, hati, kodi{% endif %}</div>
                   </div>
                 </div>
               </div>
               <div class="col-12 col-sm-6">
                 <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:#fdf0f0;">
-                  <span>➕</span>
+                  <span>👨‍👩‍👧</span>
                   <div>
-                    <div class="fw-semibold small">
-                      {% if lang == "en" %}More coming…{% elif lang == "sheng" %}Zaidi zinakuja…{% else %}Zaidi zinakuja…{% endif %}
-                    </div>
-                    <div class="text-muted" style="font-size:.78rem;">Land Act, Children Act…</div>
+                    <div class="fw-semibold small">{% if lang == "en" %}Marriage, Children, Succession{% else %}Ndoa, Watoto, Mirathi{% endif %}</div>
+                    <div class="text-muted" style="font-size:.75rem;">{% if lang == "en" %}Family law{% else %}Sheria za familia{% endif %}</div>
                   </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:#f5f0fb;">
+                  <span>🛡️</span>
+                  <div>
+                    <div class="fw-semibold small">{% if lang == "en" %}Consumer, Data Protection, OSHA{% else %}Mlaji, Data, Usalama Mahali pa Kazi{% endif %}</div>
+                    <div class="text-muted" style="font-size:.75rem;">{% if lang == "en" %}Rights as a consumer and worker{% else %}Haki kama mlaji na mfanyakazi{% endif %}</div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Important to know -->
+        <div class="card card-haki mb-4" style="border-left:5px solid var(--haki-gold);">
+          <div class="card-header py-3" style="background:#fffbf0;">
+            <h2 class="h5 fw-bold mb-0" style="color:#7a5c00;">⚠️ {{ ui.about_limits_h }}</h2>
+          </div>
+          <div class="card-body p-4">
+            {% if lang == "en" %}
+            <p class="mb-3">We want to be honest with you about what HakiMkononi is and what it is not.</p>
+            <div class="d-flex gap-3 mb-3 align-items-start">
+              <span style="font-size:1.3rem; flex-shrink:0;">📌</span>
+              <div>
+                <div class="fw-semibold">This is legal information, not legal advice</div>
+                <p class="text-muted small mb-0">We tell you what the law says. We do not represent you. For court cases or complex matters, you need a real lawyer. <a href="https://www.nlas.go.ke" target="_blank" rel="noopener" style="color:var(--haki-green);">NLAS</a> offers free lawyers for those who cannot afford one.</p>
+              </div>
+            </div>
+            <div class="d-flex gap-3 mb-3 align-items-start">
+              <span style="font-size:1.3rem; flex-shrink:0;">✅</span>
+              <div>
+                <div class="fw-semibold">Always verify the sections</div>
+                <p class="text-muted small mb-0">We cite real section numbers. You can always confirm them yourself at <a href="https://kenyalaw.org" target="_blank" rel="noopener" style="color:var(--haki-green);">kenyalaw.org</a>. Laws can change and we may not always have the latest version.</p>
+              </div>
+            </div>
+            <div class="d-flex gap-3 mb-3 align-items-start">
+              <span style="font-size:1.3rem; flex-shrink:0;">🤖</span>
+              <div>
+                <div class="fw-semibold">AI can get things wrong</div>
+                <p class="text-muted small mb-0">Our system is very careful but no AI is perfect. Treat the answer as a starting point, not a final verdict. When in doubt, talk to a lawyer.</p>
+              </div>
+            </div>
+            <div class="d-flex gap-3 align-items-start">
+              <span style="font-size:1.3rem; flex-shrink:0;">🔒</span>
+              <div>
+                <div class="fw-semibold">Your questions are private</div>
+                <p class="text-muted small mb-0">You do not need to sign up. We do not share your questions with anyone. We only store them to improve the service over time.</p>
+              </div>
+            </div>
+            {% else %}
+            <p class="mb-3">Tunataka kuwa wazi nawe kuhusu HakiMkononi ni nini na si nini.</p>
+            <div class="d-flex gap-3 mb-3 align-items-start">
+              <span style="font-size:1.3rem; flex-shrink:0;">📌</span>
+              <div>
+                <div class="fw-semibold">Hii ni taarifa ya kisheria, si ushauri wa kisheria</div>
+                <p class="text-muted small mb-0">Tunakuambia sheria inasema nini. Hatukuwakilishi mahakamani. Kwa kesi ngumu, unahitaji wakili wa kweli. <a href="https://www.nlas.go.ke" target="_blank" rel="noopener" style="color:var(--haki-green);">NLAS</a> wanatoa mawakili wa bure kwa wale wasiomudu.</p>
+              </div>
+            </div>
+            <div class="d-flex gap-3 mb-3 align-items-start">
+              <span style="font-size:1.3rem; flex-shrink:0;">✅</span>
+              <div>
+                <div class="fw-semibold">Thibitisha vifungu daima</div>
+                <p class="text-muted small mb-0">Tunataja nambari halisi za vifungu. Unaweza kuzithibitisha mwenyewe kwenye <a href="https://kenyalaw.org" target="_blank" rel="noopener" style="color:var(--haki-green);">kenyalaw.org</a>. Sheria zinaweza kubadilika na pengine hatuna toleo la hivi karibuni.</p>
+              </div>
+            </div>
+            <div class="d-flex gap-3 mb-3 align-items-start">
+              <span style="font-size:1.3rem; flex-shrink:0;">🤖</span>
+              <div>
+                <div class="fw-semibold">AI inaweza kukosea</div>
+                <p class="text-muted small mb-0">Mfumo wetu unajaribu sana lakini hakuna AI kamili. Chukulia jibu kama mwanzo wa utafutaji, si uamuzi wa mwisho. Una shaka? Zungumza na wakili.</p>
+              </div>
+            </div>
+            <div class="d-flex gap-3 align-items-start">
+              <span style="font-size:1.3rem; flex-shrink:0;">🔒</span>
+              <div>
+                <div class="fw-semibold">Maswali yako ni ya siri</div>
+                <p class="text-muted small mb-0">Hauhitaji kujiandikisha. Hatushirikishi maswali yako na mtu yeyote. Tunayahifadhi tu ili kuboresha huduma kwa muda.</p>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Free help contacts -->
+        <div class="card card-haki mb-4" style="border-left:5px solid var(--haki-green);">
+          <div class="card-header py-3" style="background:var(--haki-light);">
+            <h2 class="h5 fw-bold mb-0" style="color:var(--haki-green);">
+              📞 {% if lang == "en" %}Free Legal Help in Kenya{% else %}Msaada wa Kisheria Bila Malipo Kenya{% endif %}
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <div class="col-12 col-sm-6">
+                <div class="p-3 rounded border">
+                  <div class="fw-semibold mb-1">NLAS</div>
+                  <div class="text-muted small mb-1">{% if lang == "en" %}National Legal Aid Service{% else %}Huduma ya Msaada wa Kisheria ya Taifa{% endif %}</div>
+                  <a href="tel:0800720120" class="btn btn-sm btn-outline-success">📞 0800 720 120</a>
+                  <div class="text-muted" style="font-size:.72rem; margin-top:.3rem;">{% if lang == "en" %}Free, available nationwide{% else %}Bure, inapatikana nchi nzima{% endif %}</div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="p-3 rounded border">
+                  <div class="fw-semibold mb-1">Kituo Cha Sheria</div>
+                  <div class="text-muted small mb-1">{% if lang == "en" %}Legal Resources Foundation{% else %}Msingi wa Rasilimali za Kisheria{% endif %}</div>
+                  <a href="tel:0800720372" class="btn btn-sm btn-outline-success">📞 0800 720 372</a>
+                  <div class="text-muted" style="font-size:.72rem; margin-top:.3rem;">{% if lang == "en" %}Free legal aid, Nairobi and branches{% else %}Msaada wa kisheria bure, Nairobi na matawi{% endif %}</div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="p-3 rounded border">
+                  <div class="fw-semibold mb-1">LSK Pro Bono</div>
+                  <div class="text-muted small mb-1">{% if lang == "en" %}Law Society of Kenya{% else %}Chama cha Mawakili Kenya{% endif %}</div>
+                  <a href="https://www.lsk.or.ke" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">🌐 lsk.or.ke</a>
+                  <div class="text-muted" style="font-size:.72rem; margin-top:.3rem;">{% if lang == "en" %}Find a verified lawyer near you{% else %}Pata wakili aliyethibitishwa karibu nawe{% endif %}</div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="p-3 rounded border">
+                  <div class="fw-semibold mb-1">Kenya Law</div>
+                  <div class="text-muted small mb-1">{% if lang == "en" %}All Kenyan laws, free online{% else %}Sheria zote za Kenya, bure mtandaoni{% endif %}</div>
+                  <a href="https://kenyalaw.org" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">🌐 kenyalaw.org</a>
+                  <div class="text-muted" style="font-size:.72rem; margin-top:.3rem;">{% if lang == "en" %}Verify any section we cite{% else %}Thibitisha kifungu chochote tulichotaja{% endif %}</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Limitations -->
-        <div class="card card-haki mb-4" style="border-left:5px solid var(--haki-gold);">
-          <div class="card-header py-3" style="background:#fffbf0;">
-            <h2 class="h5 fw-bold mb-0" style="color:#7a5c00;">⚠️ {{ ui.about_limits_h }}</h2>
-          </div>
-          <div class="card-body p-4">
-            <ul class="mb-0 ps-3">
-              {% if lang == "en" %}
-              <li class="mb-2"><strong>Legal information only</strong> — HakiMkononi gives you information, not legal advice. For court cases or complex matters, consult a lawyer.</li>
-              <li class="mb-2"><strong>Verify sections</strong> — Always confirm cited sections at <a href="https://kenyalaw.org" target="_blank" rel="noopener" style="color:var(--haki-green);">kenyalaw.org</a>.</li>
-              <li class="mb-2"><strong>Free legal help</strong> — Contact <a href="https://www.nlas.go.ke" target="_blank" rel="noopener" style="color:var(--haki-green);">NLAS</a> or <a href="https://www.lsk.or.ke" target="_blank" rel="noopener" style="color:var(--haki-green);">LSK</a> for a free lawyer.</li>
-              <li><strong>AI can make mistakes</strong> — Our system is a helpful tool, not a replacement for a real lawyer.</li>
-              {% elif lang == "sheng" %}
-              <li class="mb-2"><strong>Legal info tu</strong> — HakiMkononi inakupa info, si professional legal advice. Kwa court cases ngumu, tafuta wakili.</li>
-              <li class="mb-2"><strong>Confirm vifungu</strong> — Confirm sections kwenye <a href="https://kenyalaw.org" target="_blank" rel="noopener" style="color:var(--haki-green);">kenyalaw.org</a>.</li>
-              <li class="mb-2"><strong>Free legal help iko</strong> — Piga <a href="https://www.nlas.go.ke" target="_blank" rel="noopener" style="color:var(--haki-green);">NLAS</a> au <a href="https://www.lsk.or.ke" target="_blank" rel="noopener" style="color:var(--haki-green);">LSK</a> kwa wakili wa bure.</li>
-              <li><strong>AI inaweza kukosea</strong> — System yetu ni tool ya msaada, si mbadala wa wakili wa kweli.</li>
-              {% else %}
-              <li class="mb-2"><strong>Taarifa ya kisheria tu</strong> — HakiMkononi inatoa taarifa, si ushauri wa kisheria. Kwa kesi za mahakama, wasiliana na wakili.</li>
-              <li class="mb-2"><strong>Thibitisha vifungu</strong> — Daima thibitisha kwenye <a href="https://kenyalaw.org" target="_blank" rel="noopener" style="color:var(--haki-green);">kenyalaw.org</a>.</li>
-              <li class="mb-2"><strong>Msaada wa bure</strong> — Wasiliana na <a href="https://www.nlas.go.ke" target="_blank" rel="noopener" style="color:var(--haki-green);">NLAS</a> au <a href="https://www.lsk.or.ke" target="_blank" rel="noopener" style="color:var(--haki-green);">LSK</a> kwa wakili wa bure.</li>
-              <li><strong>AI inaweza kukosea</strong> — Mfumo wetu ni wa msaada, si badala ya wakili halisi.</li>
-              {% endif %}
-            </ul>
-          </div>
-        </div>
-
         <!-- CTA -->
-        <div class="text-center">
+        <div class="text-center py-2">
+          <p class="text-muted mb-3">
+            {% if lang == "en" %}Ready to find out what the law says about your situation?{% else %}Uko tayari kujua sheria inasema nini kuhusu hali yako?{% endif %}
+          </p>
           <a href="{% url 'home' %}?lang={{ lang }}" class="btn btn-haki btn-lg px-5">
             🔍 {{ ui.about_cta }}
           </a>
