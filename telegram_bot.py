@@ -799,6 +799,7 @@ def _build_app(token: str):
     conv = ConversationHandler(
         entry_points=[
             CommandHandler("start", cmd_start),
+            CommandHandler("clear", cmd_clear),   # works even after /stop ends the conversation
             # Any first message without /start → handle_question checks STATE_NEW
             # and shows the welcome/language picker itself
             MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
