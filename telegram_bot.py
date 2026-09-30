@@ -81,6 +81,14 @@ async def _set_user_state(user: WhatsAppUser, state: str):
     await _db()
 
 
+def _lang_keyboard():
+    return ReplyKeyboardMarkup(
+        [["1️⃣ Kiswahili", "2️⃣ English"]],
+        one_time_keyboard=True,
+        resize_keyboard=True,
+    )
+
+
 def _fill_letter(template: str, name: str, phone: str = "") -> str:
     """Replace [YOUR NAME], [DATE], [PHONE NUMBER] placeholders with real values."""
     # Windows-safe date formatting
