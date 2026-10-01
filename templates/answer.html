@@ -78,6 +78,10 @@
   color: #333;
   margin-bottom: .15rem;
 }
+.answer-box .law-explanation-p {
+  color: #444;
+  margin-top: 0;
+}
 
 /* ── Inline code ── */
 .answer-box code {
@@ -1158,17 +1162,29 @@ document.addEventListener("click", function(e) {
         // Bold citation lines — paragraphs starting with [ are law act references
         if (id === 'text-law') {
           div.querySelectorAll('p').forEach(function(p) {
-            var txt = p.textContent.trim();
-            // Citations look like: [Act Name] – Section X (Title)\nExplanation...
-            // or after marked.parse they may be in one line since \n becomes space
-            // Split on the pattern: everything up to and including ) is the citation
-            // The explanation follows after a sentence pattern
-            var match = txt.match(/^(\[.+?\]\s*[–-]\s*Section\s*[^\(]+\([^\)]+\))(.*)/s);
-            if (match) {
-              var citation = match[1].trim();
-              var explanation = match[2].trim();
-              p.innerHTML = '<strong class="law-citation">' + citation + '</strong>' +
-                (explanation ? '<span class="law-explanation">' + explanation + '</span>' : '');
+            // If the paragraph contains only a <strong> (citation line from blank-line separation)
+            // make it look like a citation header
+            if (p.querySelector('strong') && p.textContent.trim() === p.querySelector('strong').textContent.trim()) {
+              p.querySelector('strong').classList.add('law-citation');
+              p.style.marginBottom = '0.2rem';
+            }
+            // If it's a plain explanation paragraph following a citation
+            else if (!p.querySelector('strong') && p.textContent.trim()) {
+              p.classList.add('law-explanation-p');
+              p.style.marginBottom = '1rem';
+            }
+            // Fallback: paragraph has both citation and explanation merged
+            else {
+              var txt = p.textContent.trim();
+              if (!txt.startsWith('[') && !txt.startsWith('*')) return;
+              var m = txt.match(/^(\[.+?\]\s*[–\-]\s*Section\s*[\w\s]+\([^)]+\))\s*/);
+              if (m) {
+                var citation = m[1].trim();
+                var explanation = txt.slice(m[0].length).trim();
+                p.innerHTML =
+                  '<strong class="law-citation">' + citation + '</strong>' +
+                  (explanation ? '<span class="law-explanation">' + explanation + '</span>' : '');
+              }
             }
           });
         }
