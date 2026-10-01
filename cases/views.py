@@ -35,7 +35,7 @@ def _run_job(job_id: int):
     try:
         job = AnswerJob.objects.get(pk=job_id)
         top_laws = find_relevant_laws(
-            user_story=job.story, top_n=6, category_boost=["constitution"]
+            user_story=job.story, top_n=8, category_boost=["constitution"]
         )
         answer = get_answer(user_story=job.story, laws=top_laws, lang=job.lang)
 
@@ -195,7 +195,7 @@ def ask_sheria(request):
     if not story or len(story) < 5:
         return JsonResponse({"error": "Please provide your story (min 5 chars)."}, status=400)
 
-    top_laws = find_relevant_laws(user_story=story, top_n=6,
+    top_laws = find_relevant_laws(user_story=story, top_n=8,
                                   category_boost=["constitution"])
     if not top_laws:
         return JsonResponse({"error": "Law data not loaded."}, status=503)
@@ -561,7 +561,7 @@ def _wa_answer_job(sender: str, message: str, lang: str):
             format_law_context, parse_answer_sections, is_serious_criminal
         )
 
-        top_laws = find_relevant_laws(message, top_n=6, category_boost=['constitution'])
+        top_laws = find_relevant_laws(message, top_n=8, category_boost=['constitution'])
 
         if is_serious_criminal(message):
             _wa_send(sender, {
@@ -769,7 +769,7 @@ def _run_whatsapp_job(sender: str, message: str, lang: str):
     """
     try:
         top_laws = find_relevant_laws(
-            user_story=message, top_n=6, category_boost=['constitution']
+            user_story=message, top_n=8, category_boost=['constitution']
         )
         answer = get_answer(user_story=message, laws=top_laws, lang=lang)
 
@@ -1253,7 +1253,7 @@ def _meta_answer_job(phone: str, message: str, lang: str):
             format_law_context, parse_answer_sections, is_serious_criminal,
         )
 
-        top_laws = find_relevant_laws(message, top_n=6, category_boost=['constitution'])
+        top_laws = find_relevant_laws(message, top_n=8, category_boost=['constitution'])
 
         if is_serious_criminal(message):
             _meta_send(phone, {

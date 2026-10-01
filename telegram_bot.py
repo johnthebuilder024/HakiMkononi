@@ -473,7 +473,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             )
             if is_serious_criminal(transcript):
                 return None, None, True
-            top_laws   = find_relevant_laws(transcript, top_n=6, category_boost=['constitution'])
+            top_laws   = find_relevant_laws(transcript, top_n=8, category_boost=['constitution'])
             reply_lang = 'sw' if lang == 'sheng' else lang
             ctx        = format_law_context(top_laws)
             system     = SYSTEM_PROMPTS[reply_lang].format(context=ctx)
@@ -749,7 +749,7 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     try:
         @sync_to_async(thread_sensitive=False)
         def run_ai():
-            top_laws = find_relevant_laws(message, top_n=6, category_boost=['constitution'])
+            top_laws = find_relevant_laws(message, top_n=8, category_boost=['constitution'])
             ctx_text = format_law_context(top_laws)
             # Map any old sheng sessions to sw
             reply_lang = 'sw' if lang == 'sheng' else lang

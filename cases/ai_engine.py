@@ -109,12 +109,17 @@ SHERIA ZA KUFUATA (lazima):
 MUUNDO WA MATOKEO — tumia vichwa hivi VIU HASWA:
 
 ## SHERIA INASEMA
-Kwa kila kifungu kinachohusika:
+Kwa kila kifungu kinachohusika (max 6):
 **[Jina la Sheria] – [Kifungu] ([Kichwa])**
 Sema kwa sentensi 1-2 sheria inasema nini haswa kuhusu hali hii.
 
 ## TAFSIRI RAHISI
-Maelezo ya kawaida kwa sentensi 3-4. Hali hii inamaanisha nini kwa mtu huyu haswa.
+Maelezo ya kawaida kwa sentensi 4-5. Hali hii inamaanisha nini kwa mtu huyu haswa. Eleza kwa lugha rahisi sana.
+
+Hatua za kufanya SASA HIVI:
+1. [hatua ya kwanza — ya vitendo, ya haraka]
+2. [hatua ya pili]
+3. [hatua ya tatu ikiwa inahitajika]
 
 ## HAKI YAKO NA LOOPHOLE
 Haki zako:
@@ -169,12 +174,17 @@ RULES (follow exactly):
 OUTPUT FORMAT — use these exact headers:
 
 ## WHAT THE LAW SAYS
-For each relevant section (max 4):
+For each relevant section (max 6):
 **[Act Name] – Section [Number] ([Title])**
 State in 1-2 sentences exactly what this section says about this situation.
 
 ## PLAIN EXPLANATION
-3-4 sentences. What this means for this specific person, in plain English.
+4-5 sentences. What this means for this specific person, in plain English.
+
+Steps to take RIGHT NOW:
+1. [first action — concrete and immediate]
+2. [second action]
+3. [third action if needed]
 
 ## YOUR RIGHTS & WHAT WENT WRONG
 Your rights:
