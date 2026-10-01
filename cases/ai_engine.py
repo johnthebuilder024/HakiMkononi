@@ -439,7 +439,7 @@ def _call_groq(messages: list) -> str:
         GROQ_URL,
         headers=_groq_headers(),
         json=payload,
-        timeout=_TIMEOUT,
+        timeout=(30, 90),  # connect 30s, read 90s — more context needs more time
     )
     resp.raise_for_status()
     result = resp.json()["choices"][0]["message"]["content"]

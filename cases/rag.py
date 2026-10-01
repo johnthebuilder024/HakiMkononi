@@ -414,6 +414,12 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
             score += 0.10
         if is_criminal and entry['category'] == 'criminal_procedure':
             score += 0.14
+        # Always boost Constitution for criminal cases — Article 49 must appear
+        if is_criminal and entry['category'] == 'constitution' and any(
+            k in (entry['section'] or '').lower()
+            for k in ['49', '50', '25', '29', 'arrest', 'rights', 'detained', 'fair trial']
+        ):
+            score += 0.18
         if is_consumer and entry['category'] == 'consumer':
             score += 0.14
         if is_family and entry['category'] == 'other' and any(
