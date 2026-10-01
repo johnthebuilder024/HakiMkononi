@@ -262,7 +262,9 @@ def _render_with_lang(request, template, context, lang):
 @require_http_methods(["GET"])
 def home(request):
     lang = _get_lang(request)
-    return _render_with_lang(request, "home.html", {"counties": COUNTIES}, lang)
+    resp = _render_with_lang(request, "chat.html", {"counties": COUNTIES}, lang)
+    resp.set_cookie("haki_lang", lang, max_age=60*60*24*365, samesite="Lax")
+    return resp
 
 
 @require_http_methods(["GET"])
