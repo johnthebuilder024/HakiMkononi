@@ -81,6 +81,63 @@ async def _set_user_state(user: WhatsAppUser, state: str):
     await _db()
 
 
+def _get_matched_lawyers(query_id: int, county: str = '', top_laws=None) -> list:
+    """
+    Find verified lawyers matching the case type and county.
+    Returns a list of dicts with name, county, specialties, wa_link.
+    """
+    try:
+        from cases.models import Lawyer
+        # Map law categories to lawyer specialties
+        spec_map = {
+            'employment':         ['employment'],
+            'criminal_procedure': ['criminal'],
+            'land':               ['land'],
+            'landlord_tenant':    ['land'],
+            'consumer':           ['consumer'],
+            'other':              ['family', 'consumer', 'data'],
+        }
+        needed = set()
+        if top_laws:
+            for law in top_laws:
+                needed.update(spec_map.get(law.category, []))
+
+        verified = Lawyer.objects.filter(kyc_status=Lawyer.KYC_VERIFIED, is_active=True)
+
+        # County match first
+        if county:
+            county_match = list(verified.filter(county__iexact=county))
+        else:
+            county_match = []
+
+        pool = county_match if len(county_match) >= 2 else list(verified)
+
+        # Filter by specialty
+        if needed:
+            spec_match = [l for l in pool if any(s in (l.specialties or []) for s in needed)]
+            lawyers = spec_match[:3] if spec_match else pool[:3]
+        else:
+            lawyers = pool[:3]
+
+        result = []
+        for l in lawyers:
+            wa_msg = (
+                f"Habari {l.full_name}, ninahitaji msaada wa kisheria. "
+                f"Nilikupata kwenye HakiMkononi."
+            )
+            result.append({
+                'name':        l.full_name,
+                'county':      l.county,
+                'specialties': l.specialty_labels[:2],
+                'firm':        l.firm_name,
+                'years':       l.years_experience,
+                'wa_link':     l.get_whatsapp_link(wa_msg),
+            })
+        return result
+    except Exception:
+        return []
+
+
 def _lang_keyboard():
     return ReplyKeyboardMarkup(
         [["1️⃣ Kiswahili", "2️⃣ English"]],
@@ -585,11 +642,35 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return ANSWERING
 
     if msg_clean in _LAWYER_BUTTONS:
-        reply = {
-            'sw': "📞 *Pata Wakili wa Bure Kenya*\n\n*NLAS:* 0800 720 120\n_National Legal Aid Service — bure kabisa_\n\n*Kituo Cha Sheria:* 0800 720 372\n\n*LSK Pro Bono:* lsk.or.ke",
-            'en': "📞 *Find Free Legal Help in Kenya*\n\n*NLAS:* 0800 720 120\n_National Legal Aid Service — completely free_\n\n*Kituo Cha Sheria:* 0800 720 372\n\n*LSK Pro Bono:* lsk.or.ke",
-        }.get(lang, "📞 NLAS: 0800 720 120 (free lawyers)")
-        await update.message.reply_text(reply, parse_mode="Markdown")
+        # Try to show verified platform lawyers first
+        @sync_to_async(thread_sensitive=False)
+        def fetch_any_lawyers():
+            return _get_matched_lawyers(0)
+
+        any_lawyers = await fetch_any_lawyers()
+        if any_lawyers:
+            intro = {
+                'sw': "💼 *Mawakili Walioidhinishwa wa HakiMkononi:*",
+                'en': "💼 *HakiMkononi Verified Lawyers:*",
+            }.get(lang, "💼 *Verified Lawyers:*")
+            await update.message.reply_text(intro, parse_mode="Markdown")
+            for l in any_lawyers:
+                specs = ', '.join(l['specialties']) if l['specialties'] else ''
+                firm = f"\n_{l['firm']}_" if l['firm'] else ''
+                card = (
+                    f"👤 *{l['name']}*{firm}\n"
+                    f"📍 {l['county']}\n"
+                    f"⚖️ {specs}\n\n"
+                    f"[💬 {'Wasiliana' if lang == 'sw' else 'Connect on WhatsApp'}]({l['wa_link']})"
+                )
+                await update.message.reply_text(card, parse_mode="Markdown", disable_web_page_preview=True)
+        else:
+            # No verified lawyers yet — fall back to free resources
+            reply = {
+                'sw': "📞 *Msaada wa Kisheria Bila Malipo Kenya*\n\n*NLAS:* 0800 720 120\n_National Legal Aid Service — bure kabisa_\n\n*Kituo Cha Sheria:* 0800 720 372\n\n*LSK Pro Bono:* lsk.or.ke",
+                'en': "📞 *Free Legal Help in Kenya*\n\n*NLAS:* 0800 720 120\n_National Legal Aid Service — completely free_\n\n*Kituo Cha Sheria:* 0800 720 372\n\n*LSK Pro Bono:* lsk.or.ke",
+            }.get(lang, "📞 NLAS: 0800 720 120 (free lawyers)")
+            await update.message.reply_text(reply, parse_mode="Markdown")
         return ANSWERING
 
     if msg_clean in _QUESTION_BUTTONS:
@@ -696,6 +777,31 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             if current: chunks.append(current)
             for chunk in chunks:
                 await update.message.reply_text(chunk, parse_mode="Markdown")
+
+        # ── Show matched lawyers if any are available ─────────────────────
+        @sync_to_async(thread_sensitive=False)
+        def fetch_lawyers():
+            return _get_matched_lawyers(0, top_laws=top_laws)
+
+        lawyers = await fetch_lawyers()
+        if lawyers:
+            lawyer_intro = {
+                'sw': "💼 *Mawakili Walioidhinishwa Wanaoweza Kukusaidia:*\n_(Wote wamepita ukaguzi wa HakiMkononi)_",
+                'en': "💼 *Verified Lawyers Who Can Help You:*\n_(All verified by HakiMkononi)_",
+            }.get(reply_lang, "💼 *Verified Lawyers:*")
+            await update.message.reply_text(lawyer_intro, parse_mode="Markdown")
+
+            for l in lawyers:
+                specs = ', '.join(l['specialties']) if l['specialties'] else ''
+                firm = f"\n_{l['firm']}_" if l['firm'] else ''
+                years = f"  •  {l['years']} yrs exp" if l['years'] else ''
+                card = (
+                    f"👤 *{l['name']}*{firm}\n"
+                    f"📍 {l['county']}{years}\n"
+                    f"⚖️ {specs}\n\n"
+                    f"[💬 {'Wasiliana WhatsApp' if reply_lang == 'sw' else 'Connect on WhatsApp'}]({l['wa_link']})"
+                )
+                await update.message.reply_text(card, parse_mode="Markdown", disable_web_page_preview=True)
 
         # ── If letter was generated, ask for name to personalise it ──────────
         if answer.get('letter') and '[YOUR NAME]' in answer['letter'] or \
