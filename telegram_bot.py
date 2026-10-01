@@ -89,6 +89,23 @@ def _lang_keyboard():
     )
 
 
+def _followup_keyboard(lang: str):
+    """Quick reply keyboard shown after an answer."""
+    if lang == 'sw':
+        return ReplyKeyboardMarkup(
+            [["❓ Swali jingine", "📞 Pata Wakili"],
+             ["🗑️ Anza upya", "⚖️ /help"]],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+    return ReplyKeyboardMarkup(
+        [["❓ Ask another question", "📞 Find a Lawyer"],
+         ["🗑️ Start fresh", "⚖️ /help"]],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+
 def _fill_letter(template: str, name: str, phone: str = "") -> str:
     """Replace [YOUR NAME], [DATE], [PHONE NUMBER] placeholders with real values."""
     # Windows-safe date formatting
@@ -161,29 +178,30 @@ def _format_answer(answer: dict, top_laws: list, lang: str) -> str:
         'en':    {'law': '📜 *What The Law Says*', 'simple': '💬 *Plain Explanation*','rights': '💪 *Your Rights*',   'letter': '✉️ *Write This*'},
     }.get(lang, {'law': '📜 *Law*', 'simple': '💬 *Explanation*', 'rights': '💪 *Rights*', 'letter': '✉️ *Letter*'})
 
+    DIV = '─────────────────────'
+
     def clean(text):
         if not text: return ''
-        # Convert **bold** → *bold* for Telegram
         text = re.sub(r'\*\*(.+?)\*\*', r'*\1*', text)
         text = re.sub(r'__(.+?)__',      r'*\1*', text)
-        # Remove markdown headings and blockquotes
         text = re.sub(r'^#+\s+', '', text, flags=re.MULTILINE)
         text = re.sub(r'^>\s?',  '', text, flags=re.MULTILINE)
         return text.strip()
 
     parts = []
     if answer.get('law'):
-        parts.append(f"{L['law']}\n{clean(answer['law'])}")
+        parts.append(f"{DIV}\n{L['law']}\n{clean(answer['law'])}")
     if answer.get('simple'):
-        parts.append(f"{L['simple']}\n{clean(answer['simple'])}")
+        parts.append(f"{DIV}\n{L['simple']}\n{clean(answer['simple'])}")
     if answer.get('loophole'):
-        parts.append(f"{L['rights']}\n{clean(answer['loophole'])}")
+        parts.append(f"{DIV}\n{L['rights']}\n{clean(answer['loophole'])}")
     if answer.get('letter'):
-        letter = answer['letter'][:1500]
-        parts.append(f"{L['letter']}\n```\n{letter}\n```")
+        # Plain text — not code block — easier to read and copy on mobile
+        letter = clean(answer['letter'])[:1500]
+        parts.append(f"{DIV}\n{L['letter']}\n{letter}")
     if top_laws:
         src = '\n'.join(f"  {i+1}. {l.title} — {l.section}" for i, l in enumerate(top_laws[:4]))
-        parts.append(f"📚 *Sources*\n{src}")
+        parts.append(f"{DIV}\n📚 *Sources*\n{src}")
 
     disclaimer = {
         'sw':    '⚠️ _Taarifa ya kisheria tu — si ushauri wa kisheria._',
@@ -198,17 +216,39 @@ def _format_answer(answer: dict, top_laws: list, lang: str) -> str:
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = await _get_user(update.effective_user.id)
-    await _set_user_state(user, WhatsAppUser.STATE_NEW)
     tg_user = update.effective_user
+    first_name = tg_user.first_name or ''
     logger.info(f"[TelegramBot] /start — user {tg_user.id} (@{tg_user.username})")
 
+    # Returning user with language already set — skip picker, go straight to answering
+    if user.state == WhatsAppUser.STATE_ACTIVE:
+        lang = user.lang
+        name_greeting = f", {first_name}" if first_name else ""
+        msg = {
+            'sw': (
+                f"👋 *Karibu tena{name_greeting}!*\n\n"
+                "Niko hapa. Niambie tatizo lako la kisheria.\n\n"
+                "_Andika /language kubadilisha lugha._"
+            ),
+            'en': (
+                f"👋 *Welcome back{name_greeting}!*\n\n"
+                "I'm here. Tell me your legal problem.\n\n"
+                "_Type /language to change language._"
+            ),
+        }.get(lang, f"👋 Welcome back{name_greeting}! Tell me your legal problem.")
+        await update.message.reply_text(msg, parse_mode="Markdown", reply_markup=ReplyKeyboardRemove())
+        return ANSWERING
+
+    # New user — show language picker
+    await _set_user_state(user, WhatsAppUser.STATE_NEW)
+    name_greeting = f", {first_name}" if first_name else ""
     await update.message.reply_text(
-        "👋 *Karibu HakiMkononi!*\n\n"
-        "Mimi ni AI inayokusaidia kuelewa sheria ya Kenya *bila malipo*.\n\n"
+        f"👋 *Karibu HakiMkononi{name_greeting}!*\n\n"
+        "Mimi ni AI inayokusaidia kuelewa haki zako za kisheria Kenya *bila malipo*.\n\n"
+        "Unaweza andika au *tuma sauti* — ninaelewa Kiswahili na Kingereza.\n\n"
         "Chagua lugha yako / Choose your language:\n\n"
         "1️⃣  Kiswahili\n"
-        "2️⃣  English\n\n"
-        "Bonyeza chaguo lako / Tap your choice below:",
+        "2️⃣  English",
         parse_mode="Markdown",
         reply_markup=_lang_keyboard(),
     )
@@ -235,32 +275,42 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     msgs = {
         'sw': (
             "⚖️ *HakiMkononi — Msaada*\n\n"
-            "Niambie tatizo lako la kisheria kwa sentensi 1-2.\n\n"
+            "Niambie tatizo lako la kisheria kwa sentensi 1-2.\n"
+            "Unaweza *andika* au *tuma sauti* 🎤\n\n"
             "*Mifano:*\n"
             "• Nilifukuzwa kazi bila notisi\n"
             "• Landlord alinifunga nje bila notisi\n"
             "• Polisi walinishika bila warrant\n"
             "• Mke wangu anaficha mali yetu\n\n"
+            "*Utapata:*\n"
+            "📜 Sheria inasema nini\n"
+            "💬 Maelezo rahisi\n"
+            "💪 Haki zako\n"
+            "✉️ Barua ya kudai haki (iliyojazwa na jina lako)\n\n"
             "📌 *Amri:*\n"
             "/language — Badilisha lugha\n"
-            "/start — Anza upya\n"
-            "/clear — Futa mazungumzo, anza upya\n"
-            "/stop — Maliza mazungumzo\n"
+            "/clear — Anza mazungumzo mapya\n"
+            "/stop — Maliza\n"
             "/help — Msaada huu"
         ),
         'en': (
             "⚖️ *HakiMkononi — Help*\n\n"
-            "Tell me your legal problem in 1-2 sentences.\n\n"
+            "Tell me your legal problem in 1-2 sentences.\n"
+            "You can *type* or *send a voice message* 🎤\n\n"
             "*Examples:*\n"
             "• My employer fired me without notice\n"
             "• My landlord locked me out without notice\n"
             "• Police arrested me without a warrant\n"
             "• My spouse is hiding our shared property\n\n"
+            "*You get:*\n"
+            "📜 What the law says\n"
+            "💬 Plain explanation\n"
+            "💪 Your rights\n"
+            "✉️ A demand letter filled with your name\n\n"
             "📌 *Commands:*\n"
             "/language — Change language\n"
-            "/start — Start over\n"
-            "/clear — Clear chat, start fresh\n"
-            "/stop — End this conversation\n"
+            "/clear — Start a new conversation\n"
+            "/stop — End conversation\n"
             "/help — This help message"
         ),
     }
@@ -303,6 +353,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         return CHOOSING_LANG
 
     lang    = user.lang
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     ack_msg = await update.message.reply_text(
         '🎤 ' + ('Inatafsiri sauti yako…' if lang == 'sw' else 'Transcribing your voice…')
     )
@@ -429,7 +480,8 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
         await update.message.reply_text(
             '❓ Una swali lingine? Andika au tuma sauti.' if lang == 'sw'
-            else '❓ Another question? Type or send a voice message.'
+            else '❓ Another question? Type or send a voice message.',
+            reply_markup=_followup_keyboard(reply_lang)
         )
 
     except Exception as e:
@@ -439,8 +491,8 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         except Exception:
             pass
         await update.message.reply_text(
-            '❌ Samahani, kuna tatizo. Jaribu tena.' if lang == 'sw'
-            else '❌ Sorry, an error occurred. Please try again.'
+            '❌ Samahani, kuna tatizo. Jaribu tena au andika swali lako.' if lang == 'sw'
+            else '❌ Sorry, something went wrong. Try again or type your question instead.'
         )
 
     return ANSWERING
@@ -474,16 +526,18 @@ async def handle_language_choice(update: Update, context: ContextTypes.DEFAULT_T
         'sw': (
             f"✅ Vizuri! Lugha: *{name}*\n\n"
             "Sasa niambie tatizo lako la kisheria.\n\n"
-            "_Mfano: Nilifukuzwa kazi bila notisi._\n\n"
-            "Unaweza andika kwa Kiswahili, Kingereza, au mchanganyiko — ninaelewa vyote.\n"
-            "Andika /language kubadilisha lugha wakati wowote."
+            "_Mfano: Nilifukuzwa kazi bila notisi na mwajiri wangu._\n\n"
+            "💡 Unaweza *andika* au *tuma sauti* — ninaelewa vyote.\n"
+            "Nitakupa maelezo ya sheria, haki zako, na barua ya kudai haki.\n\n"
+            "_Andika /help kwa mifano zaidi._"
         ),
         'en': (
             f"✅ Great! Language: *{name}*\n\n"
             "Now tell me your legal problem.\n\n"
             "_Example: My employer fired me without notice._\n\n"
-            "You can write in English, Swahili, or a mix — I understand all.\n"
-            "Type /language to change language at any time."
+            "💡 You can *type* or *send a voice message* — I understand both.\n"
+            "I'll explain your rights and write you a demand letter.\n\n"
+            "_Type /help for more examples._"
         ),
     }[chosen]
 
@@ -514,6 +568,37 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             reply_markup=_lang_keyboard(),
         )
         return CHOOSING_LANG
+
+    # ── Handle quick-reply keyboard button taps ─────────────────────────
+    _CLEAR_BUTTONS = {'🗑️ anza upya', '🗑️ start fresh', 'start fresh', 'anza upya'}
+    _LAWYER_BUTTONS = {'📞 pata wakili', '📞 find a lawyer', 'find a lawyer', 'pata wakili'}
+    _QUESTION_BUTTONS = {'❓ swali jingine', '❓ ask another question', 'ask another question', 'swali jingine'}
+
+    msg_clean = message.lower().strip().rstrip('!?.')
+    if msg_clean in _CLEAR_BUTTONS:
+        context.user_data.clear()
+        reply = {
+            'sw': "━━━━━━━━━━━━━━━━━━━━━━\n🗑️ *Anza upya*\n━━━━━━━━━━━━━━━━━━━━━━\n\nNiambie tatizo lako jipya la kisheria.",
+            'en': "━━━━━━━━━━━━━━━━━━━━━━\n🗑️ *Starting fresh*\n━━━━━━━━━━━━━━━━━━━━━━\n\nTell me your new legal problem.",
+        }.get(lang, "Starting fresh. Tell me your new legal problem.")
+        await update.message.reply_text(reply, parse_mode="Markdown", reply_markup=ReplyKeyboardRemove())
+        return ANSWERING
+
+    if msg_clean in _LAWYER_BUTTONS:
+        reply = {
+            'sw': "📞 *Pata Wakili wa Bure Kenya*\n\n*NLAS:* 0800 720 120\n_National Legal Aid Service — bure kabisa_\n\n*Kituo Cha Sheria:* 0800 720 372\n\n*LSK Pro Bono:* lsk.or.ke",
+            'en': "📞 *Find Free Legal Help in Kenya*\n\n*NLAS:* 0800 720 120\n_National Legal Aid Service — completely free_\n\n*Kituo Cha Sheria:* 0800 720 372\n\n*LSK Pro Bono:* lsk.or.ke",
+        }.get(lang, "📞 NLAS: 0800 720 120 (free lawyers)")
+        await update.message.reply_text(reply, parse_mode="Markdown")
+        return ANSWERING
+
+    if msg_clean in _QUESTION_BUTTONS:
+        nudge = {
+            'sw': "👍 Niko tayari! Niambie tatizo lako jipya la kisheria.",
+            'en': "👍 Ready! Tell me your new legal problem.",
+        }.get(lang, "Ready! Tell me your legal problem.")
+        await update.message.reply_text(nudge, reply_markup=ReplyKeyboardRemove())
+        return ANSWERING
 
     # ── Greeting / too-short message detection ───────────────────────────
     _GREETINGS = {
@@ -549,18 +634,31 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     # Serious case
     if is_serious_criminal(message):
         serious = {
-            'sw': "🚨 *Kesi Nyeti*\n\nKesi hii inahitaji wakili haraka.\n\n*NLAS (Bure):* 0800 720 120\nwww.nlas.go.ke",
-            'en': "🚨 *Serious Case*\n\nThis needs a lawyer urgently.\n\n*NLAS (Free):* 0800 720 120\nwww.nlas.go.ke",
-        }.get(lang, "🚨 *Serious Case*\n\nContact NLAS: 0800 720 120")
+            'sw': (
+                "🚨 *Kesi Nyeti — Tafuta Wakili Haraka*\n\n"
+                "Kesi hii inahitaji wakili wa kweli, si AI.\n\n"
+                "📞 *NLAS (Bure):* 0800 720 120\n"
+                "_NLAS = National Legal Aid Service — mawakili wa serikali bila malipo_\n\n"
+                "🌐 www.nlas.go.ke"
+            ),
+            'en': (
+                "🚨 *Serious Case — Get a Lawyer Urgently*\n\n"
+                "This situation needs a real lawyer, not an AI.\n\n"
+                "📞 *NLAS (Free):* 0800 720 120\n"
+                "_NLAS = National Legal Aid Service — free government lawyers_\n\n"
+                "🌐 www.nlas.go.ke"
+            ),
+        }.get(lang, "🚨 *Serious Case* — Contact NLAS: 0800 720 120 (free lawyers)")
         await update.message.reply_text(serious, parse_mode="Markdown")
         return ANSWERING
 
-    # Send instant "thinking" message
+    # Send instant "thinking" message + typing indicator
     ack = {
         'sw': '⏳ Inasoma sheria yako... jibu linakuja sekunde 15-20.',
         'en': '⏳ Reading the law for you... reply in 15-20 seconds.',
     }.get(lang, '⏳ Processing...')
 
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     thinking = await update.message.reply_text(ack)
 
     try:
@@ -622,10 +720,10 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             return FILLING_LETTER
 
         followup = {
-            'sw': '❓ Una swali lingine? Andika hapa.',
-            'en': '❓ Have another question? Just type it.',
-        }.get(reply_lang, '❓ Any other question? Just type it.')
-        await update.message.reply_text(followup)
+            'sw': '❓ Una swali lingine? Andika au bonyeza chini.',
+            'en': '❓ Have another question? Type it or tap below.',
+        }.get(reply_lang, '❓ Any other question?')
+        await update.message.reply_text(followup, reply_markup=_followup_keyboard(reply_lang))
 
     except Exception as e:
         logger.error(f"Answer error: {e}", exc_info=True)
@@ -634,10 +732,18 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         except Exception:
             pass
         err = {
-            'sw': '❌ Samahani, kuna tatizo la kiufundi. Tafadhali jaribu tena.',
-            'en': '❌ Sorry, a technical error occurred. Please try again.',
-        }.get(lang, '❌ Sorry, please try again.')
-        await update.message.reply_text(err)
+            'sw': (
+                '❌ *Kuna tatizo la kiufundi.*\n\n'
+                'Jaribu tena kwa kutuma swali lako upya.\n'
+                '_Kama tatizo linaendelea, andika /help._'
+            ),
+            'en': (
+                '❌ *A technical error occurred.*\n\n'
+                'Please try sending your question again.\n'
+                '_If it keeps happening, type /help._'
+            ),
+        }.get(lang, '❌ Error. Please try again or type /help.')
+        await update.message.reply_text(err, parse_mode="Markdown")
 
     return ANSWERING
 
@@ -673,10 +779,24 @@ async def handle_letter_name(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def handle_letter_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """User replied with phone — fill and send the complete letter."""
+    """User replied with phone — validate, fill and send the complete letter."""
     phone = update.message.text.strip()
     lang  = context.user_data.get('letter_lang', 'en')
     name  = context.user_data.get('letter_name', '')
+
+    # Basic phone validation — must look like a number
+    phone_digits = re.sub(r'[\s\-\(\)]', '', phone)
+    is_valid_phone = (
+        phone_digits.lstrip('+').isdigit() and
+        len(phone_digits) >= 9
+    )
+    if not is_valid_phone:
+        warn = {
+            'sw': "⚠️ Hiyo haionekani kama nambari ya simu. Jaribu tena (mfano: 0712345678)\n_(au andika /skip kuruka)_",
+            'en': "⚠️ That doesn't look like a phone number. Try again (e.g. 0712345678)\n_(or type /skip to skip)_",
+        }.get(lang, "⚠️ Invalid phone number. Try again or type /skip.")
+        await update.message.reply_text(warn, parse_mode="Markdown")
+        return FILLING_PHONE
     letter_template = context.user_data.get('pending_letter', '')
 
     # Clean up stored data
@@ -713,17 +833,17 @@ async def handle_letter_phone(update: Update, context: ContextTypes.DEFAULT_TYPE
             "• Badilisha \[Anwani yako\] na anwani yako halisi\n"
             "• Tuma kwa barua pepe, WhatsApp, au mkono\n"
             "• Hifadhi nakala moja kwako\n\n"
-            "❓ Una swali lingine? Andika hapa."
+            "❓ Una swali lingine?"
         ),
         'en': (
             "💡 *Tips:*\n"
             "• Replace \[Your address\] with your actual address\n"
             "• Send by email, WhatsApp, or hand-deliver with a witness\n"
             "• Keep a copy for yourself\n\n"
-            "❓ Have another question? Just type it."
+            "❓ Have another question?"
         ),
-    }.get(lang, "❓ Have another question? Just type it.")
-    await update.message.reply_text(tip, parse_mode="Markdown")
+    }.get(lang, "❓ Have another question?")
+    await update.message.reply_text(tip, parse_mode="Markdown", reply_markup=_followup_keyboard(lang))
     return ANSWERING
 
 
@@ -738,13 +858,13 @@ async def cmd_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     msg = {
         'sw': (
             "👋 *Kwaheri!*\n\n"
-            "Nimefurahi kukusaidia leo. Ukihitaji msaada wa kisheria tena, "
+            "Natumai nimekusaidia. Ukihitaji msaada wa kisheria tena, "
             "andika /start wakati wowote.\n\n"
             "HakiMkononi iko hapa kila wakati. 🇰🇪"
         ),
         'en': (
             "👋 *Goodbye!*\n\n"
-            "Happy to have helped you today. Whenever you need legal help again, "
+            "Hope I was useful. Whenever you need legal help again, "
             "just type /start.\n\n"
             "HakiMkononi is here whenever you need it. 🇰🇪"
         ),
