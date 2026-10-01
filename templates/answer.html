@@ -1161,29 +1161,37 @@ document.addEventListener("click", function(e) {
         div.innerHTML = marked.parse(md);
         // Bold citation lines — paragraphs starting with [ are law act references
         if (id === 'text-law') {
+          // Insert a line break between citation and explanation
+          // Citation always ends with )] — the closing paren of section title
+          // Replace the first occurrence of )] followed by a space/letter with a line break
+          var rawHtml = div.innerHTML;
+          // After marked.parse, bold citations look like <strong>[Act] – Section X (Title)</strong>text
+          // or plain text: [Act] – Section X (Title)] text
+          // Insert <br> after </strong> if immediately followed by text
+          rawHtml = rawHtml.replace(/<\/strong>([A-Z])/g, '</strong><br>$1');
+          // Also handle unbolded: after )] followed by capital letter
+          rawHtml = rawHtml.replace(/\)\]([A-Z])/g, ')]<br>$1');
+          rawHtml = rawHtml.replace(/\)\)\s+([A-Z])/g, '))<br>$1');
+          div.innerHTML = rawHtml;
+
+          // Now bold any <p> that contains only a <strong> (citation line)
+          div.querySelectorAll('p strong').forEach(function(s) {
+            if (s.parentElement.tagName === 'P') {
+              s.classList.add('law-citation');
+            }
+          });
+
+          // Bold paragraphs starting with [ that aren't already bold
           div.querySelectorAll('p').forEach(function(p) {
-            // If the paragraph contains only a <strong> (citation line from blank-line separation)
-            // make it look like a citation header
-            if (p.querySelector('strong') && p.textContent.trim() === p.querySelector('strong').textContent.trim()) {
-              p.querySelector('strong').classList.add('law-citation');
-              p.style.marginBottom = '0.2rem';
-            }
-            // If it's a plain explanation paragraph following a citation
-            else if (!p.querySelector('strong') && p.textContent.trim()) {
-              p.classList.add('law-explanation-p');
-              p.style.marginBottom = '1rem';
-            }
-            // Fallback: paragraph has both citation and explanation merged
-            else {
-              var txt = p.textContent.trim();
-              if (!txt.startsWith('[') && !txt.startsWith('*')) return;
-              var m = txt.match(/^(\[.+?\]\s*[–\-]\s*Section\s*[\w\s]+\([^)]+\))\s*/);
+            var txt = p.textContent.trim();
+            if (txt.startsWith('[') && !p.querySelector('strong')) {
+              // Find split point: after the last ) before explanation
+              var m = txt.match(/^(\[.+?\]\s*[–\-]\s*Section\s*[^\(]*\([^\)]*\))\s*/);
               if (m) {
-                var citation = m[1].trim();
-                var explanation = txt.slice(m[0].length).trim();
-                p.innerHTML =
-                  '<strong class="law-citation">' + citation + '</strong>' +
-                  (explanation ? '<span class="law-explanation">' + explanation + '</span>' : '');
+                var cit = m[1].trim();
+                var exp = txt.slice(m[0].length).trim();
+                p.innerHTML = '<strong class="law-citation">' + cit + '</strong>' +
+                  (exp ? '<br><span class="law-explanation">' + exp + '</span>' : '');
               }
             }
           });
