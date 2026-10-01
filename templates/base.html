@@ -30,7 +30,7 @@
 
     /* Navbar */
     .navbar-haki { background: var(--haki-green); border-bottom: 3px solid var(--haki-gold); }
-    .navbar-haki .navbar-brand { font-weight: 800; font-size: 1.3rem; color: #fff !important; letter-spacing: .4px; }
+    .navbar-haki .navbar-brand { font-weight: 800; font-size: 1.3rem; color: #fff !important; letter-spacing: .4px; white-space: nowrap; }
     .navbar-haki .navbar-brand span { color: var(--haki-gold); }
     .navbar-haki .nav-link { color: rgba(255,255,255,.85) !important; font-weight: 500; transition: color .15s; }
     .navbar-haki .nav-link:hover, .navbar-haki .nav-link.active { color: #fff !important; }
@@ -102,10 +102,11 @@
 <nav class="navbar navbar-expand-lg navbar-haki sticky-top shadow-sm">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
-      <img src="{% static 'img/logo.png' %}"
-           alt="HakiMkononi"
-           style="height:42px; width:42px; border-radius:8px; object-fit:cover;">
-      Haki<span>Mkononi</span>
+      <img src="{% static 'img/logo.png' %}" alt="HakiMkononi"
+           width="40" height="40"
+           style="border-radius:8px; object-fit:cover; flex-shrink:0;"
+           onerror="this.style.display='none'">
+      <span>Haki<span style="color:var(--haki-gold);">Mkononi</span></span>
     </a>
     <button class="navbar-toggler" type="button"
             data-bs-toggle="collapse" data-bs-target="#mainNav"
@@ -116,11 +117,11 @@
       <ul class="navbar-nav me-auto gap-1">
         <li class="nav-item">
           <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
-             href="{% url 'home' %}">🏠 {{ ui.nav_home }}</a>
+             href="{% url 'home' %}">{{ ui.nav_home }}</a>
         </li>
         <li class="nav-item">
           <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}"
-             href="{% url 'about' %}">ℹ️ {{ ui.nav_about }}</a>
+             href="{% url 'about' %}">{{ ui.nav_about }}</a>
         </li>
       </ul>
       <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0"

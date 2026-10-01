@@ -8,7 +8,11 @@
 <!-- Hero -->
 <section class="py-5" style="background: linear-gradient(135deg, var(--haki-green) 0%, var(--haki-dark) 100%);">
   <div class="container text-center text-white py-2">
-    <div class="mb-3" style="font-size:3rem;">⚖️</div>
+    <div class="mb-3">
+      <img src="{% static 'img/logo.png' %}" alt="HakiMkononi"
+           style="height:80px; width:80px; border-radius:14px; object-fit:cover; box-shadow:0 4px 20px rgba(0,0,0,.3);"
+           onerror="this.style.display='none'">
+    </div>
     <h1 class="display-5 fw-bold mb-2">{{ ui.about_title }}</h1>
     <p class="lead mb-0" style="color:rgba(255,255,255,.85);">{{ ui.about_hero_sub }}</p>
   </div>
