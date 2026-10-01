@@ -466,14 +466,11 @@
       </a>
     </div>
     <div class="d-flex align-items-center gap-2 mb-1">
-      <span style="font-size:1.4rem;">⚖️</span>
       <h1 class="h4 fw-bold mb-0 text-white">{{ ui.answer_heading }}</h1>
     </div>
-    {% if story %}
-    <p class="story-quote mb-0">"{{ story }}"</p>
-    {% else %}
-    <p class="story-quote mb-0" style="display:none;"></p>
-    {% endif %}
+    <p class="story-quote mb-0"{% if not story %} style="display:none;"{% endif %}>
+      {% if story %}"{{ story }}"{% endif %}
+    </p>
     {% if county %}
     <span class="badge mt-2" style="background:var(--haki-gold);color:#000;">📍 {{ county }}</span>
     {% endif %}
@@ -1313,6 +1310,12 @@ document.addEventListener("click", function(e) {
     try {
       var printQ = document.getElementById('print-question');
       if (printQ && STORY) printQ.textContent = 'Question: "' + STORY + '"';
+      // Also update the visible hero quote (for fresh submissions where Django renders empty)
+      var heroQ = document.querySelector('.story-quote');
+      if (heroQ && STORY) {
+        heroQ.textContent = '"' + STORY + '"';
+        heroQ.style.removeProperty('display');
+      }
     } catch(e) {}
 
     // 2. Save full answer to localStorage keyed by job_id
@@ -1413,7 +1416,6 @@ document.addEventListener("click", function(e) {
               var quoteEl = document.querySelector('.story-quote');
               if (quoteEl) {
                 quoteEl.textContent = '"' + saved.story + '"';
-                quoteEl.style.display = 'block';
                 quoteEl.style.removeProperty('display');
               }
               var printQ = document.getElementById('print-question');
