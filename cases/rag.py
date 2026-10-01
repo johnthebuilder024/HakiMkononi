@@ -234,6 +234,13 @@ _EXPANSION_MAP = {
     'bidhaa mbaya':     'defective goods product consumer',
     'duka lilikataa':   'shop refused refund consumer rights',
     'hawakurejesha':    'no refund consumer protection',
+    # Physical assault / criminal violence
+    'alinipiga':        'assault bodily harm penal code criminal offence',
+    'wananipiga':       'assault bodily harm criminal',
+    'alinishambulia':   'attack assault bodily harm criminal',
+    'jirani':           'neighbour assault penal code',
+    'waliiba':          'theft robbery stealing penal code',
+    'walimnyang\'anya': 'robbery theft penal code criminal',
     # County enforcement / Kanjo
     'kanjo':            'county enforcement officer business permit license confiscate',
     'county askari':    'county enforcement officer business permit',
@@ -301,6 +308,11 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         'arrested', 'police', 'warrant', 'bail', 'charge', 'crime', 'offence',
         'detained', 'custody', 'prosecution', 'rights not read', 'handcuffed',
         'locked up', 'cell', 'station', 'OCS', 'officer',
+        # Physical assault / violence (not domestic)
+        'assault', 'assaulted', 'attacked', 'beat', 'beaten', 'hit', 'hit me',
+        'punched', 'stabbed', 'injury', 'bodily harm', 'physical harm',
+        'neighbour', 'neighbor', 'mob', 'gang', 'threatened', 'threatening',
+        'stole', 'robbery', 'robbed', 'mugged', 'thief', 'stolen',
     ]
     _criminal_sw = [
         'polisi', 'kufungwa', 'watuhumiwa', 'dhamana', 'mashtaka', 'uhalifu',
@@ -314,7 +326,7 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     _family_en = [
         'divorce', 'marriage', 'spouse', 'wife', 'husband', 'custody',
         'inheritance', 'succession', 'domestic violence', 'matrimonial',
-        'beating', 'assault', 'abuse',
+        'domestic abuse', 'spousal abuse',
     ]
     _family_sw = [
         'talaka', 'ndoa', 'mke', 'mume', 'watoto', 'mirathi', 'urithi',
