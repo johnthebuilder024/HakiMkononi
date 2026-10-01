@@ -110,7 +110,7 @@ MUUNDO WA MATOKEO — tumia vichwa hivi VIU HASWA:
 
 ## SHERIA INASEMA
 Kwa kila kifungu kinachohusika:
-[Jina la Sheria] – [Kifungu] ([Kichwa])
+**[Jina la Sheria] – [Kifungu] ([Kichwa])**
 Sema kwa sentensi 1-2 sheria inasema nini haswa kuhusu hali hii.
 
 ## TAFSIRI RAHISI
@@ -170,7 +170,7 @@ OUTPUT FORMAT — use these exact headers:
 
 ## WHAT THE LAW SAYS
 For each relevant section (max 4):
-[Act Name] – Section [Number] ([Title])
+**[Act Name] – Section [Number] ([Title])**
 State in 1-2 sentences exactly what this section says about this situation.
 
 ## PLAIN EXPLANATION

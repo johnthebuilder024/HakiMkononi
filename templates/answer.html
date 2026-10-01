@@ -64,6 +64,18 @@
 }
 .answer-box a:hover { text-decoration: underline; opacity: 1; }
 
+/* ── Law citation lines — bold and green so they stand out ── */
+.answer-box p:first-line {
+  font-weight: 600;
+}
+/* Stronger: target citation paragraphs via JS-added class */
+.answer-box .law-citation {
+  font-weight: 700;
+  color: var(--haki-dark);
+  font-size: .97rem;
+  margin-bottom: .2rem;
+}
+
 /* ── Inline code ── */
 .answer-box code {
   background: #f0f0f0;
@@ -292,9 +304,10 @@
   font-style: italic;
   color: rgba(255,255,255,.75);
   font-size: .88rem;
-  max-width: 680px;
-  margin-top: .4rem;
-  line-height: 1.5;
+  max-width: 720px;
+  margin: .4rem auto 0;
+  line-height: 1.6;
+  /* No truncation — show full question */
 }
 
 /* ══ Responsive ════════════════════════════════════════════════════ */
@@ -454,7 +467,7 @@
       <h1 class="h4 fw-bold mb-0 text-white">{{ ui.answer_heading }}</h1>
     </div>
     {% if story %}
-    <p class="story-quote mb-0">"{{ story|truncatechars:180 }}"</p>
+    <p class="story-quote mb-0">"{{ story }}"</p>
     {% endif %}
     {% if county %}
     <span class="badge mt-2" style="background:var(--haki-gold);color:#000;">📍 {{ county }}</span>
@@ -1140,6 +1153,20 @@ document.addEventListener("click", function(e) {
       var md = fill[id];
       if (md && window.marked) {
         div.innerHTML = marked.parse(md);
+        // Bold citation lines — paragraphs starting with [ are law act references
+        if (id === 'text-law') {
+          div.querySelectorAll('p').forEach(function(p) {
+            var txt = p.textContent.trim();
+            if (txt.startsWith('[') || txt.match(/^[A-Z][a-zA-Z\s]+Act|^Constitution|^Penal Code/)) {
+              // Split into citation line + explanation
+              var lines = txt.split('\n');
+              if (lines.length >= 1) {
+                p.innerHTML = '<strong class="law-citation">' + lines[0] + '</strong>' +
+                  (lines.slice(1).join('\n') ? '<br>' + lines.slice(1).join('<br>') : '');
+              }
+            }
+          });
+        }
       } else {
         div.textContent = md;
       }
@@ -1377,8 +1404,7 @@ document.addEventListener("click", function(e) {
             if (saved.story) {
               var quoteEl = document.querySelector('.story-quote');
               if (quoteEl) {
-                var truncated = saved.story.length > 180 ? saved.story.slice(0,180)+'…' : saved.story;
-                quoteEl.textContent = '"' + truncated + '"';
+                quoteEl.textContent = '"' + saved.story + '"';
                 quoteEl.style.display = 'block';
               }
               var printQ = document.getElementById('print-question');
