@@ -7,6 +7,11 @@
   <meta name="description" content="HakiMkononi | {{ ui.hero_sub }}">
   <title>{% block title %}HakiMkononi{% endblock %}</title>
 
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
+  <meta name="theme-color" content="#1a7a3c">
+
   <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
 
   <style>
@@ -96,7 +101,12 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-haki sticky-top shadow-sm">
   <div class="container">
-    <a class="navbar-brand" href="{% url 'home' %}">⚖️ Haki<span>Mkononi</span></a>
+    <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+      <img src="{% static 'img/logo.png' %}"
+           alt="HakiMkononi"
+           style="height:42px; width:42px; border-radius:8px; object-fit:cover;">
+      Haki<span>Mkononi</span>
+    </a>
     <button class="navbar-toggler" type="button"
             data-bs-toggle="collapse" data-bs-target="#mainNav"
             aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
