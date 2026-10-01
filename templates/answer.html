@@ -1205,10 +1205,18 @@ document.addEventListener("click", function(e) {
             if (specs) html += '<span class="text-muted small">' + specs + '</span>';
             html += '</div>';
             if (l.bio) html += '<div class="text-muted small mt-1" style="font-size:.78rem;">' + l.bio + '</div>';
-            html += '</div>';
-            html += '<button class="btn btn-sm btn-haki flex-shrink-0 connect-btn" '
+            // Contact buttons row
+            html += '<div class="d-flex gap-2 mt-2 flex-wrap">';
+            html += '<button class="btn btn-sm btn-haki connect-btn" '
               + 'data-lawyer="' + l.id + '" data-name="' + l.name + '">'
-              + (LANG === 'en' ? '💬 Connect' : '💬 Wasiliana') + '</button>';
+              + '💬 ' + (LANG === 'en' ? 'WhatsApp' : 'WhatsApp') + '</button>';
+            if (l.telegram) {
+              html += '<a href="https://t.me/' + l.telegram + '" target="_blank" rel="noopener" '
+                + 'class="btn btn-sm btn-outline-primary" style="border-color:#2AABEE;color:#2AABEE;">'
+                + '✈️ Telegram</a>';
+            }
+            html += '</div>';
+            html += '</div>';
             html += '</div>';
           });
 

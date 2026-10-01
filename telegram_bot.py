@@ -132,6 +132,7 @@ def _get_matched_lawyers(query_id: int, county: str = '', top_laws=None) -> list
                 'firm':        l.firm_name,
                 'years':       l.years_experience,
                 'wa_link':     l.get_whatsapp_link(wa_msg),
+                'tg_link':     l.get_telegram_link(),
             })
         return result
     except Exception:
@@ -657,11 +658,14 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             for l in any_lawyers:
                 specs = ', '.join(l['specialties']) if l['specialties'] else ''
                 firm = f"\n_{l['firm']}_" if l['firm'] else ''
+                contacts = f"[💬 WhatsApp]({l['wa_link']})"
+                if l.get('tg_link'):
+                    contacts += f"  |  [✈️ Telegram]({l['tg_link']})"
                 card = (
                     f"👤 *{l['name']}*{firm}\n"
                     f"📍 {l['county']}\n"
                     f"⚖️ {specs}\n\n"
-                    f"[💬 {'Wasiliana' if lang == 'sw' else 'Connect on WhatsApp'}]({l['wa_link']})"
+                    f"{contacts}"
                 )
                 await update.message.reply_text(card, parse_mode="Markdown", disable_web_page_preview=True)
         else:
@@ -795,11 +799,15 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 specs = ', '.join(l['specialties']) if l['specialties'] else ''
                 firm = f"\n_{l['firm']}_" if l['firm'] else ''
                 years = f"  •  {l['years']} yrs exp" if l['years'] else ''
+                # Build contact links
+                contacts = f"[💬 WhatsApp]({l['wa_link']})"
+                if l.get('tg_link'):
+                    contacts += f"  |  [✈️ Telegram]({l['tg_link']})"
                 card = (
                     f"👤 *{l['name']}*{firm}\n"
                     f"📍 {l['county']}{years}\n"
                     f"⚖️ {specs}\n\n"
-                    f"[💬 {'Wasiliana WhatsApp' if reply_lang == 'sw' else 'Connect on WhatsApp'}]({l['wa_link']})"
+                    f"{contacts}"
                 )
                 await update.message.reply_text(card, parse_mode="Markdown", disable_web_page_preview=True)
 

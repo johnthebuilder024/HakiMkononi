@@ -255,6 +255,8 @@ class Lawyer(models.Model):
                              help_text="Format: +254XXXXXXXXX")
     whatsapp           = models.CharField(max_length=20, blank=True,
                              help_text="WhatsApp number — clients will be connected here. Format: +254XXXXXXXXX")
+    telegram_username  = models.CharField(max_length=100, blank=True,
+                             help_text="Telegram username without @ e.g. JohnAdvocate — clients can reach you here too")
     national_id_number = models.CharField(max_length=30, blank=True)
 
     # ── LSK Credentials ───────────────────────────────────────────────────────
@@ -335,6 +337,13 @@ class Lawyer(models.Model):
         if message:
             return f"https://wa.me/{num}?text={urllib.parse.quote(message)}"
         return f"https://wa.me/{num}"
+
+    def get_telegram_link(self) -> str:
+        """Generate a t.me link if lawyer has a Telegram username."""
+        if self.telegram_username:
+            username = self.telegram_username.lstrip('@').strip()
+            return f"https://t.me/{username}"
+        return ""
 
 
 class Lead(models.Model):

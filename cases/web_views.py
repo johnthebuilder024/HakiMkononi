@@ -539,6 +539,7 @@ def lawyer_register(request):
                 email            = data['email'],
                 phone            = data['phone'],
                 whatsapp         = data['whatsapp'] or data['phone'],
+                telegram_username = data.get('telegram_username', '').strip().lstrip('@'),
                 lsk_number       = data['lsk_number'],
                 lsk_name         = data['lsk_name'],
                 county           = data['county'],
@@ -749,14 +750,15 @@ def lawyers_for_query(request, query_id):
     data = []
     for l in lawyers:
         data.append({
-            'id':           l.pk,
-            'name':         l.full_name,
-            'county':       l.county,
-            'specialties':  l.specialty_labels[:3],
-            'firm':         l.firm_name,
-            'years':        l.years_experience,
-            'bio':          l.bio[:150] + ('…' if len(l.bio) > 150 else ''),
-            'has_photo':    bool(l.profile_photo),
+            'id':               l.pk,
+            'name':             l.full_name,
+            'county':           l.county,
+            'specialties':      l.specialty_labels[:3],
+            'firm':             l.firm_name,
+            'years':            l.years_experience,
+            'bio':              l.bio[:150] + ('…' if len(l.bio) > 150 else ''),
+            'has_photo':        bool(l.profile_photo),
+            'telegram':         l.telegram_username.lstrip('@') if l.telegram_username else '',
         })
 
     return JsonResponse({'lawyers': data, 'query_county': query.county or ''})

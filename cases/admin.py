@@ -217,7 +217,7 @@ class LawyerAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('👤 Identity', {
-            'fields': ('full_name', 'email', 'phone', 'whatsapp', 'national_id_number'),
+            'fields': ('full_name', 'email', 'phone', 'whatsapp', 'telegram_username', 'national_id_number'),
         }),
         ('⚖️ LSK Credentials', {
             'fields': ('lsk_number', 'lsk_name'),
