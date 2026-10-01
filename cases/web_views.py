@@ -29,7 +29,7 @@ UI = {
 
         # Hero
         "hero_title":       "Sheria Yako, Mkononi Mwako",
-        "hero_sub":         "Eleza hali yako — AI itakusaidia kuelewa haki zako bila malipo.",
+        "hero_sub":         "Eleza hali yako. AI itakusaidia kuelewa haki zako bila malipo.",
         "hero_note":        "Inategemea Katiba ya Kenya 2010, Sheria ya Ajira 2007 na zaidi.",
 
         # Form
@@ -52,7 +52,7 @@ UI = {
             "Polisi walinishika bila warrant",
             "Mke wangu ananidanganya mali",
             "Mwajiri hakulipia mshahara wangu",
-            "Nilipigwa na jirani — nifanye nini?",
+            "Nilipigwa na jirani. Nifanye nini?",
         ],
 
         # How it works
@@ -65,7 +65,7 @@ UI = {
         "how_3_body":       "Unapata maelezo ya kisheria, haki zako, na barua ya kudai haki.",
 
         # Errors / validation
-        "error_short":      "Tafadhali eleza hali yako zaidi — andika sentensi moja au mbili.",
+        "error_short":      "Tafadhali eleza hali yako zaidi. Andika sentensi moja au mbili.",
         "error_heading":    "Kuna tatizo:",
         "error_retry_hint": "Jaribu tena, au andika swali fupi zaidi.",
         "error_no_laws":    "Sheria bado hazijapakiwa. Tafadhali subiri.",
@@ -95,7 +95,7 @@ UI = {
         "btn_share":        "Shiriki",
         "btn_copy":         "Nakili",
         "btn_copied":       "Imenakiliwa",
-        "serious_warning":  "Kesi hii ni nyeti — tafadhali wasiliana na wakili.",
+        "serious_warning":  "Kesi hii ni nyeti. Tafadhali wasiliana na wakili.",
         "serious_nlas":     "Unaweza kupata msaada bila malipo kupitia",
         "answer_disclaimer":"Taarifa hii ni ya kisheria tu. Si ushauri wa kisheria. Thibitisha vifungu kwenye",
         "answer_nlas":      "Kwa kesi ngumu, wasiliana na wakili au",
@@ -130,7 +130,7 @@ UI = {
         "nav_about":        "About",
 
         "hero_title":       "Your Rights, In Your Hands",
-        "hero_sub":         "Describe your situation — AI will help you understand your legal rights for free.",
+        "hero_sub":         "Describe your situation. AI will help you understand your legal rights for free.",
         "hero_note":        "Powered by the Kenya Constitution 2010, Employment Act 2007 and more.",
 
         "form_heading":     "Describe Your Situation",
@@ -151,7 +151,7 @@ UI = {
             "Police arrested me without a warrant",
             "Spouse is hiding our shared property",
             "My employer hasn't paid my salary",
-            "My neighbour assaulted me — what do I do?",
+            "My neighbour assaulted me. What do I do?",
         ],
 
         "how_title":        "How It Works",
@@ -162,7 +162,7 @@ UI = {
         "how_3_title":      "3. Get Your Answer",
         "how_3_body":       "You get a legal explanation, your rights, and a ready-to-use demand letter.",
 
-        "error_short":      "Please describe your situation more — write at least one sentence.",
+        "error_short":      "Please describe your situation more. Write at least one sentence.",
         "error_heading":    "There's a problem:",
         "error_retry_hint": "Please try again, or write a shorter question.",
         "error_no_laws":    "Law data not loaded yet. Please wait.",
@@ -189,7 +189,7 @@ UI = {
         "btn_print":        "Download PDF",        "btn_share":        "Share",
         "btn_copy":         "Copy",
         "btn_copied":       "Copied!",
-        "serious_warning":  "This is a serious case — please contact a lawyer urgently.",
+        "serious_warning":  "This is a serious case. Please contact a lawyer urgently.",
         "serious_nlas":     "You can get free help through",
         "answer_disclaimer":"This is legal information only. Not legal advice. Verify sections at",
         "answer_nlas":      "For serious cases, contact a lawyer or",

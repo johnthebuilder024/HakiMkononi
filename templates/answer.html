@@ -470,7 +470,7 @@
     <div id="print-header" style="display:none;">
       <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #1a7a3c;padding-bottom:6pt;margin-bottom:8pt;">
         <span style="font-size:16pt;font-weight:bold;color:#1a7a3c;">⚖️ HakiMkononi</span>
-        <span style="font-size:9pt;color:#555;">Legal Answer — kenyalaw.org</span>
+        <span style="font-size:9pt;color:#555;">Legal Answer | kenyalaw.org</span>
       </div>
       <p id="print-question" style="font-style:italic;font-size:10pt;color:#333;margin-bottom:12pt;"></p>
     </div>
@@ -720,7 +720,7 @@
 
         <!-- Print-only disclaimer — hidden on screen -->
         <div id="print-disclaimer" style="display:none; font-size:8pt; color:#555; border-top:1px solid #ccc; padding-top:6pt; margin-top:12pt;">
-          ⚠️ This is legal information only — not legal advice. Verify all sections at kenyalaw.org.
+          ⚠️ This is legal information only. Not legal advice. Verify all sections at kenyalaw.org.
           For serious cases, contact a lawyer or the National Legal Aid Service (NLAS): www.nlas.go.ke
         </div>
 
@@ -1005,8 +1005,8 @@ document.addEventListener("click", function(e) {
           : 0;
         if (unfilled > 0) {
           var warn = LANG === 'sw'
-            ? "⚠️ Bado " + unfilled + " nafasi zimebaki — PDF itakuwa na nafasi tupu."
-            : "⚠️ " + unfilled + " placeholder" + (unfilled > 1 ? "s" : "") + " unfilled — PDF will have blank fields.";
+            ? "⚠️ Bado " + unfilled + " nafasi zimebaki. PDF itakuwa na nafasi tupu."
+            : "⚠️ " + unfilled + " placeholder" + (unfilled > 1 ? "s" : "") + " unfilled. PDF will have blank fields.";
           showLetterWarning(warn);
           // Still allow download after warning
         }
@@ -1038,7 +1038,7 @@ document.addEventListener("click", function(e) {
             setTimeout(function() { dlBtn.textContent = origText; }, 3000);
           })
           .catch(function() {
-            dlBtn.textContent = LANG === 'sw' ? "❌ Imeshindwa — jaribu tena" : "❌ Failed — try again";
+            dlBtn.textContent = LANG === 'sw' ? "❌ Imeshindwa. Jaribu tena" : "❌ Failed. Try again";
             dlBtn.disabled = false;
             setTimeout(function() { dlBtn.textContent = origText; }, 3000);
           });
@@ -1090,7 +1090,7 @@ document.addEventListener("click", function(e) {
           setTimeout(function() { btn.textContent = origText; }, 3000);
         })
         .catch(function() {
-          btn.textContent = "❌ {% if lang == 'en' %}Failed — try again{% else %}Imeshindwa{% endif %}";
+          btn.textContent = "❌ {% if lang == 'en' %}Failed. Try again{% else %}Imeshindwa{% endif %}";
           btn.disabled = false;
           setTimeout(function() { btn.textContent = origText; }, 3000);
         });

@@ -59,7 +59,7 @@
                   <small id="storyCount" class="text-muted">
                     <span id="charCount">0</span> {% if lang == "en" %}characters{% else %}herufi{% endif %}
                     <span id="longWarn" class="text-warning d-none">
-                      — {% if lang == "en" %}long story may take more time{% else %}hadithi ndefu inachukua muda zaidi{% endif %}
+                      {% if lang == "en" %}long story may take more time{% else %}hadithi ndefu inachukua muda zaidi{% endif %}
                     </span>
                   </small>
                 </div>
@@ -268,12 +268,12 @@
     sw: { speak: 'Sema', recording: 'Simama',
           transcribing: '⏳ Inatafsiri sauti yako…',
           done: '✅ Imetafsiriwa! Sasa hariri kama unataka.',
-          error: '❌ Hitilafu — jaribu tena',
+          error: '❌ Hitilafu. Jaribu tena',
           unsupported: '❌ Kivinjari chako hakisaidii kurekodi' },
     en: { speak: 'Speak', recording: 'Stop',
           transcribing: '⏳ Transcribing your voice…',
           done: '✅ Done! Edit the text above if needed.',
-          error: '❌ Error — try again',
+          error: '❌ Error. Try again',
           unsupported: '❌ Your browser does not support recording' },
   };
   var M = msgs[LANG] || msgs['sw'];
