@@ -64,16 +64,19 @@
 }
 .answer-box a:hover { text-decoration: underline; opacity: 1; }
 
-/* ── Law citation lines — bold and green so they stand out ── */
-.answer-box p:first-line {
-  font-weight: 600;
-}
-/* Stronger: target citation paragraphs via JS-added class */
+/* ── Law citation lines — bold, dark green, separated from explanation ── */
 .answer-box .law-citation {
+  display: block;
   font-weight: 700;
   color: var(--haki-dark);
   font-size: .97rem;
-  margin-bottom: .2rem;
+  margin-bottom: .35rem;
+}
+.answer-box .law-explanation {
+  display: block;
+  font-weight: 400;
+  color: #333;
+  margin-bottom: .15rem;
 }
 
 /* ── Inline code ── */
@@ -468,6 +471,8 @@
     </div>
     {% if story %}
     <p class="story-quote mb-0">"{{ story }}"</p>
+    {% else %}
+    <p class="story-quote mb-0" style="display:none;"></p>
     {% endif %}
     {% if county %}
     <span class="badge mt-2" style="background:var(--haki-gold);color:#000;">📍 {{ county }}</span>
@@ -1157,13 +1162,16 @@ document.addEventListener("click", function(e) {
         if (id === 'text-law') {
           div.querySelectorAll('p').forEach(function(p) {
             var txt = p.textContent.trim();
-            if (txt.startsWith('[') || txt.match(/^[A-Z][a-zA-Z\s]+Act|^Constitution|^Penal Code/)) {
-              // Split into citation line + explanation
-              var lines = txt.split('\n');
-              if (lines.length >= 1) {
-                p.innerHTML = '<strong class="law-citation">' + lines[0] + '</strong>' +
-                  (lines.slice(1).join('\n') ? '<br>' + lines.slice(1).join('<br>') : '');
-              }
+            // Citations look like: [Act Name] – Section X (Title)\nExplanation...
+            // or after marked.parse they may be in one line since \n becomes space
+            // Split on the pattern: everything up to and including ) is the citation
+            // The explanation follows after a sentence pattern
+            var match = txt.match(/^(\[.+?\]\s*[–-]\s*Section\s*[^\(]+\([^\)]+\))(.*)/s);
+            if (match) {
+              var citation = match[1].trim();
+              var explanation = match[2].trim();
+              p.innerHTML = '<strong class="law-citation">' + citation + '</strong>' +
+                (explanation ? '<span class="law-explanation">' + explanation + '</span>' : '');
             }
           });
         }
@@ -1406,6 +1414,7 @@ document.addEventListener("click", function(e) {
               if (quoteEl) {
                 quoteEl.textContent = '"' + saved.story + '"';
                 quoteEl.style.display = 'block';
+                quoteEl.style.removeProperty('display');
               }
               var printQ = document.getElementById('print-question');
               if (printQ) printQ.textContent = 'Question: "' + saved.story + '"';
