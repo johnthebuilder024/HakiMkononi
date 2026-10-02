@@ -998,9 +998,61 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 async def handle_letter_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """User replied with their name — save it and ask for phone number."""
+    """User replied with their name — validate it before saving."""
     name = update.message.text.strip()
     lang = context.user_data.get('letter_lang', 'en')
+
+    # ── Detect emotional/distress input — not a name ──────────────────
+    _NOT_A_NAME_PHRASES = [
+        'i feel', 'i want', 'i am', 'i was', 'i will', 'i need',
+        'i think', 'i can', 'i hate', 'i love', 'i know', 'i don',
+        'they', 'police', 'officer', 'help me', 'please', 'what',
+        'why', 'when', 'how', 'who', 'this', 'that', 'the ',
+        'nahisi', 'ninahisi', 'nataka', 'mimi ni', 'wao', 'polisi',
+    ]
+    name_lower = name.lower()
+    looks_like_sentence = (
+        len(name.split()) > 5 or
+        len(name) > 50 or
+        any(name_lower.startswith(p) or (' ' + p) in name_lower for p in _NOT_A_NAME_PHRASES)
+    )
+
+    if looks_like_sentence:
+        # Respond with empathy if it sounds like frustration/distress
+        _DISTRESS_WORDS = ['beat', 'hit', 'kill', 'angry', 'hurt', 'pain',
+                           'piga', 'pigo', 'hasira', 'jeuri', 'umenidhulumu']
+        is_distressed = any(w in name_lower for w in _DISTRESS_WORDS)
+
+        if is_distressed:
+            empathy = {
+                'sw': (
+                    "💙 Naelewa unahisi hasira na maumivu.\n\n"
+                    "Hali yako ni ngumu sana na ni haki kukuwa na hasira.\n"
+                    "Barua hii itakusaidia kupigana kwa njia ya kisheria.\n\n"
+                    "Tafadhali niambie *jina lako halisi* ili niweke katika barua:"
+                ),
+                'en': (
+                    "💙 I understand you're feeling angry and hurt.\n\n"
+                    "What happened to you is serious and your anger makes complete sense.\n"
+                    "This letter will help you fight back through the law.\n\n"
+                    "Please type your *real full name* so I can put it in the letter:"
+                ),
+            }.get(lang, "💙 I understand. Please type your real full name for the letter:")
+        else:
+            empathy = {
+                'sw': (
+                    "⚠️ Hiyo inaonekana kama sentensi, si jina.\n\n"
+                    "Tafadhali andika *jina lako halisi* tu.\n"
+                    "_Mfano: John Kamau au Amina Wanjiku_"
+                ),
+                'en': (
+                    "⚠️ That looks like a sentence, not a name.\n\n"
+                    "Please type just your *real full name*.\n"
+                    "_Example: John Kamau or Mary Wanjiku_"
+                ),
+            }.get(lang, "⚠️ Please type your real full name only. Example: John Kamau")
+        await update.message.reply_text(empathy, parse_mode="Markdown")
+        return FILLING_LETTER
 
     if not name or len(name) < 2:
         await update.message.reply_text(
