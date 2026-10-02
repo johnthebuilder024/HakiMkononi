@@ -147,7 +147,27 @@ def _lang_keyboard():
     )
 
 
-def _followup_keyboard(lang: str):
+def _main_keyboard(lang: str):
+    """
+    Persistent keyboard shown after language selection.
+    Always visible at the bottom — includes voice prompt button.
+    """
+    if lang == 'sw':
+        return ReplyKeyboardMarkup(
+            [["🎤 Tuma Sauti", "❓ Swali Jipya"],
+             ["📞 Pata Wakili", "⚖️ /help"]],
+            resize_keyboard=True,
+            one_time_keyboard=False,   # persistent — stays visible
+        )
+    return ReplyKeyboardMarkup(
+        [["🎤 Send Voice", "❓ New Question"],
+         ["📞 Find a Lawyer", "⚖️ /help"]],
+        resize_keyboard=True,
+        one_time_keyboard=False,
+    )
+
+
+def _main_keyboard(lang: str):
     """Quick reply keyboard shown after an answer."""
     if lang == 'sw':
         return ReplyKeyboardMarkup(
@@ -539,7 +559,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         await update.message.reply_text(
             '❓ Una swali lingine? Andika au tuma sauti.' if lang == 'sw'
             else '❓ Another question? Type or send a voice message.',
-            reply_markup=_followup_keyboard(reply_lang)
+            reply_markup=_main_keyboard(reply_lang)
         )
 
     except Exception as e:
@@ -602,7 +622,7 @@ async def handle_language_choice(update: Update, context: ContextTypes.DEFAULT_T
     await update.message.reply_text(
         confirm,
         parse_mode="Markdown",
-        reply_markup=ReplyKeyboardRemove(),
+        reply_markup=_main_keyboard(chosen),
     )
     return ANSWERING
 
@@ -628,11 +648,35 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return CHOOSING_LANG
 
     # ── Handle quick-reply keyboard button taps ─────────────────────────
-    _CLEAR_BUTTONS = {'🗑️ anza upya', '🗑️ start fresh', 'start fresh', 'anza upya'}
-    _LAWYER_BUTTONS = {'📞 pata wakili', '📞 find a lawyer', 'find a lawyer', 'pata wakili'}
-    _QUESTION_BUTTONS = {'❓ swali jingine', '❓ ask another question', 'ask another question', 'swali jingine'}
+    _CLEAR_BUTTONS    = {'🗑️ anza upya', '🗑️ start fresh', 'start fresh', 'anza upya'}
+    _LAWYER_BUTTONS   = {'📞 pata wakili', '📞 find a lawyer', 'find a lawyer', 'pata wakili'}
+    _QUESTION_BUTTONS = {'❓ swali jingine', '❓ ask another question', 'ask another question',
+                         'swali jingine', '❓ new question', '❓ swali jipya', 'new question', 'swali jipya'}
+    _VOICE_BUTTONS    = {'🎤 send voice', '🎤 tuma sauti', 'send voice', 'tuma sauti'}
 
     msg_clean = message.lower().strip().rstrip('!?.')
+
+    # Voice prompt button
+    if msg_clean in _VOICE_BUTTONS:
+        voice_tip = {
+            'sw': (
+                "🎤 *Jinsi ya kutuma sauti:*\n\n"
+                "1. Bonyeza na ushikilie ikoni ya 🎤 kwenye kibodi yako\n"
+                "2. Sema swali lako la kisheria\n"
+                "3. Acha kidole — ujumbe wa sauti utatumwa moja kwa moja\n\n"
+                "_Mfano: 'Mwajiri wangu alinifukuza bila notisi...'_"
+            ),
+            'en': (
+                "🎤 *How to send a voice message:*\n\n"
+                "1. Press and hold the 🎤 microphone icon on your keyboard\n"
+                "2. Speak your legal question clearly\n"
+                "3. Release — your voice note will be sent automatically\n\n"
+                "_Example: 'My employer fired me without notice...'_"
+            ),
+        }.get(lang, "🎤 Press and hold the mic icon on your keyboard to record.")
+        await update.message.reply_text(voice_tip, parse_mode="Markdown",
+                                        reply_markup=_main_keyboard(lang))
+        return ANSWERING
     if msg_clean in _CLEAR_BUTTONS:
         context.user_data.clear()
         reply = {
@@ -837,7 +881,7 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             'sw': '❓ Una swali lingine? Andika au bonyeza chini.',
             'en': '❓ Have another question? Type it or tap below.',
         }.get(reply_lang, '❓ Any other question?')
-        await update.message.reply_text(followup, reply_markup=_followup_keyboard(reply_lang))
+        await update.message.reply_text(followup, reply_markup=_main_keyboard(reply_lang))
 
     except Exception as e:
         logger.error(f"Answer error: {e}", exc_info=True)
@@ -957,7 +1001,7 @@ async def handle_letter_phone(update: Update, context: ContextTypes.DEFAULT_TYPE
             "❓ Have another question?"
         ),
     }.get(lang, "❓ Have another question?")
-    await update.message.reply_text(tip, parse_mode="Markdown", reply_markup=_followup_keyboard(lang))
+    await update.message.reply_text(tip, parse_mode="Markdown", reply_markup=_main_keyboard(lang))
     return ANSWERING
 
 
