@@ -663,14 +663,14 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 "🎤 *Jinsi ya kutuma sauti:*\n\n"
                 "1. Bonyeza na ushikilie ikoni ya 🎤 kwenye kibodi yako\n"
                 "2. Sema swali lako la kisheria\n"
-                "3. Acha kidole — ujumbe wa sauti utatumwa moja kwa moja\n\n"
+                "3. Acha kidole. Ujumbe wa sauti utatumwa moja kwa moja\n\n"
                 "_Mfano: 'Mwajiri wangu alinifukuza bila notisi...'_"
             ),
             'en': (
                 "🎤 *How to send a voice message:*\n\n"
                 "1. Press and hold the 🎤 microphone icon on your keyboard\n"
                 "2. Speak your legal question clearly\n"
-                "3. Release — your voice note will be sent automatically\n\n"
+                "3. Release. Your voice note will be sent automatically\n\n"
                 "_Example: 'My employer fired me without notice...'_"
             ),
         }.get(lang, "🎤 Press and hold the mic icon on your keyboard to record.")
@@ -730,12 +730,41 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return ANSWERING
 
     # ── Greeting / too-short message detection ───────────────────────────
+
+    # Thank you messages — separate from greetings, need a warm response
+    _THANKS = {
+        'thanks', 'thank you', 'thank you so much', 'thank you very much',
+        'thanks a lot', 'asante', 'asante sana', 'nashukuru', 'shukrani',
+        'sawa asante', 'nimeshukuru', 'appreciated', 'it helped',
+        'ilisaidia', 'helpful', 'that helped', 'you helped me',
+        'umesaidia', 'umenihelp', 'great', 'wonderful', 'excellent',
+        'perfect', 'amazing', 'awesome',
+    }
+    msg_stripped_for_thanks = message.lower().strip().rstrip('!?.,:')
+    if msg_stripped_for_thanks in _THANKS:
+        import random
+        responses_sw = [
+            "😊 Karibu sana!\n\nNimefurahi kukusaidia. Haki zako ni muhimu na unastahili kuzijua.\n\nUkiwa na swali jingine la kisheria, niko hapa wakati wowote.",
+            "😊 Karibu!\n\nNimefurahi sana. Kazi yangu ni kuhakikisha Wakenya wote wanajua haki zao.\n\nUkihitaji msaada tena, niambie tu.",
+            "🙏 Karibu sana!\n\nNimefurahi kukusaidia leo. Kumbuka kushiriki HakiMkononi na wengine wanaohitaji msaada wa kisheria.",
+        ]
+        responses_en = [
+            "😊 You're welcome!\n\nI'm really glad I could help. Your rights matter and you deserve to know them.\n\nIf you ever have another legal question, I'm here anytime.",
+            "😊 Happy to help!\n\nThat's exactly what I'm here for. No one should face a legal problem alone.\n\nFeel free to ask anything else whenever you need.",
+            "🙏 You're welcome!\n\nI'm glad the answer was useful. Share HakiMkononi with others who might need legal help too.",
+        ]
+        responses = responses_sw if lang == 'sw' else responses_en
+        reply = random.choice(responses)
+        await update.message.reply_text(reply, parse_mode="Markdown",
+                                        reply_markup=_main_keyboard(lang))
+        return ANSWERING
+
     _GREETINGS = {
         'hello', 'hi', 'hey', 'hii', 'habari', 'habari yako', 'sasa',
         'mambo', 'niaje', 'vipi', 'sup', 'hola', 'salamu', 'karibu',
         'good morning', 'good afternoon', 'good evening', 'good day',
-        'asubuhi njema', 'ok', 'okay', 'sawa', 'thanks', 'thank you',
-        'asante', 'fine', 'yes', 'no', 'ndiyo', 'hapana', '👋', '😊',
+        'asubuhi njema', 'ok', 'okay', 'sawa', 'fine',
+        'yes', 'no', 'ndiyo', 'hapana', '👋', '😊',
     }
     msg_lower_stripped = message.lower().strip().rstrip('!?.,:')
     is_greeting = msg_lower_stripped in _GREETINGS or len(message.strip()) < 8
@@ -757,7 +786,8 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 "Describe your situation and I'll explain your rights."
             ),
         }.get(lang, "👋 Hello! Tell me your legal problem and I'll help.")
-        await update.message.reply_text(nudge, parse_mode="Markdown")
+        await update.message.reply_text(nudge, parse_mode="Markdown",
+                                        reply_markup=_main_keyboard(lang))
         return ANSWERING
 
     # Serious case
