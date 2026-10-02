@@ -147,6 +147,35 @@ def _lang_keyboard():
     )
 
 
+async def _typing_loop(bot, chat_id: int, stop_event):
+    """
+    Keeps sending 'typing' action every 4 seconds until stop_event is set.
+    After 8 seconds also sends a short reassurance message (returned so caller
+    can delete it when the answer arrives).
+    """
+    import asyncio
+    reassurance_msg = None
+    elapsed = 0
+    while not stop_event.is_set():
+        try:
+            await bot.send_chat_action(chat_id=chat_id, action="typing")
+        except Exception:
+            pass
+        await asyncio.sleep(4)
+        elapsed += 4
+        # After 8 seconds send a small reassurance — only once
+        if elapsed == 8 and reassurance_msg is None:
+            try:
+                reassurance_msg = await bot.send_message(
+                    chat_id=chat_id,
+                    text="_Still reading the law..._",
+                    parse_mode="Markdown",
+                )
+            except Exception:
+                pass
+    return reassurance_msg
+
+
 def _main_keyboard(lang: str):
     """
     Persistent keyboard shown after language selection.
@@ -476,12 +505,18 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             )
             return ANSWERING
 
-        # Show what was heard so user can verify accuracy
+        # Show what was heard so user can verify accuracy — then start typing loop for AI
         heard = '🎤 Nilisikia: ' if lang == 'sw' else '🎤 I heard: '
         await ack_msg.edit_text(
-            f"{heard}_\"{transcript[:100]}\"_\n\n"
-            f"⏳ {'Inasoma sheria…' if lang == 'sw' else 'Reading the law…'}",
+            f"{heard}_\"{transcript[:100]}\"_",
             parse_mode="Markdown"
+        )
+
+        # Start typing loop while AI runs
+        import asyncio
+        stop_typing_v  = asyncio.Event()
+        typing_task_v  = asyncio.create_task(
+            _typing_loop(context.bot, update.effective_chat.id, stop_typing_v)
         )
 
         # Run AI in thread
@@ -504,6 +539,15 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             return answer, top_laws, False
 
         answer, top_laws, is_serious = await run_ai()
+
+        # Stop typing loop and clean up
+        stop_typing_v.set()
+        reassurance_v = await typing_task_v
+        if reassurance_v:
+            try:
+                await reassurance_v.delete()
+            except Exception:
+                pass
 
         if is_serious:
             await ack_msg.edit_text(
@@ -564,6 +608,14 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
     except Exception as e:
         logger.error(f"Voice handler error: {e}", exc_info=True)
+        # Stop typing loop if it was started
+        try:
+            stop_typing_v.set()
+            reassurance_v = await typing_task_v
+            if reassurance_v:
+                await reassurance_v.delete()
+        except Exception:
+            pass
         try:
             await ack_msg.delete()
         except Exception:
@@ -811,21 +863,18 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await update.message.reply_text(serious, parse_mode="Markdown")
         return ANSWERING
 
-    # Send instant "thinking" message + typing indicator
-    ack = {
-        'sw': '⏳ Inasoma sheria yako... jibu linakuja sekunde 15-20.',
-        'en': '⏳ Reading the law for you... reply in 15-20 seconds.',
-    }.get(lang, '⏳ Processing...')
-
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
-    thinking = await update.message.reply_text(ack)
+    # Typing indicator immediately + reassurance after 8s if still waiting
+    import asyncio
+    stop_typing  = asyncio.Event()
+    typing_task  = asyncio.create_task(
+        _typing_loop(context.bot, update.effective_chat.id, stop_typing)
+    )
 
     try:
         @sync_to_async(thread_sensitive=False)
         def run_ai():
             top_laws = find_relevant_laws(message, top_n=8, category_boost=['constitution'])
             ctx_text = format_law_context(top_laws)
-            # Map any old sheng sessions to sw
             reply_lang = 'sw' if lang == 'sheng' else lang
             system   = SYSTEM_PROMPTS[reply_lang].format(context=ctx_text)
             user_msg = _USER_MESSAGES[reply_lang].format(story=message)
@@ -837,9 +886,17 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             return answer, top_laws, reply_lang
 
         answer, top_laws, reply_lang = await run_ai()
-        reply = _format_answer(answer, top_laws, reply_lang)
 
-        await thinking.delete()
+        # Stop typing loop and clean up reassurance message
+        stop_typing.set()
+        reassurance = await typing_task
+        if reassurance:
+            try:
+                await reassurance.delete()
+            except Exception:
+                pass
+
+        reply = _format_answer(answer, top_laws, reply_lang)
 
         MAX = 4000
         if len(reply) <= MAX:
@@ -915,8 +972,12 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     except Exception as e:
         logger.error(f"Answer error: {e}", exc_info=True)
+        # Stop typing loop and clean up on error
+        stop_typing.set()
         try:
-            await thinking.delete()
+            reassurance = await typing_task
+            if reassurance:
+                await reassurance.delete()
         except Exception:
             pass
         err = {
