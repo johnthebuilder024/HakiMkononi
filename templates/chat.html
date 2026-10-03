@@ -477,7 +477,6 @@
   var LANG = "{{ lang }}";
   var CSRF = "{{ csrf_token }}";
 
-  // ── DOM refs ──────────────────────────────────────────────────────
   var chatWindow   = document.getElementById('chatWindow');
   var messagesEl   = document.getElementById('messagesContainer');
   var welcomeEl    = document.getElementById('welcomeScreen');
@@ -489,7 +488,6 @@
   var micStatus    = document.getElementById('micStatus');
   var newChatBtn   = document.getElementById('newChatBtn');
 
-  // ── State ─────────────────────────────────────────────────────────
   var currentJobId   = null;
   var pollTimer      = null;
   var POLL_MS        = 5000;
@@ -497,2039 +495,348 @@
   var startTime      = 0;
   var activeThinking = null;
   var letterOriginal = {};
+  var currentStory   = '';
+  var currentCounty  = '';
 
-  // ── Conversation memory (localStorage) ───────────────────────────
+  // ── Conversation memory ───────────────────────────────────────────
   var HISTORY_KEY = 'haki_history_' + LANG;
   var HISTORY_MAX = 8;
 
   function loadHistory() {
-    try {
-      var raw = localStorage.getItem(HISTORY_KEY);
-      if (!raw) return [];
-      var h = JSON.parse(raw);
-      return Array.isArray(h) ? h.slice(-HISTORY_MAX) : [];
-    } catch(e) { return []; }
+    try { var h = JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); return Array.isArray(h)?h.slice(-HISTORY_MAX):[]; } catch(e){return[];}
   }
-
-  function saveHistory(history) {
-    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-HISTORY_MAX))); } catch(e) {}
+  function saveHistory(h) {
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(h.slice(-HISTORY_MAX))); } catch(e){}
   }
-
-  function addToHistory(userMsg, assistantSummary) {
-    var h = loadHistory();
-    h.push({role:'user',      content: userMsg});
-    h.push({role:'assistant', content: assistantSummary || 'Answered.'});
-    saveHistory(h);
+  function addToHistory(u, a) {
+    var h = loadHistory(); h.push({role:'user',content:u}); h.push({role:'assistant',content:a||'Answered.'}); saveHistory(h);
   }
+  function clearHistory() { try{localStorage.removeItem(HISTORY_KEY);}catch(e){} }
 
-  function clearHistory() {
-    try { localStorage.removeItem(HISTORY_KEY); } catch(e) {}
-  }
-
-  // ── New chat ──────────────────────────────────────────────────────
+  // ── New Chat ──────────────────────────────────────────────────────
   window.newChat = function() {
     clearHistory();
-    clearInterval(pollTimer);
-    pollTimer = null;
-    currentJobId = null;
-    messagesEl.innerHTML = '';
-    welcomeEl.style.display = 'flex';
-    newChatBtn.style.display = 'none';
-    chatInput.value = '';
-    chatInput.style.height = 'auto';
-    sendBtn.disabled = true;
-    chatInput.placeholder = "{{ ui.story_placeholder }}";
-    pendingLetter = null;
-    pendingLetterName = null;
+    clearInterval(pollTimer); pollTimer=null; currentJobId=null;
+    messagesEl.innerHTML='';
+    welcomeEl.style.display='flex';
+    newChatBtn.style.display='none';
+    chatInput.value=''; chatInput.style.height='auto'; sendBtn.disabled=true;
+    chatInput.placeholder="{{ ui.story_placeholder }}";
+    pendingLetter=null; pendingLetterName=null;
   };
 
   // ── Correction / follow-up detection ─────────────────────────────
-  var CORRECTION_SIGNALS = [
-    'actually', 'wait', 'no wait', 'sorry', 'i meant', 'i mean',
-    'correction', 'not that', 'ignore that', 'forget that', 'scratch that',
-    'not exactly', 'to clarify', 'what i meant', 'actually no',
-    'siyo', 'hapana', 'nilimaanisha', 'nilikuwa nasema', 'acha',
-    'samahani', 'sahihisha', 'kwa kweli', 'nilikosea', 'si hivyo',
-  ];
-  var FOLLOWUP_SIGNALS = [
-    'what about', 'and ', 'also ', 'but ', 'how about', 'what if',
-    'can i', 'do i', 'is it', 'so ', 'then ', 'what happens',
-    'and if', 'does that mean', 'what else', 'tell me more',
-    'na ', 'lakini', 'vipi', 'je ', 'pia ', 'zaidi', 'basi ', 'kisha ',
-  ];
-  var THANKS_SET = new Set([
-    'thanks','thank you','thank you so much','thanks a lot','asante',
-    'asante sana','nashukuru','shukrani','sawa asante','nimeshukuru',
-    'appreciated','helpful','that helped','you helped me','umesaidia',
-    'great','wonderful','excellent','perfect','amazing','awesome',
-  ]);
-  var GREETINGS_SET = new Set([
-    'hello','hi','hey','habari','habari yako','sasa','mambo','niaje',
-    'vipi','sup','hola','salamu','good morning','good afternoon',
-    'good evening','ok','okay','sawa','yes','no','ndiyo','hapana',
-  ]);
+  var CORRECTION_SIGNALS=['actually','wait','no wait','sorry','i meant','i mean','correction','not that','ignore that','forget that','scratch that','not exactly','to clarify','what i meant','actually no','siyo','hapana','nilimaanisha','nilikuwa nasema','acha','samahani','sahihisha','kwa kweli','nilikosea','si hivyo'];
+  var FOLLOWUP_SIGNALS=['what about','and ','also ','but ','how about','what if','can i','do i','is it','so ','then ','what happens','and if','does that mean','what else','tell me more','na ','lakini','vipi','je ','pia ','zaidi','basi ','kisha '];
+  var THANKS_SET=new Set(['thanks','thank you','thank you so much','thanks a lot','asante','asante sana','nashukuru','shukrani','sawa asante','nimeshukuru','appreciated','helpful','that helped','you helped me','umesaidia','great','wonderful','excellent','perfect','amazing','awesome']);
+  var GREETINGS_SET=new Set(['hello','hi','hey','habari','habari yako','sasa','mambo','niaje','vipi','sup','hola','salamu','good morning','good afternoon','good evening','ok','okay','sawa','yes','no','ndiyo','hapana']);
 
   function detectCorrection(msg) {
-    var m = msg.toLowerCase().trim();
-    for (var i = 0; i < CORRECTION_SIGNALS.length; i++) {
-      var s = CORRECTION_SIGNALS[i];
-      if (m.startsWith(s + ' ') || m.startsWith(s + ',') || m === s) return true;
-    }
+    var m=msg.toLowerCase().trim();
+    for(var i=0;i<CORRECTION_SIGNALS.length;i++){var s=CORRECTION_SIGNALS[i];if(m.startsWith(s+' ')||m.startsWith(s+',')||m===s)return true;}
     return false;
   }
-  function detectFollowup(msg, hasHistory) {
-    if (!hasHistory) return false;
-    var m = msg.toLowerCase().trim();
-    if (msg.trim().length < 40) return true;
-    for (var i = 0; i < FOLLOWUP_SIGNALS.length; i++) {
-      if (m.startsWith(FOLLOWUP_SIGNALS[i])) return true;
-    }
+  function detectFollowup(msg,hasHistory) {
+    if(!hasHistory)return false;
+    var m=msg.toLowerCase().trim();
+    if(msg.trim().length<40)return true;
+    for(var i=0;i<FOLLOWUP_SIGNALS.length;i++){if(m.startsWith(FOLLOWUP_SIGNALS[i]))return true;}
     return false;
   }
 
-  // ── Letter personalisation flow ───────────────────────────────────
-  var pendingLetter     = null;
-  var pendingLetterName = null;
-  var letterFlowJobId   = null;
+  // ── Letter flow ───────────────────────────────────────────────────
+  var pendingLetter=null, pendingLetterName=null, letterFlowJobId=null;
 
-  function startLetterFlow(letterText, jobId) {
-    pendingLetter     = letterText;
-    pendingLetterName = null;
-    letterFlowJobId   = jobId;
-    var prompt = LANG === 'sw'
-      ? '✍️ <strong>Barua ipo tayari!</strong><br><br>Niambie <strong>jina lako kamili</strong> ili niijaze barua yako:<br><small><em>(au andika /skip kuruka)</em></small>'
-      : '✍️ <strong>Your letter is ready!</strong><br><br>Type your <strong>full name</strong> and I\'ll fill it in for you:<br><small><em>(or type /skip to skip)</em></small>';
-    addBotBubble(prompt);
-    chatInput.placeholder = LANG === 'sw' ? 'Andika jina lako...' : 'Type your name...';
+  function startLetterFlow(letterText,jobId) {
+    pendingLetter=letterText; pendingLetterName=null; letterFlowJobId=jobId;
+    addBotBubble(LANG==='sw'
+      ?'✍️ <strong>Barua ipo tayari!</strong><br><br>Niambie <strong>jina lako kamili</strong>:<br><small><em>(au /skip kuruka)</em></small>'
+      :'✍️ <strong>Your letter is ready!</strong><br><br>Type your <strong>full name</strong>:<br><small><em>(or /skip to skip)</em></small>');
+    chatInput.placeholder=LANG==='sw'?'Andika jina lako...':'Type your name...';
     chatInput.focus();
   }
 
   function handleLetterFlowInput(text) {
-    if (text.trim().toLowerCase() === '/skip') { finishLetterFlow('', ''); return true; }
-    if (pendingLetter !== null && pendingLetterName === null) {
-      var words = text.trim().split(/\s+/);
-      var isSentence = words.length > 4 || text.length > 50 ||
-        /^(i feel|i want|i am|i was|i will|i need|they|police|there is|someone)/i.test(text);
-      if (isSentence) {
-        var hasDistress = /\b(beat|beaten|beating|hit|kill|angry|hurt|violence|abuse)\b/i.test(text);
+    if(text.trim().toLowerCase()==='/skip'){finishLetterFlow('','');return true;}
+    if(pendingLetter!==null&&pendingLetterName===null){
+      var words=text.trim().split(/\s+/);
+      var isSentence=words.length>4||text.length>50||/^(i feel|i want|i am|i was|i will|i need|they|police|there is|someone)/i.test(text);
+      if(isSentence){
+        var hasDistress=/\b(beat|beaten|beating|hit|kill|angry|hurt|violence|abuse)\b/i.test(text);
         addBotBubble(hasDistress
-          ? (LANG === 'sw'
-              ? '💙 Naelewa unahisi hasira. Andika <strong>jina lako halisi</strong> tu — mfano: <em>John Kamau</em>'
-              : '💙 I understand you\'re upset. Please type just your <strong>real name</strong> — example: <em>John Kamau</em>')
-          : (LANG === 'sw'
-              ? '⚠️ Hiyo inaonekana kama sentensi. Andika <strong>jina lako</strong> tu — mfano: <em>John Kamau</em>'
-              : '⚠️ That looks like a sentence. Type just your <strong>full name</strong> — example: <em>John Kamau</em>'));
+          ?(LANG==='sw'?'💙 Naelewa unahisi hasira. Andika <strong>jina lako halisi</strong> tu — mfano: <em>John Kamau</em>':'💙 I understand. Please type just your <strong>real name</strong> — example: <em>John Kamau</em>')
+          :(LANG==='sw'?'⚠️ Hiyo inaonekana kama sentensi. Andika <strong>jina lako</strong> tu.':'⚠️ That looks like a sentence. Type just your <strong>full name</strong>.'));
         return true;
       }
-      if (!text.trim() || text.trim().length < 2) {
-        addBotBubble(LANG === 'sw' ? '⚠️ Tafadhali andika jina lako.' : '⚠️ Please type your full name.');
-        return true;
-      }
-      pendingLetterName = text.trim().slice(0, 60);
-      addBotBubble(LANG === 'sw'
-        ? '✅ Asante, <strong>' + pendingLetterName + '</strong>!<br><br>Sasa niambie <strong>nambari yako ya simu</strong>:<br><small><em>(au /skip kuruka)</em></small>'
-        : '✅ Got it, <strong>' + pendingLetterName + '</strong>!<br><br>Now type your <strong>phone number</strong>:<br><small><em>(or /skip to skip)</em></small>');
-      chatInput.placeholder = '0712345678';
-      return true;
+      if(!text.trim()||text.trim().length<2){addBotBubble(LANG==='sw'?'⚠️ Tafadhali andika jina lako.':'⚠️ Please type your full name.');return true;}
+      pendingLetterName=text.trim().slice(0,60);
+      addBotBubble(LANG==='sw'
+        ?'✅ Asante, <strong>'+pendingLetterName+'</strong>!<br><br>Sasa niambie <strong>nambari yako ya simu</strong>:<br><small><em>(au /skip kuruka)</em></small>'
+        :'✅ Got it, <strong>'+pendingLetterName+'</strong>!<br><br>Now type your <strong>phone number</strong>:<br><small><em>(or /skip)</em></small>');
+      chatInput.placeholder='0712345678'; return true;
     }
-    if (pendingLetter !== null && pendingLetterName !== null) {
-      var digits = text.trim().replace(/[\s\-\(\)]/g, '');
-      if (!/^\+?\d{9,}$/.test(digits)) {
-        addBotBubble(LANG === 'sw'
-          ? '⚠️ Hiyo haionekani kama nambari. Jaribu tena au andika /skip.'
-          : '⚠️ That doesn\'t look like a phone number. Try again or type /skip.');
-        return true;
-      }
-      finishLetterFlow(pendingLetterName, text.trim());
-      return true;
+    if(pendingLetter!==null&&pendingLetterName!==null){
+      var digits=text.trim().replace(/[\s\-\(\)]/g,'');
+      if(!/^\+?\d{9,}$/.test(digits)){addBotBubble(LANG==='sw'?'⚠️ Hiyo haionekani kama nambari. Jaribu tena au /skip.':'⚠️ That doesn\'t look like a phone number. Try again or /skip.');return true;}
+      finishLetterFlow(pendingLetterName,text.trim());return true;
     }
     return false;
   }
 
-  function finishLetterFlow(name, phone) {
-    var letter = pendingLetter || '';
-    pendingLetter = null; pendingLetterName = null;
-    chatInput.placeholder = "{{ ui.story_placeholder }}";
-    if (!letter) { addBotBubble(LANG === 'sw' ? '❓ Una swali lingine?' : '❓ Have another question?'); return; }
-    var today = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
-    var filled = letter
-      .replace(/\[YOUR NAME\]/g, name || '[YOUR NAME]')
-      .replace(/\[JINA LAKO\]/g, name || '[JINA LAKO]')
-      .replace(/\[DATE\]/g, today).replace(/\[TAREHE\]/g, today)
-      .replace(/\[YOUR ADDRESS\]/g, '[Your address — add this]')
-      .replace(/\[ANWANI YAKO\]/g,  '[Anwani yako — ongeza hapa]')
-      .replace(/\[ANWANI\]/g,       '[Anwani yako — ongeza hapa]');
-    if (phone) {
-      filled = filled.replace(/\[PHONE NUMBER\]/g, phone)
-                     .replace(/\[NAMBARI YA SIMU\]/g, phone);
-    }
-    var el = document.getElementById('ltLetter-' + letterFlowJobId);
-    if (el) { renderLetter(el, filled, letterFlowJobId); updateLetterCount(el, letterFlowJobId); el.scrollIntoView({behavior:'smooth',block:'nearest'}); }
-    addBotBubble(LANG === 'sw'
-      ? '✅ <strong>Barua imejazwa!</strong> Badilisha anwani yako ukihitaji, kisha unakili au upakue PDF.<br><br>❓ Una swali lingine?'
-      : '✅ <strong>Letter filled!</strong> Update your address if needed, then copy or download as PDF.<br><br>❓ Have another question?');
+  function finishLetterFlow(name,phone) {
+    var letter=pendingLetter||''; pendingLetter=null; pendingLetterName=null;
+    chatInput.placeholder="{{ ui.story_placeholder }}";
+    if(!letter){addBotBubble(LANG==='sw'?'❓ Una swali lingine?':'❓ Have another question?');return;}
+    var today=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+    var filled=letter.replace(/\[YOUR NAME\]/g,name||'[YOUR NAME]').replace(/\[JINA LAKO\]/g,name||'[JINA LAKO]')
+      .replace(/\[DATE\]/g,today).replace(/\[TAREHE\]/g,today)
+      .replace(/\[YOUR ADDRESS\]/g,'[Your address — add this]').replace(/\[ANWANI YAKO\]/g,'[Anwani yako — ongeza hapa]').replace(/\[ANWANI\]/g,'[Anwani yako — ongeza hapa]');
+    if(phone){filled=filled.replace(/\[PHONE NUMBER\]/g,phone).replace(/\[NAMBARI YA SIMU\]/g,phone);}
+    var el=document.getElementById('ltLetter-'+letterFlowJobId);
+    if(el){renderLetter(el,filled,letterFlowJobId);updateLetterCount(el,letterFlowJobId);el.scrollIntoView({behavior:'smooth',block:'nearest'});}
+    addBotBubble(LANG==='sw'
+      ?'✅ <strong>Barua imejazwa!</strong> Badilisha anwani yako ukihitaji, kisha nakili au upakue PDF.<br><br>❓ Una swali lingine?'
+      :'✅ <strong>Letter filled!</strong> Update your address if needed, then copy or download as PDF.<br><br>❓ Have another question?');
   }
 
-  // ── Textarea resize + send enable ────────────────────────────────
-  chatInput.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 130) + 'px';
-    sendBtn.disabled = this.value.trim().length < 3;
-  });
-  chatInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!sendBtn.disabled) sendMessage(); }
-  });
-  sendBtn.addEventListener('click', sendMessage);
+  // ── Input resize + enable ─────────────────────────────────────────
+  chatInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,130)+'px';sendBtn.disabled=this.value.trim().length<3;});
+  chatInput.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!sendBtn.disabled)sendMessage();}});
+  sendBtn.addEventListener('click',sendMessage);
 
-  window.fillChat = function(el) {
-    chatInput.value = el.textContent.trim();
-    chatInput.dispatchEvent(new Event('input'));
-    chatInput.focus();
-  };
+  window.fillChat=function(el){chatInput.value=el.textContent.trim();chatInput.dispatchEvent(new Event('input'));chatInput.focus();};
 
-  // ── Scroll ────────────────────────────────────────────────────────
-  function scrollDown() {
-    setTimeout(function() { chatWindow.scrollTo({top: chatWindow.scrollHeight, behavior:'smooth'}); }, 60);
+  function scrollDown(){setTimeout(function(){chatWindow.scrollTo({top:chatWindow.scrollHeight,behavior:'smooth'});},60);}
+
+  function addUserMessage(text){
+    welcomeEl.style.display='none'; newChatBtn.style.display='block';
+    var row=document.createElement('div'); row.className='msg-row user';
+    var b=document.createElement('div'); b.className='user-bubble'; b.textContent=text;
+    row.appendChild(b); messagesEl.appendChild(row); scrollDown();
   }
 
-  // ── Add user bubble ───────────────────────────────────────────────
-  function addUserMessage(text) {
-    welcomeEl.style.display = 'none';
-    newChatBtn.style.display = 'block';
-    var row = document.createElement('div');
-    row.className = 'msg-row user';
-    var b = document.createElement('div');
-    b.className = 'user-bubble';
-    b.textContent = text;
-    row.appendChild(b);
-    messagesEl.appendChild(row);
-    scrollDown();
-  }
+  function avatarHTML(){return '<div class="bot-avatar"><img src="/static/img/logo.png" alt="HakiMkononi" onerror="this.parentElement.textContent=\'⚖️\'"></div>';}
 
-  // ── Bot avatar HTML ───────────────────────────────────────────────
-  function avatarHTML() {
-    return '<div class="bot-avatar"><img src="/static/img/logo.png" alt="HakiMkononi" onerror="this.parentElement.textContent=\'⚖️\'"></div>';
-  }
-
-  // ── Add plain bot bubble (greetings, thanks, letter prompts) ─────
-  function addBotBubble(html) {
+  function addBotBubble(html){
     removeThinking();
-    var row = document.createElement('div');
-    row.className = 'msg-row bot';
-    row.innerHTML = avatarHTML() + '<div class="bot-bubble">' + html + '</div>';
-    messagesEl.appendChild(row);
-    scrollDown();
-    resetInput();
+    var row=document.createElement('div'); row.className='msg-row bot';
+    row.innerHTML=avatarHTML()+'<div class="bot-bubble">'+html+'</div>';
+    messagesEl.appendChild(row); scrollDown(); resetInput();
   }
+  function addBotMessage(html){addBotBubble(html);}
 
-  // ── Legacy alias used by old code paths ───────────────────────────
-  function addBotMessage(html) { addBotBubble(html); }
-
-  // ── Thinking dots ─────────────────────────────────────────────────
-  function addThinking() {
-    var row = document.createElement('div');
-    row.className = 'msg-row bot';
-    row.innerHTML = avatarHTML() + '<div class="thinking-bubble"><span></span><span></span><span></span></div>';
-    messagesEl.appendChild(row);
-    activeThinking = row;
-    scrollDown();
-    return row;
+  function addThinking(){
+    var row=document.createElement('div'); row.className='msg-row bot';
+    row.innerHTML=avatarHTML()+'<div class="thinking-bubble"><span></span><span></span><span></span></div>';
+    messagesEl.appendChild(row); activeThinking=row; scrollDown(); return row;
   }
-  function removeThinking() {
-    if (activeThinking) { activeThinking.remove(); activeThinking = null; }
-  }
+  function removeThinking(){if(activeThinking){activeThinking.remove();activeThinking=null;}}
 
-  // ── Error bubble ──────────────────────────────────────────────────
-  function addError(msg) {
+  function addError(msg){
     removeThinking();
-    var row = document.createElement('div');
-    row.className = 'msg-row bot';
-    row.innerHTML = avatarHTML() + '<div class="error-msg">' + msg + '</div>';
-    messagesEl.appendChild(row);
-    scrollDown();
-    resetInput();
+    var row=document.createElement('div'); row.className='msg-row bot';
+    row.innerHTML=avatarHTML()+'<div class="error-msg">'+msg+'</div>';
+    messagesEl.appendChild(row); scrollDown(); resetInput();
   }
 
-  function resetInput() {
-    sendBtn.disabled = chatInput.value.trim().length < 3;
-    clearInterval(pollTimer); pollTimer = null;
+  function resetInput(){sendBtn.disabled=chatInput.value.trim().length<3;clearInterval(pollTimer);pollTimer=null;}
+
+  function parseMarkdown(text){
+    if(!text)return'';
+    if(window.marked)return marked.parse(text);
+    return text.replace(/\n/g,'<br>');
   }
 
-  // ── Markdown ──────────────────────────────────────────────────────
-  function parseMarkdown(text) {
-    if (!text) return '';
-    if (window.marked) return marked.parse(text);
-    return text.replace(/\n/g, '<br>');
-  }
-
-  function boldCitations(div) {
-    div.querySelectorAll('p').forEach(function(p) {
-      var txt = p.textContent.trim();
-      var m = txt.match(/^(\[.+?\]\s*[–\-]\s*Section\s*[^\(]*\([^\)]*\))\s*/);
-      if (m) {
-        var cit = m[1].trim(), exp = txt.slice(m[0].length).trim();
-        p.innerHTML = '<strong class="law-citation">' + cit + '</strong>' +
-          (exp ? '<span class="law-explanation">' + exp + '</span>' : '');
-      } else if (p.querySelector('strong')) {
-        var s = p.querySelector('strong');
-        if (p.textContent.trim() === s.textContent.trim()) s.classList.add('law-citation');
-      }
+  function boldCitations(div){
+    div.querySelectorAll('p').forEach(function(p){
+      var txt=p.textContent.trim();
+      var m=txt.match(/^(\[.+?\]\s*[–\-]\s*Section\s*[^\(]*\([^\)]*\))\s*/);
+      if(m){var cit=m[1].trim(),exp=txt.slice(m[0].length).trim();p.innerHTML='<strong class="law-citation">'+cit+'</strong>'+(exp?'<span class="law-explanation">'+exp+'</span>':'');}
+      else if(p.querySelector('strong')){var s=p.querySelector('strong');if(p.textContent.trim()===s.textContent.trim())s.classList.add('law-citation');}
     });
   }
 
-  // ── Render letter with clickable placeholders ─────────────────────
-  function renderLetter(container, text, jobId) {
-    letterOriginal[jobId] = text;
-    var clean = text
-      .replace(/\*\*(.+?)\*\*/g,'$1').replace(/__(.+?)__/g,'$1')
-      .replace(/\*(.+?)\*/g,'$1').replace(/^#+\s+/gm,'');
-    var escaped = clean.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    container.innerHTML = escaped.replace(/\[([^\]]+)\]/g,
-      '<span class="letter-placeholder" tabindex="0">[$1]</span>');
-    container.addEventListener('click', function(e) {
-      var chip = e.target.closest('.letter-placeholder');
-      if (!chip) return;
-      var sel = window.getSelection(), range = document.createRange();
-      range.selectNodeContents(chip); sel.removeAllRanges(); sel.addRange(range);
-    });
-    container.addEventListener('input', function() { updateLetterCount(container, jobId); });
+  function renderLetter(container,text,jobId){
+    letterOriginal[jobId]=text;
+    var clean=text.replace(/\*\*(.+?)\*\*/g,'$1').replace(/__(.+?)__/g,'$1').replace(/\*(.+?)\*/g,'$1').replace(/^#+\s+/gm,'');
+    var escaped=clean.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    container.innerHTML=escaped.replace(/\[([^\]]+)\]/g,'<span class="letter-placeholder" tabindex="0">[$1]</span>');
+    container.addEventListener('click',function(e){var chip=e.target.closest('.letter-placeholder');if(!chip)return;var sel=window.getSelection(),range=document.createRange();range.selectNodeContents(chip);sel.removeAllRanges();sel.addRange(range);});
+    container.addEventListener('input',function(){updateLetterCount(container,jobId);});
   }
 
-  function updateLetterCount(container, jobId) {
-    var badge = document.getElementById('ltCount-' + jobId);
-    if (!badge) return;
-    var n = container.querySelectorAll('.letter-placeholder').length;
-    badge.textContent = n === 0
-      ? (LANG === 'sw' ? '✅ Imekamilika' : '✅ All filled')
-      : n + (LANG === 'sw' ? ' kubadilisha' : ' left to fill');
-    badge.classList.toggle('all-filled', n === 0);
+  function updateLetterCount(container,jobId){
+    var badge=document.getElementById('ltCount-'+jobId); if(!badge)return;
+    var n=container.querySelectorAll('.letter-placeholder').length;
+    badge.textContent=n===0?(LANG==='sw'?'✅ Imekamilika':'✅ All filled'):n+(LANG==='sw'?' kubadilisha':' left to fill');
+    badge.classList.toggle('all-filled',n===0);
   }
 
-  // ── Lawyer card ───────────────────────────────────────────────────
-  function renderLawyers(container, queryId) {
-    fetch('/lawyers/for-query/' + queryId + '/', {cache:'no-store'})
-      .then(function(r){ return r.json(); })
-      .then(function(d) {
-        var lawyers = d.lawyers || [];
-        if (!lawyers.length) return;
-        var header = document.createElement('div');
-        header.className = 'bot-card-section';
-        header.innerHTML = '<span class="bot-card-label label-sources"><span>💼</span><span>' +
-          (LANG === 'sw' ? 'Mawakili Walioidhinishwa' : 'Verified Lawyers') + '</span></span>';
-        container.appendChild(header);
-        lawyers.forEach(function(l) {
-          var waMsg = LANG === 'sw'
-            ? 'Habari ' + l.name + ', ninahitaji msaada wa kisheria. Nilikupata kwenye HakiMkononi.'
-            : 'Hello ' + l.name + ', I need legal help. I found you on HakiMkononi.';
-          var specs = (l.specialties || []).join(', ');
-          var sec = document.createElement('div');
-          sec.className = 'bot-card-section';
-          sec.innerHTML =
-            '<div style="display:flex;gap:.6rem;align-items:flex-start;">' +
-            '<div style="width:34px;height:34px;border-radius:50%;background:var(--haki-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;">👤</div>' +
-            '<div style="flex:1;font-size:.82rem;">' +
-            '<div style="font-weight:600;">' + l.name + (l.firm ? ' <span style="color:#888;font-weight:400;">— ' + l.firm + '</span>' : '') + '</div>' +
-            '<div style="color:#777;font-size:.78rem;">📍 ' + l.county + (specs ? ' · ' + specs : '') + '</div>' +
-            '<div style="display:flex;gap:.4rem;margin-top:.35rem;flex-wrap:wrap;">' +
-            '<a href="https://wa.me/' + l.wa_num + '?text=' + encodeURIComponent(waMsg) + '" target="_blank" rel="noopener" style="background:var(--haki-green);color:#fff;padding:.2em .75em;border-radius:20px;font-size:.74rem;text-decoration:none;">💬 WhatsApp</a>' +
-            (l.telegram ? '<a href="https://t.me/' + l.telegram + '" target="_blank" rel="noopener" style="background:#2AABEE;color:#fff;padding:.2em .75em;border-radius:20px;font-size:.74rem;text-decoration:none;">✈️ Telegram</a>' : '') +
-            '</div></div></div>';
-          container.appendChild(sec);
-        });
-      }).catch(function(){});
+  function renderLawyers(container,queryId){
+    fetch('/lawyers/for-query/'+queryId+'/',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
+      var lawyers=d.lawyers||[]; if(!lawyers.length)return;
+      var header=document.createElement('div'); header.className='bot-card-section';
+      header.innerHTML='<span class="bot-card-label label-sources"><span>💼</span><span>'+(LANG==='sw'?'Mawakili Walioidhinishwa':'Verified Lawyers')+'</span></span>';
+      container.appendChild(header);
+      lawyers.forEach(function(l){
+        var waMsg=LANG==='sw'?'Habari '+l.name+', ninahitaji msaada wa kisheria. Nilikupata kwenye HakiMkononi.':'Hello '+l.name+', I need legal help. I found you on HakiMkononi.';
+        var specs=(l.specialties||[]).join(', ');
+        var sec=document.createElement('div'); sec.className='bot-card-section';
+        sec.innerHTML='<div style="display:flex;gap:.6rem;align-items:flex-start;"><div style="width:34px;height:34px;border-radius:50%;background:var(--haki-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;">👤</div><div style="flex:1;font-size:.82rem;"><div style="font-weight:600;">'+l.name+(l.firm?' <span style="color:#888;font-weight:400;">— '+l.firm+'</span>':'')+'</div><div style="color:#777;font-size:.78rem;">📍 '+l.county+(specs?' · '+specs:'')+'</div><div style="display:flex;gap:.4rem;margin-top:.35rem;flex-wrap:wrap;"><a href="https://wa.me/'+l.wa_num+'?text='+encodeURIComponent(waMsg)+'" target="_blank" rel="noopener" style="background:var(--haki-green);color:#fff;padding:.2em .75em;border-radius:20px;font-size:.74rem;text-decoration:none;">💬 WhatsApp</a>'+(l.telegram?'<a href="https://t.me/'+l.telegram+'" target="_blank" rel="noopener" style="background:#2AABEE;color:#fff;padding:.2em .75em;border-radius:20px;font-size:.74rem;text-decoration:none;">✈️ Telegram</a>':'')+'</div></div></div>';
+        container.appendChild(sec);
+      });
+    }).catch(function(){});
   }
 
-  // ── Build answer card ─────────────────────────────────────────────
-  function addAnswerCard(data) {
+  function addAnswerCard(data){
     removeThinking();
-    var jobId = data.job_id || currentJobId;
-    var a = data.answer || {};
-
-    if (data.is_serious) {
-      var row = document.createElement('div');
-      row.className = 'msg-row bot';
-      row.innerHTML = avatarHTML() +
-        '<div class="serious-msg">🚨 <strong>' +
-        (LANG === 'sw' ? 'Kesi Nyeti — Tafuta Wakili Haraka' : 'Serious Case — Get a Lawyer Urgently') + '</strong><br><br>' +
-        (LANG === 'sw'
-          ? 'Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br>🌐 www.nlas.go.ke'
-          : 'This case needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br>🌐 www.nlas.go.ke') +
-        '</div>';
-      messagesEl.appendChild(row);
-      scrollDown(); resetInput(); return;
+    var jobId=data.job_id||currentJobId, a=data.answer||{};
+    if(data.is_serious){
+      var row=document.createElement('div'); row.className='msg-row bot';
+      row.innerHTML=avatarHTML()+'<div class="serious-msg">🚨 <strong>'+(LANG==='sw'?'Kesi Nyeti — Tafuta Wakili Haraka':'Serious Case — Get a Lawyer Urgently')+'</strong><br><br>'+(LANG==='sw'?'Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br>🌐 www.nlas.go.ke':'This case needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br>🌐 www.nlas.go.ke')+'</div>';
+      messagesEl.appendChild(row); scrollDown(); resetInput(); return;
     }
+    var row=document.createElement('div'); row.className='msg-row bot';
+    var card=document.createElement('div'); card.className='bot-card';
 
-    var row = document.createElement('div');
-    row.className = 'msg-row bot';
-    var card = document.createElement('div');
-    card.className = 'bot-card';
-
-    function addSection(labelClass, icon, labelText, contentHtml) {
-      if (!contentHtml) return;
-      var sec = document.createElement('div');
-      sec.className = 'bot-card-section';
-      sec.innerHTML =
-        '<span class="bot-card-label ' + labelClass + '"><span>' + icon + '</span><span>' + labelText + '</span></span>' +
-        '<div class="bot-card-text">' + contentHtml + '</div>';
-      if (labelClass === 'label-law') boldCitations(sec.querySelector('.bot-card-text'));
+    function addSection(lc,icon,label,html){
+      if(!html)return;
+      var sec=document.createElement('div'); sec.className='bot-card-section';
+      sec.innerHTML='<span class="bot-card-label '+lc+'"><span>'+icon+'</span><span>'+label+'</span></span><div class="bot-card-text">'+html+'</div>';
+      if(lc==='label-law')boldCitations(sec.querySelector('.bot-card-text'));
       card.appendChild(sec);
     }
+    addSection('label-law','📜',LANG==='sw'?'Sheria Inasema':'What The Law Says',parseMarkdown(a.sheria_inasema));
+    addSection('label-simple','💬',LANG==='sw'?'Tafsiri Rahisi':'Plain Explanation',parseMarkdown(a.tafsiri_rahisi));
+    addSection('label-rights','💪',LANG==='sw'?'Haki Yako':'Your Rights',parseMarkdown(a.haki_yako));
 
-    addSection('label-law',    '📜', LANG==='sw'?'Sheria Inasema':'What The Law Says',    parseMarkdown(a.sheria_inasema));
-    addSection('label-simple', '💬', LANG==='sw'?'Tafsiri Rahisi':'Plain Explanation',     parseMarkdown(a.tafsiri_rahisi));
-    addSection('label-rights', '💪', LANG==='sw'?'Haki Yako':'Your Rights',               parseMarkdown(a.haki_yako));
-
-    if (a.andika_hivi) {
-      var letSec = document.createElement('div');
-      letSec.className = 'bot-card-section';
-      var hasPlaceholders = a.andika_hivi.indexOf('[YOUR NAME]') !== -1 || a.andika_hivi.indexOf('[JINA LAKO]') !== -1;
-      var countId = 'ltCount-' + jobId;
-      letSec.innerHTML =
-        '<span class="bot-card-label label-letter"><span>✉️</span><span>' + (LANG==='sw'?'Andika Hivi':'Write This') + '</span>' +
-        (hasPlaceholders ? '<span class="lt-count-badge" id="' + countId + '"></span>' : '') + '</span>' +
-        (hasPlaceholders
-          ? '<div class="letter-toolbar"><span style="flex:1;color:#9b2226;">' +
-            (LANG==='sw'?'Bonyeza [NAFASI] kisha andika':'Click any [PLACEHOLDER] then type') +
-            '</span><button class="lt-primary" onclick="copyLetter(\'ltLetter-' + jobId + '\')">📋 Copy</button></div>'
-          : '') +
-        '<div id="ltLetter-' + jobId + '" class="chat-letter" contenteditable="true" spellcheck="false"></div>';
+    if(a.andika_hivi){
+      var letSec=document.createElement('div'); letSec.className='bot-card-section';
+      var hasP=a.andika_hivi.indexOf('[YOUR NAME]')!==-1||a.andika_hivi.indexOf('[JINA LAKO]')!==-1;
+      letSec.innerHTML='<span class="bot-card-label label-letter"><span>✉️</span><span>'+(LANG==='sw'?'Andika Hivi':'Write This')+'</span>'+(hasP?'<span class="lt-count-badge" id="ltCount-'+jobId+'"></span>':'')+'</span>'+(hasP?'<div class="letter-toolbar"><span style="flex:1;color:#9b2226;">'+(LANG==='sw'?'Bonyeza [NAFASI] kisha andika':'Click [PLACEHOLDER] then type')+'</span><button class="lt-primary" onclick="copyLetter(\'ltLetter-'+jobId+'\')">📋 Copy</button></div>':'')+
+        '<div id="ltLetter-'+jobId+'" class="chat-letter" contenteditable="true" spellcheck="false"></div>';
       card.appendChild(letSec);
-      setTimeout(function() {
-        var el = document.getElementById('ltLetter-' + jobId);
-        if (el) { renderLetter(el, a.andika_hivi, jobId); if (hasPlaceholders) updateLetterCount(el, jobId); }
-      }, 50);
+      setTimeout(function(){var el=document.getElementById('ltLetter-'+jobId);if(el){renderLetter(el,a.andika_hivi,jobId);if(hasP)updateLetterCount(el,jobId);}},50);
     }
 
-    if (data.sources && data.sources.length) {
-      var srcSec = document.createElement('div');
-      srcSec.className = 'bot-card-section';
-      var srcHtml = '<span class="bot-card-label label-sources"><span>📚</span><span>' +
-        (LANG==='sw'?'Vyanzo vya Sheria':'Legal Sources') + '</span></span>' +
-        '<ul class="list-unstyled chat-sources mb-0">';
-      data.sources.slice(0,6).forEach(function(s, i) {
-        srcHtml += '<li>' +
-          '<span style="background:var(--haki-light);color:var(--haki-dark);padding:.1em .5em;border-radius:10px;font-size:.72rem;flex-shrink:0;">' + (i+1) + '</span>' +
-          '<span style="flex:1;"><strong>' + s.title + '</strong>' +
-          (s.section ? ' — <em style="color:#888;">' + s.section + '</em>' : '') + '</span>' +
-          (s.url ? '<a href="' + s.url + '" target="_blank" rel="noopener">↗</a>' : '') + '</li>';
-      });
-      srcHtml += '</ul>';
-      srcSec.innerHTML = srcHtml;
-      card.appendChild(srcSec);
+    if(data.sources&&data.sources.length){
+      var srcSec=document.createElement('div'); srcSec.className='bot-card-section';
+      var srcHtml='<span class="bot-card-label label-sources"><span>📚</span><span>'+(LANG==='sw'?'Vyanzo vya Sheria':'Legal Sources')+'</span></span><ul class="list-unstyled chat-sources mb-0">';
+      data.sources.slice(0,6).forEach(function(s,i){srcHtml+='<li><span style="background:var(--haki-light);color:var(--haki-dark);padding:.1em .5em;border-radius:10px;font-size:.72rem;flex-shrink:0;">'+(i+1)+'</span><span style="flex:1;"><strong>'+s.title+'</strong>'+(s.section?' — <em style="color:#888;">'+s.section+'</em>':'')+'</span>'+(s.url?'<a href="'+s.url+'" target="_blank" rel="noopener">↗</a>':'')+'</li>';});
+      srcHtml+='</ul>'; srcSec.innerHTML=srcHtml; card.appendChild(srcSec);
     }
 
-    // Actions
-    var actRow = document.createElement('div');
-    actRow.className = 'chat-actions';
-    actRow.innerHTML =
-      '<button class="act-primary" onclick="copyAnswer(\'' + jobId + '\')">📋 ' + (LANG==='sw'?'Nakili':'Copy') + '</button>' +
-      '<button onclick="downloadPDF(' + jobId + ', \'answer\')">⬇️ PDF</button>' +
-      (a.andika_hivi ? '<button onclick="downloadPDF(' + jobId + ', \'letter\')">✉️ ' + (LANG==='sw'?'PDF ya Barua':'Letter PDF') + '</button>' : '') +
-      '<button onclick="shareAnswer(' + jobId + ')">🔗 ' + (LANG==='sw'?'Shiriki':'Share') + '</button>';
+    var actRow=document.createElement('div'); actRow.className='chat-actions';
+    actRow.innerHTML='<button class="act-primary" onclick="copyAnswer(\''+jobId+'\')">📋 '+(LANG==='sw'?'Nakili':'Copy')+'</button><button onclick="downloadPDF('+jobId+', \'answer\')">⬇️ PDF</button>'+(a.andika_hivi?'<button onclick="downloadPDF('+jobId+', \'letter\')">✉️ '+(LANG==='sw'?'PDF ya Barua':'Letter PDF')+'</button>':'')+'<button onclick="shareAnswer('+jobId+')">🔗 '+(LANG==='sw'?'Shiriki':'Share')+'</button>';
     card.appendChild(actRow);
 
-    // Feedback
-    var fbRow = document.createElement('div');
-    fbRow.className = 'feedback-row';
-    fbRow.id = 'fb-' + jobId;
-    fbRow.innerHTML =
-      '<span>' + (LANG==='sw'?'Je, ilisaidia?':'Was this helpful?') + '</span>' +
-      '<button onclick="sendFeedback(' + (data.query_id||0) + ', true, \'fb-' + jobId + '\')">👍</button>' +
-      '<button onclick="sendFeedback(' + (data.query_id||0) + ', false, \'fb-' + jobId + '\')">👎</button>';
+    var fbRow=document.createElement('div'); fbRow.className='feedback-row'; fbRow.id='fb-'+jobId;
+    fbRow.innerHTML='<span>'+(LANG==='sw'?'Je, ilisaidia?':'Was this helpful?')+'</span><button onclick="sendFeedback('+(data.query_id||0)+', true, \'fb-'+jobId+'\')">👍</button><button onclick="sendFeedback('+(data.query_id||0)+', false, \'fb-'+jobId+'\')">👎</button>';
     card.appendChild(fbRow);
 
-    if (data.query_id) renderLawyers(card, data.query_id);
+    if(data.query_id)renderLawyers(card,data.query_id);
 
-    row.innerHTML = '';
+    row.innerHTML='';
     row.appendChild(document.createRange().createContextualFragment(avatarHTML()));
     row.appendChild(card);
     messagesEl.appendChild(row);
-
-    setTimeout(function() { row.scrollIntoView({behavior:'smooth',block:'start'}); }, 80);
+    setTimeout(function(){row.scrollIntoView({behavior:'smooth',block:'start'});},80);
     resetInput();
 
-    try {
-      localStorage.setItem('haki_job_' + jobId, JSON.stringify({
-        story: currentStory, county: currentCounty, lang: LANG,
-        answer: data.answer, sources: data.sources,
-        query_id: data.query_id, is_serious: data.is_serious,
-        job_id: jobId, saved_at: Date.now()
-      }));
-    } catch(e) {}
+    try{localStorage.setItem('haki_job_'+jobId,JSON.stringify({story:currentStory,county:currentCounty,lang:LANG,answer:data.answer,sources:data.sources,query_id:data.query_id,is_serious:data.is_serious,job_id:jobId,saved_at:Date.now()}));}catch(e){}
   }
 
-  // ── Poll ──────────────────────────────────────────────────────────
-  function poll() {
-    if (!currentJobId) return;
-    if (Date.now() - startTime > MAX_WAIT_MS) {
-      addError('⏱️ ' + (LANG==='sw'?'Inachukua muda mrefu. Jaribu tena.':'Taking longer than usual. Please try again.'));
-      return;
-    }
-    fetch('/api/status/' + currentJobId + '/', {cache:'no-store'})
-      .then(function(r){ return r.json(); })
-      .then(function(d) {
-        if (d.status === 'done') {
-          clearInterval(pollTimer);
-          d.job_id = currentJobId;
-          addAnswerCard(d);
-          if (d.assistant_summary && currentStory) addToHistory(currentStory, d.assistant_summary);
-          var letter = d.answer && d.answer.andika_hivi;
-          if (letter && (letter.indexOf('[YOUR NAME]') !== -1 || letter.indexOf('[JINA LAKO]') !== -1)) {
-            setTimeout(function() { startLetterFlow(letter, currentJobId); }, 600);
-          }
-        } else if (d.status === 'error') {
-          clearInterval(pollTimer);
-          addError('❌ ' + (d.message || (LANG==='sw'?'Kuna tatizo. Jaribu tena.':'An error occurred. Please try again.')));
-        }
-      }).catch(function(){});
+  function poll(){
+    if(!currentJobId)return;
+    if(Date.now()-startTime>MAX_WAIT_MS){addError('⏱️ '+(LANG==='sw'?'Inachukua muda mrefu. Jaribu tena.':'Taking longer than usual. Please try again.'));return;}
+    fetch('/api/status/'+currentJobId+'/',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
+      if(d.status==='done'){
+        clearInterval(pollTimer); d.job_id=currentJobId; addAnswerCard(d);
+        if(d.assistant_summary&&currentStory)addToHistory(currentStory,d.assistant_summary);
+        var letter=d.answer&&d.answer.andika_hivi;
+        if(letter&&(letter.indexOf('[YOUR NAME]')!==-1||letter.indexOf('[JINA LAKO]')!==-1)){setTimeout(function(){startLetterFlow(letter,currentJobId);},600);}
+      }else if(d.status==='error'){clearInterval(pollTimer);addError('❌ '+(d.message||(LANG==='sw'?'Kuna tatizo. Jaribu tena.':'An error occurred. Please try again.')));}
+    }).catch(function(){});
   }
 
-  // ── Send message ──────────────────────────────────────────────────
-  var currentStory = '', currentCounty = '';
+  function sendMessage(){
+    var story=chatInput.value.trim(); if(story.length<3)return;
+    if(pendingLetter!==null){addUserMessage(story);chatInput.value='';chatInput.style.height='auto';sendBtn.disabled=true;handleLetterFlowInput(story);sendBtn.disabled=chatInput.value.trim().length<3;return;}
+    var history=loadHistory(), hasHistory=history.length>0;
+    var msgLower=story.toLowerCase().trim().replace(/[!?.,:]+$/,'');
+    var isCorrection=detectCorrection(story), isFollowup=detectFollowup(story,hasHistory);
 
-  function sendMessage() {
-    var story = chatInput.value.trim();
-    if (story.length < 3) return;
-
-    if (pendingLetter !== null) {
-      addUserMessage(story);
-      chatInput.value = ''; chatInput.style.height = 'auto'; sendBtn.disabled = true;
-      handleLetterFlowInput(story);
-      sendBtn.disabled = chatInput.value.trim().length < 3;
-      return;
+    if(GREETINGS_SET.has(msgLower)||(story.trim().length<8&&!hasHistory)){
+      addUserMessage(story);chatInput.value='';chatInput.style.height='auto';sendBtn.disabled=true;
+      addBotBubble(hasHistory?(LANG==='sw'?'👋 Karibu tena! Una swali lingine la kisheria?':'👋 Hi again! Do you have another legal question?'):(LANG==='sw'?'👋 Habari!<br><br>Niambie tatizo lako la kisheria.<br><br><em>Mfano: Nilifukuzwa kazi bila notisi na mwajiri wangu.</em>':'👋 Hello!<br><br>Tell me your legal problem and I\'ll help you.<br><br><em>Example: My employer fired me without notice.</em>'));
+      sendBtn.disabled=chatInput.value.trim().length<3;return;
+    }
+    if(THANKS_SET.has(msgLower)){
+      addUserMessage(story);chatInput.value='';chatInput.style.height='auto';sendBtn.disabled=true;
+      var sw=['😊 Karibu sana!<br><br>Nimefurahi kukusaidia. Ukiwa na swali lingine la kisheria, niko hapa.','😊 Karibu!<br><br>Kazi yangu ni kuhakikisha Wakenya wote wanajua haki zao.','🙏 Karibu sana!<br><br>Shiriki HakiMkononi na wengine wanaohitaji msaada wa kisheria.'];
+      var en=['😊 You\'re welcome!<br><br>I\'m glad I could help. Your rights matter.<br><br>If you have another question, I\'m here.','😊 Happy to help!<br><br>No one should face a legal problem alone.','🙏 You\'re welcome!<br><br>Share HakiMkononi with others who might need legal help too.'];
+      addBotBubble((LANG==='sw'?sw:en)[Math.floor(Math.random()*3)]);
+      sendBtn.disabled=chatInput.value.trim().length<3;return;
+    }
+    var SERIOUS_KW=['murder','mauaji','rape','ubakaji','defilement','udhalilishaji','terrorism','ugaidi','robbery with violence','manslaughter','kuua'];
+    if(SERIOUS_KW.some(function(kw){return story.toLowerCase().indexOf(kw)!==-1;})){
+      addUserMessage(story);chatInput.value='';chatInput.style.height='auto';sendBtn.disabled=true;
+      addBotBubble(LANG==='sw'?'🚨 <strong>Kesi Nyeti — Tafuta Wakili Haraka</strong><br><br>Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br>🌐 www.nlas.go.ke':'🚨 <strong>Serious Case — Get a Lawyer Urgently</strong><br><br>This situation needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br>🌐 www.nlas.go.ke');
+      sendBtn.disabled=chatInput.value.trim().length<3;return;
     }
 
-    var history     = loadHistory();
-    var hasHistory  = history.length > 0;
-    var msgLower    = story.toLowerCase().trim().replace(/[!?.,:]+$/, '');
-    var isCorrection = detectCorrection(story);
-    var isFollowup   = detectFollowup(story, hasHistory);
-
-    // Greeting
-    if (GREETINGS_SET.has(msgLower) || (story.trim().length < 8 && !hasHistory)) {
-      addUserMessage(story);
-      chatInput.value = ''; chatInput.style.height = 'auto'; sendBtn.disabled = true;
-      addBotBubble(hasHistory
-        ? (LANG==='sw'?'👋 Karibu tena! Una swali lingine la kisheria?':'👋 Hi again! Do you have another legal question?')
-        : (LANG==='sw'
-            ? '👋 Habari!<br><br>Niambie tatizo lako la kisheria.<br><br><em>Mfano: Nilifukuzwa kazi bila notisi na mwajiri wangu.</em>'
-            : '👋 Hello!<br><br>Tell me your legal problem and I\'ll help you.<br><br><em>Example: My employer fired me without notice.</em>'));
-      sendBtn.disabled = chatInput.value.trim().length < 3;
-      return;
-    }
-
-    // Thank you
-    if (THANKS_SET.has(msgLower)) {
-      addUserMessage(story);
-      chatInput.value = ''; chatInput.style.height = 'auto'; sendBtn.disabled = true;
-      var sw = ['😊 Karibu sana!<br><br>Nimefurahi kukusaidia. Ukiwa na swali lingine la kisheria, niko hapa.',
-                '😊 Karibu!<br><br>Kazi yangu ni kuhakikisha Wakenya wote wanajua haki zao.',
-                '🙏 Karibu sana!<br><br>Shiriki HakiMkononi na wengine wanaohitaji msaada wa kisheria.'];
-      var en = ['😊 You\'re welcome!<br><br>I\'m glad I could help. Your rights matter.<br><br>If you have another question, I\'m here.',
-                '😊 Happy to help!<br><br>No one should face a legal problem alone.',
-                '🙏 You\'re welcome!<br><br>Share HakiMkononi with others who might need legal help too.'];
-      var pool = LANG==='sw'?sw:en;
-      addBotBubble(pool[Math.floor(Math.random()*pool.length)]);
-      sendBtn.disabled = chatInput.value.trim().length < 3;
-      return;
-    }
-
-    // Serious case
-    var SERIOUS_KW = ['murder','mauaji','rape','ubakaji','defilement','udhalilishaji','terrorism','ugaidi','robbery with violence','manslaughter','kuua'];
-    if (SERIOUS_KW.some(function(kw){ return story.toLowerCase().indexOf(kw)!==-1; })) {
-      addUserMessage(story);
-      chatInput.value = ''; chatInput.style.height = 'auto'; sendBtn.disabled = true;
-      addBotBubble(LANG==='sw'
-        ? '🚨 <strong>Kesi Nyeti — Tafuta Wakili Haraka</strong><br><br>Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br>🌐 www.nlas.go.ke'
-        : '🚨 <strong>Serious Case — Get a Lawyer Urgently</strong><br><br>This situation needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br>🌐 www.nlas.go.ke');
-      sendBtn.disabled = chatInput.value.trim().length < 3;
-      return;
-    }
-
-    addUserMessage(story);
-    chatInput.value = ''; chatInput.style.height = 'auto'; sendBtn.disabled = true;
-
-    if (isCorrection && hasHistory) {
-      addBotBubble('<em style="color:#888;">' + (LANG==='sw'?'Sawa, naelewa. Acha nirekebishe...':'Got it, let me correct that...') + '</em>');
-    }
-
-    currentStory  = story;
-    currentCounty = countySelect.value;
+    addUserMessage(story); chatInput.value=''; chatInput.style.height='auto'; sendBtn.disabled=true;
+    if(isCorrection&&hasHistory){addBotBubble('<em style="color:#888;">'+(LANG==='sw'?'Sawa, naelewa. Acha nirekebishe...':'Got it, let me correct that...')+'</em>');}
+    currentStory=story; currentCounty=countySelect.value;
     addThinking();
 
-    startTime = Date.now();
-    fetch('/api/submit/', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','X-CSRFToken':CSRF},
-      body: JSON.stringify({story, county:currentCounty, lang:LANG, history, is_correction:isCorrection, is_followup:isFollowup})
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d) {
-      if (!d.job_id) { addError('❌ ' + (d.error||'Submission failed.')); return; }
-      currentJobId = d.job_id;
-      clearInterval(pollTimer);
-      pollTimer = setInterval(poll, POLL_MS);
-      poll();
-    })
-    .catch(function() {
-      addError('❌ ' + (LANG==='sw'?'Kuna tatizo la muunganisho. Jaribu tena.':'Connection error. Please try again.'));
-    });
+    startTime=Date.now();
+    fetch('/api/submit/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
+      body:JSON.stringify({story:story,county:currentCounty,lang:LANG,history:history,is_correction:isCorrection,is_followup:isFollowup})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d.job_id){addError('❌ '+(d.error||'Submission failed.'));return;}
+      currentJobId=d.job_id; clearInterval(pollTimer); pollTimer=setInterval(poll,POLL_MS); poll();
+    }).catch(function(){addError('❌ '+(LANG==='sw'?'Kuna tatizo la muunganisho. Jaribu tena.':'Connection error. Please try again.'));});
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────
-  window.copyLetter = function(id) {
-    var el = document.getElementById(id);
-    if (el) try { navigator.clipboard.writeText(el.innerText||el.textContent||''); } catch(e) {}
-  };
-  window.copyAnswer = function(jobId) {
-    var texts = [];
-    document.querySelectorAll('.bot-card .bot-card-text,.bot-card .chat-letter').forEach(function(el) {
-      texts.push((el.innerText||el.textContent||'').trim());
-    });
-    try { navigator.clipboard.writeText(texts.join('\n\n')); } catch(e) {}
-  };
-  window.downloadPDF = function(jobId, type) {
-    var url = type==='letter'?'/api/letter-pdf/'+jobId+'/':'/api/answer-pdf/'+jobId+'/';
-    fetch(url,{cache:'no-store'}).then(function(r){return r.blob();}).then(function(blob){
-      var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-      a.download='HakiMkononi-'+type+'-'+new Date().toISOString().slice(0,10)+'.pdf';
-      a.style.display='none'; document.body.appendChild(a); a.click();
-      document.body.removeChild(a);
-      setTimeout(function(){URL.revokeObjectURL(a.href);},10000);
-    }).catch(function(){});
-  };
-  window.shareAnswer = function(jobId) {
-    var url = location.origin + '/?job=' + jobId + '&lang=' + LANG;
-    if (navigator.share) navigator.share({title:'HakiMkononi',url:url}).catch(function(){});
-    else try { navigator.clipboard.writeText(url); } catch(e) {}
-  };
-  window.sendFeedback = function(queryId, helpful, rowId) {
-    var row = document.getElementById(rowId);
-    if (!queryId) { if(row) row.innerHTML='<span>✅ '+(LANG==='sw'?'Asante!':'Thanks!')+'</span>'; return; }
-    fetch('/api/feedback/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
-      body:JSON.stringify({query_id:queryId,helpful:helpful})})
-      .finally(function(){ if(row) row.innerHTML='<span>✅ '+(LANG==='sw'?'Asante kwa maoni!':'Thank you!')+'</span>'; });
-  };
+  window.copyLetter=function(id){var el=document.getElementById(id);if(el)try{navigator.clipboard.writeText(el.innerText||el.textContent||'');}catch(e){}};
+  window.copyAnswer=function(jobId){var texts=[];document.querySelectorAll('.bot-card .bot-card-text,.bot-card .chat-letter').forEach(function(el){texts.push((el.innerText||el.textContent||'').trim());});try{navigator.clipboard.writeText(texts.join('\n\n'));}catch(e){}};
+  window.downloadPDF=function(jobId,type){var url=type==='letter'?'/api/letter-pdf/'+jobId+'/':'/api/answer-pdf/'+jobId+'/';fetch(url,{cache:'no-store'}).then(function(r){return r.blob();}).then(function(blob){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='HakiMkononi-'+type+'-'+new Date().toISOString().slice(0,10)+'.pdf';a.style.display='none';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(a.href);},10000);}).catch(function(){});};
+  window.shareAnswer=function(jobId){var url=location.origin+'/?job='+jobId+'&lang='+LANG;if(navigator.share)navigator.share({title:'HakiMkononi',url:url}).catch(function(){});else try{navigator.clipboard.writeText(url);}catch(e){}};
+  window.sendFeedback=function(queryId,helpful,rowId){var row=document.getElementById(rowId);if(!queryId){if(row)row.innerHTML='<span>✅ '+(LANG==='sw'?'Asante!':'Thanks!')+'</span>';return;}fetch('/api/feedback/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},body:JSON.stringify({query_id:queryId,helpful:helpful})}).finally(function(){if(row)row.innerHTML='<span>✅ '+(LANG==='sw'?'Asante kwa maoni!':'Thank you!')+'</span>';});};
 
-  // ── Voice input ───────────────────────────────────────────────────
-  var mediaRecorder=null, audioChunks=[], isRecording=false;
-  if (!navigator.mediaDevices||!window.MediaRecorder) { micBtn.disabled=true; micBtn.style.opacity='.4'; }
-  micBtn.addEventListener('click', async function() {
-    if (isRecording) { mediaRecorder.stop(); return; }
-    try {
-      var stream = await navigator.mediaDevices.getUserMedia({audio:true});
-      audioChunks = [];
-      var mime = MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':
-                 MediaRecorder.isTypeSupported('audio/ogg')?'audio/ogg':'audio/mp4';
-      mediaRecorder = new MediaRecorder(stream,{mimeType:mime});
+  // ── Voice ─────────────────────────────────────────────────────────
+  var mediaRecorder=null,audioChunks=[],isRecording=false;
+  if(!navigator.mediaDevices||!window.MediaRecorder){micBtn.disabled=true;micBtn.style.opacity='.4';}
+  micBtn.addEventListener('click',async function(){
+    if(isRecording){mediaRecorder.stop();return;}
+    try{
+      var stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      audioChunks=[];
+      var mime=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':MediaRecorder.isTypeSupported('audio/ogg')?'audio/ogg':'audio/mp4';
+      mediaRecorder=new MediaRecorder(stream,{mimeType:mime});
       mediaRecorder.ondataavailable=function(e){if(e.data.size>0)audioChunks.push(e.data);};
-      mediaRecorder.onstop = async function() {
-        isRecording=false; micBtn.classList.remove('recording'); micIcon.textContent='🎤';
+      mediaRecorder.onstop=async function(){
+        isRecording=false;micBtn.classList.remove('recording');micIcon.textContent='🎤';
         micStatus.textContent=LANG==='sw'?'⏳ Inatafsiri…':'⏳ Transcribing…';
         stream.getTracks().forEach(function(t){t.stop();});
         var blob=new Blob(audioChunks,{type:mime});
-        var fd=new FormData(); fd.append('audio',blob,'rec.'+mime.split('/')[1]);
-        fd.append('lang',LANG); fd.append('csrfmiddlewaretoken',CSRF);
-        try {
-          var r=await fetch('/api/transcribe/',{method:'POST',body:fd});
-          var d=await r.json();
-          if(d.transcript){chatInput.value=d.transcript;chatInput.dispatchEvent(new Event('input'));micStatus.textContent=LANG==='sw'?'✅ Imetafsiriwa!':'✅ Done!';setTimeout(function(){micStatus.textContent='';},3000);}
-          else{micStatus.textContent=LANG==='sw'?'❌ Hitilafu':'❌ Error';}
-        } catch(e){micStatus.textContent='❌';}
+        var fd=new FormData();fd.append('audio',blob,'rec.'+mime.split('/')[1]);fd.append('lang',LANG);fd.append('csrfmiddlewaretoken',CSRF);
+        try{var r=await fetch('/api/transcribe/',{method:'POST',body:fd});var d=await r.json();if(d.transcript){chatInput.value=d.transcript;chatInput.dispatchEvent(new Event('input'));micStatus.textContent=LANG==='sw'?'✅ Imetafsiriwa!':'✅ Done!';setTimeout(function(){micStatus.textContent='';},3000);}else{micStatus.textContent=LANG==='sw'?'❌ Hitilafu':'❌ Error';}}catch(e){micStatus.textContent='❌';}
       };
-      mediaRecorder.start(); isRecording=true;
-      micBtn.classList.add('recording'); micIcon.textContent='⏹️';
+      mediaRecorder.start();isRecording=true;micBtn.classList.add('recording');micIcon.textContent='⏹️';
       micStatus.textContent=LANG==='sw'?'🔴 Inarekodia…':'🔴 Recording…';
-    } catch(e) {
-      micStatus.textContent=e.name==='NotAllowedError'?(LANG==='sw'?'❌ Ruhusu mic':'❌ Allow mic access'):'❌'+(e.message||'Mic error');
-    }
+    }catch(e){micStatus.textContent=e.name==='NotAllowedError'?(LANG==='sw'?'❌ Ruhusu mic':'❌ Allow mic access'):'❌'+(e.message||'Mic error');}
   });
 
   // ── Restore from ?job=ID ──────────────────────────────────────────
   (function restore(){
-    var params=new URLSearchParams(location.search);
-    var savedId=params.get('job');
+    var params=new URLSearchParams(location.search),savedId=params.get('job');
     if(!savedId)return;
-    try{
-      var raw=localStorage.getItem('haki_job_'+savedId);
-      if(raw){var s=JSON.parse(raw);if(Date.now()-(s.saved_at||0)<86400000){if(s.story)addUserMessage(s.story);currentJobId=savedId;currentStory=s.story||'';s.job_id=savedId;addAnswerCard(s);return;}}
-    }catch(e){}
-    currentJobId=savedId; addThinking(); startTime=Date.now();
-    var t=setInterval(function(){
-      fetch('/api/status/'+savedId+'/',{cache:'no-store'}).then(function(r){return r.json();})
-        .then(function(d){if(d.status==='done'){clearInterval(t);d.job_id=savedId;addAnswerCard(d);}else if(d.status==='error'){clearInterval(t);addError(d.message||'Error loading answer.');}})
-        .catch(function(){clearInterval(t);addError('Connection error.');});
-    },2000);
-  })();
-
-})();
-</script>
-{% endblock %}
-
-{% block extra_head %}
-<script src="{% static 'js/marked.min.js' %}"></script>
-<style>
-/* ── Chat layout ──────────────────────────────────────────────────── */
-.chat-page {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 62px); /* full height minus navbar */
-  overflow: hidden;
-}
-
-/* ── Chat window (scrollable messages area) ───────────────────────── */
-#chatWindow {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.25rem 0 0.5rem;
-  scroll-behavior: smooth;
-}
-
-/* ── Welcome screen (shown before first question) ────────────────── */
-#welcomeScreen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60%;
-  padding: 2rem 1rem;
-  text-align: center;
-}
-#welcomeScreen .welcome-logo {
-  width: 80px; height: 80px;
-  border-radius: 16px;
-  object-fit: cover;
-  margin-bottom: 1rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,.15);
-}
-#welcomeScreen h1 {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--haki-dark);
-  margin-bottom: 0.35rem;
-}
-#welcomeScreen h1 span { color: var(--haki-gold); }
-#welcomeScreen p {
-  color: #666;
-  font-size: .95rem;
-  max-width: 480px;
-  margin: 0 auto 1.5rem;
-}
-.example-chips {
-  display: flex; flex-wrap: wrap;
-  gap: 0.5rem; justify-content: center;
-  max-width: 560px;
-}
-
-/* ── Message row ──────────────────────────────────────────────────── */
-.msg-row {
-  display: flex;
-  margin-bottom: 1rem;
-  padding: 0 1rem;
-  animation: fadeUp .25s ease;
-}
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(10px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-.msg-row.user { justify-content: flex-end; }
-.msg-row.bot  { justify-content: flex-start; }
-
-/* ── User bubble ──────────────────────────────────────────────────── */
-.user-bubble {
-  background: var(--haki-green);
-  color: #fff;
-  border-radius: 18px 18px 4px 18px;
-  padding: .75rem 1.1rem;
-  max-width: 70%;
-  font-size: .95rem;
-  line-height: 1.5;
-  word-break: break-word;
-  box-shadow: 0 2px 8px rgba(26,122,60,.25);
-}
-
-/* ── Thinking bubble (animated dots) ─────────────────────────────── */
-.thinking-bubble {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 18px 18px 18px 4px;
-  padding: .75rem 1.2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,.06);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.thinking-bubble span {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--haki-green);
-  display: inline-block;
-  animation: bounce 1.2s ease-in-out infinite;
-}
-.thinking-bubble span:nth-child(2) { animation-delay: .2s; }
-.thinking-bubble span:nth-child(3) { animation-delay: .4s; }
-@keyframes bounce {
-  0%,80%,100% { transform: scale(.7); opacity:.5; }
-  40%          { transform: scale(1);  opacity:1; }
-}
-
-/* ── Bot answer card ──────────────────────────────────────────────── */
-.bot-card {
-  background: #fff;
-  border-radius: 4px 18px 18px 18px;
-  box-shadow: 0 2px 12px rgba(0,0,0,.08);
-  max-width: min(700px, 92vw);
-  overflow: hidden;
-}
-.bot-card-section {
-  padding: .85rem 1.1rem;
-  border-bottom: 1px solid #f0f0f0;
-}
-.bot-card-section:last-child { border-bottom: none; }
-.bot-card-label {
-  font-size: .72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  margin-bottom: .4rem;
-  display: flex;
-  align-items: center;
-  gap: .35rem;
-}
-.label-law    { color: var(--haki-green); }
-.label-simple { color: #0077b6; }
-.label-rights { color: #e07c00; }
-.label-letter { color: #9b2226; }
-.label-sources { color: #555; }
-
-/* ── Answer text inside card ──────────────────────────────────────── */
-.bot-card-text {
-  font-size: .88rem;
-  line-height: 1.7;
-  color: #2a2a2a;
-}
-.bot-card-text p { margin-bottom: .5rem; }
-.bot-card-text p:last-child { margin-bottom: 0; }
-.bot-card-text ul, .bot-card-text ol { padding-left: 1.4rem; margin-bottom: .5rem; }
-.bot-card-text li { margin-bottom: .25rem; }
-.bot-card-text strong { font-weight: 700; color: var(--haki-dark); }
-.bot-card-text .law-citation {
-  display: block;
-  font-weight: 700;
-  color: var(--haki-dark);
-  margin-bottom: .25rem;
-}
-.bot-card-text .law-explanation { display: block; margin-bottom: .6rem; }
-
-/* ── Editable letter inside card ──────────────────────────────────── */
-.chat-letter {
-  font-family: 'Courier New', monospace;
-  font-size: .8rem;
-  line-height: 1.75;
-  white-space: pre-wrap;
-  background: #fdfaf7;
-  border: 1.5px solid #e8ddd0;
-  border-radius: 6px;
-  padding: .65rem .9rem;
-  outline: none;
-  min-height: 60px;
-  transition: border-color .2s;
-}
-.chat-letter:focus { border-color: #9b2226; }
-.letter-placeholder {
-  display: inline;
-  color: #7a4200;
-  background: #fff3e0;
-  padding: .05em .3em;
-  border-radius: 3px;
-  font-size: .78rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px dashed #f0a040;
-}
-.letter-placeholder:hover { background: #ffe0b2; }
-#ltPlaceholderCount {
-  font-size: .72rem; font-weight: 700;
-  padding: .12em .5em; border-radius: 20px;
-  background: #fff3e0; color: #7a4200;
-  border: 1px solid #f0a040;
-}
-#ltPlaceholderCount.all-filled { background:#e8f5e9; color:#1a7a3c; border-color:#a5d6a7; }
-
-/* ── Sources list ─────────────────────────────────────────────────── */
-.chat-sources { font-size: .78rem; }
-.chat-sources li {
-  display: flex; align-items: flex-start; gap: .4rem;
-  padding: .3rem 0;
-  border-bottom: 1px solid #f5f5f5;
-}
-.chat-sources li:last-child { border-bottom: none; }
-.chat-sources a { color: var(--haki-green); font-weight: 600; white-space: nowrap; }
-
-/* ── Serious case banner ──────────────────────────────────────────── */
-.serious-msg {
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 4px 18px 18px 18px;
-  padding: .85rem 1.1rem;
-  max-width: min(560px, 92vw);
-  font-size: .9rem;
-}
-
-/* ── Error bubble ─────────────────────────────────────────────────── */
-.error-msg {
-  background: #fff0f0;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px 18px 18px 18px;
-  padding: .75rem 1.1rem;
-  max-width: min(420px, 85vw);
-  font-size: .88rem;
-  color: #721c24;
-}
-
-/* ── Chat actions row (copy, download, share) ─────────────────────── */
-.chat-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .4rem;
-  padding: .6rem 1.1rem;
-  background: #fafafa;
-  border-top: 1px solid #f0f0f0;
-}
-.chat-actions button, .chat-actions a {
-  font-size: .74rem;
-  padding: .25em .75em;
-  border-radius: 20px;
-  border: 1px solid #ddd;
-  background: #fff;
-  color: #444;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background .15s;
-  white-space: nowrap;
-}
-.chat-actions button:hover { background: #f0f0f0; }
-.chat-actions .act-primary {
-  background: var(--haki-green); color: #fff;
-  border-color: var(--haki-green);
-}
-.chat-actions .act-primary:hover { background: var(--haki-dark); }
-
-/* ── Letter counter/reset toolbar ────────────────────────────────── */
-.letter-toolbar {
-  display: flex; flex-wrap: wrap; gap: .4rem;
-  align-items: center; padding: .4rem .6rem;
-  background: #fdf4f4;
-  border: 1px solid #f0dada;
-  border-radius: 6px 6px 0 0;
-  border-bottom: none;
-  font-size: .74rem;
-}
-.letter-toolbar button {
-  padding: .18em .6em;
-  font-size: .73rem;
-  border-radius: 4px;
-  border: 1px solid #c8a8a8;
-  background: #fff; color: #5a2222;
-  cursor: pointer;
-}
-.letter-toolbar button.lt-primary {
-  background: #9b2226; color: #fff; border-color: #9b2226;
-}
-
-/* ── Input bar (fixed at bottom) ──────────────────────────────────── */
-.chat-input-bar {
-  background: #fff;
-  border-top: 1px solid #e8e8e8;
-  padding: .75rem 1rem;
-  box-shadow: 0 -2px 12px rgba(0,0,0,.06);
-}
-.chat-input-inner {
-  max-width: 760px;
-  margin: 0 auto;
-}
-.chat-textarea-wrap {
-  display: flex;
-  align-items: flex-end;
-  gap: .6rem;
-  background: #f5f5f5;
-  border-radius: 24px;
-  border: 2px solid transparent;
-  padding: .5rem .5rem .5rem .9rem;
-  transition: border-color .2s, background .2s;
-}
-.chat-textarea-wrap:focus-within {
-  background: #fff;
-  border-color: var(--haki-green);
-}
-#chatInput {
-  flex: 1;
-  border: none;
-  background: transparent;
-  resize: none;
-  outline: none;
-  font-size: .95rem;
-  line-height: 1.5;
-  max-height: 140px;
-  overflow-y: auto;
-  font-family: inherit;
-}
-.chat-send-btn {
-  width: 42px; height: 42px;
-  border-radius: 50%;
-  border: none;
-  background: var(--haki-green);
-  color: #fff;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: background .15s, transform .1s;
-}
-.chat-send-btn:hover { background: var(--haki-dark); }
-.chat-send-btn:active { transform: scale(.92); }
-.chat-send-btn:disabled { background: #ccc; cursor: not-allowed; }
-.chat-send-btn svg { width: 20px; height: 20px; }
-
-/* ── Mic button ───────────────────────────────────────────────────── */
-.chat-mic-btn {
-  width: 38px; height: 38px;
-  border-radius: 50%;
-  border: 2px solid #ddd;
-  background: #fff;
-  color: #555;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: all .2s;
-  font-size: 1.1rem;
-}
-.chat-mic-btn:hover { border-color: var(--haki-green); color: var(--haki-green); }
-.chat-mic-btn.recording {
-  background: #dc3545; border-color: #dc3545;
-  color: #fff;
-  animation: micPulse 1.2s ease-in-out infinite;
-}
-@keyframes micPulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(220,53,69,.4); }
-  50%      { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
-}
-
-/* ── County + hint row ────────────────────────────────────────────── */
-.chat-meta {
-  display: flex; align-items: center; gap: .6rem;
-  flex-wrap: wrap;
-  padding: .4rem 0 0;
-}
-.chat-meta select {
-  font-size: .8rem; padding: .25em .6em;
-  border-radius: 20px; border: 1px solid #ddd;
-  background: #fff; color: #555; outline: none;
-}
-.chat-meta .mic-status {
-  font-size: .78rem; color: #888; flex: 1;
-}
-
-/* ── Disclaimer at bottom ─────────────────────────────────────────── */
-.chat-disclaimer {
-  font-size: .72rem; color: #aaa;
-  text-align: center;
-  padding: .3rem 0 0;
-}
-
-/* ── Feedback row inside card ─────────────────────────────────────── */
-.feedback-row {
-  display: flex; align-items: center; gap: .5rem;
-  padding: .5rem 1.1rem;
-  background: #fafafa;
-  border-top: 1px solid #f0f0f0;
-  font-size: .78rem; color: #777;
-}
-.feedback-row button {
-  padding: .2em .7em; border-radius: 20px;
-  border: 1px solid #ddd; background: #fff;
-  cursor: pointer; font-size: .78rem;
-  transition: background .15s;
-}
-.feedback-row button:hover { background: #f0f0f0; }
-
-/* ── Responsive ───────────────────────────────────────────────────── */
-@media (max-width: 600px) {
-  .msg-row { padding: 0 .5rem; }
-  .user-bubble { max-width: 85%; }
-  .bot-card { max-width: 95vw; }
-  .chat-input-bar { padding: .6rem .6rem; }
-}
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="chat-page">
-
-  <!-- ── Scrollable messages area ───────────────────────────────── -->
-  <div id="chatWindow">
-    <div class="container" style="max-width:780px;">
-
-      <!-- Welcome screen -->
-      <div id="welcomeScreen">
-        <img src="{% static 'img/logo.png' %}" alt="HakiMkononi"
-             class="welcome-logo" onerror="this.style.display='none'">
-        <h1>Haki<span>Mkononi</span></h1>
-        <p>{{ ui.hero_sub }}</p>
-
-        <!-- Example question chips -->
-        <div class="example-chips">
-          {% for chip in ui.chips %}
-          <span class="chip" onclick="fillChat(this)">{{ chip }}</span>
-          {% endfor %}
-        </div>
-
-        <p class="mt-3 small text-muted">{{ ui.hero_note }}</p>
-      </div>
-
-      <!-- Messages injected here by JS -->
-      <div id="messagesContainer"></div>
-
-    </div>
-  </div>
-
-  <!-- ── Fixed input bar ────────────────────────────────────────── -->
-  <div class="chat-input-bar">
-    <div class="chat-input-inner">
-      <div class="chat-textarea-wrap">
-        <textarea id="chatInput" rows="1"
-                  placeholder="{{ ui.story_placeholder }}"
-                  aria-label="{{ ui.field_story }}"></textarea>
-        <button class="chat-mic-btn" id="micBtn" type="button"
-                title="{% if lang == 'en' %}Tap to speak{% else %}Bonyeza kusema{% endif %}">
-          <span id="micIcon">🎤</span>
-        </button>
-        <button class="chat-send-btn" id="sendBtn" type="button"
-                title="{% if lang == 'en' %}Send{% else %}Tuma{% endif %}"
-                disabled>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"></line>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-          </svg>
-        </button>
-      </div>
-      <div class="chat-meta">
-        <select id="countySelect" aria-label="{{ ui.field_county }}">
-          <option value="">{{ ui.county_default }}</option>
-          {% for c in counties %}
-          <option value="{{ c }}">{{ c }}</option>
-          {% endfor %}
-        </select>
-        <span class="mic-status" id="micStatus"></span>
-        <span class="chat-disclaimer">{{ ui.disclaimer }}</span>
-      </div>
-    </div>
-  </div>
-
-</div>
-{% endblock %}
-
-
-{% block extra_js %}
-<style>
-@keyframes micPulse { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
-</style>
-<script>
-(function() {
-  var LANG = "{{ lang }}";
-  var CSRF = "{{ csrf_token }}";
-
-  // ── DOM refs ──────────────────────────────────────────────────────
-  var chatWindow    = document.getElementById('chatWindow');
-  var messagesEl    = document.getElementById('messagesContainer');
-  var welcomeEl     = document.getElementById('welcomeScreen');
-  var chatInput     = document.getElementById('chatInput');
-  var sendBtn       = document.getElementById('sendBtn');
-  var countySelect  = document.getElementById('countySelect');
-  var micBtn        = document.getElementById('micBtn');
-  var micIcon       = document.getElementById('micIcon');
-  var micStatus     = document.getElementById('micStatus');
-
-  // ── State ─────────────────────────────────────────────────────────
-  var currentJobId   = null;
-  var pollTimer      = null;
-  var POLL_MS        = 5000;
-  var MAX_WAIT_MS    = 180000;
-  var startTime      = 0;
-  var activeThinking = null; // the current thinking bubble element
-  var letterOriginal = {}; // jobId → original letter text
-
-  // ── Conversation memory (localStorage) ───────────────────────────
-  // history = [{role:'user',content:'...'},{role:'assistant',content:'...'},...]
-  var HISTORY_KEY    = 'haki_history_' + LANG;
-  var HISTORY_MAX    = 8; // messages = 4 turns
-
-  function loadHistory() {
-    try {
-      var raw = localStorage.getItem(HISTORY_KEY);
-      if (!raw) return [];
-      var h = JSON.parse(raw);
-      return Array.isArray(h) ? h.slice(-HISTORY_MAX) : [];
-    } catch(e) { return []; }
-  }
-
-  function saveHistory(history) {
-    try {
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-HISTORY_MAX)));
-    } catch(e) {}
-  }
-
-  function addToHistory(userMsg, assistantSummary) {
-    var h = loadHistory();
-    h.push({role:'user',      content: userMsg});
-    h.push({role:'assistant', content: assistantSummary || 'Answered.'});
-    saveHistory(h);
-  }
-
-  function clearHistory() {
-    try { localStorage.removeItem(HISTORY_KEY); } catch(e) {}
-  }
-
-  // ── Correction / follow-up detection (mirrors bot logic) ─────────
-  var CORRECTION_SIGNALS = [
-    'actually', 'wait', 'no wait', 'sorry', 'i meant', 'i mean',
-    'correction', 'not that', 'ignore that', 'forget that', 'scratch that',
-    'not exactly', 'to clarify', 'what i meant', 'actually no',
-    'siyo', 'hapana', 'nilimaanisha', 'nilikuwa nasema', 'acha',
-    'samahani', 'sahihisha', 'kwa kweli', 'nilikosea', 'si hivyo',
-  ];
-
-  var FOLLOWUP_SIGNALS = [
-    'what about', 'and ', 'also ', 'but ', 'how about', 'what if',
-    'can i', 'do i', 'is it', 'so ', 'then ', 'what happens',
-    'and if', 'does that mean', 'what else', 'tell me more',
-    'na ', 'lakini', 'vipi', 'je ', 'pia ', 'zaidi', 'basi ', 'kisha ',
-  ];
-
-  var THANKS_SET = new Set([
-    'thanks','thank you','thank you so much','thanks a lot','asante',
-    'asante sana','nashukuru','shukrani','sawa asante','nimeshukuru',
-    'appreciated','helpful','that helped','you helped me','umesaidia',
-    'great','wonderful','excellent','perfect','amazing','awesome',
-  ]);
-
-  var GREETINGS_SET = new Set([
-    'hello','hi','hey','habari','habari yako','sasa','mambo','niaje',
-    'vipi','sup','hola','salamu','good morning','good afternoon',
-    'good evening','ok','okay','sawa','yes','no','ndiyo','hapana',
-  ]);
-
-  function detectCorrection(msg) {
-    var m = msg.toLowerCase().trim();
-    for (var i = 0; i < CORRECTION_SIGNALS.length; i++) {
-      var s = CORRECTION_SIGNALS[i];
-      if (m.startsWith(s + ' ') || m.startsWith(s + ',') || m === s) return true;
-    }
-    return false;
-  }
-
-  function detectFollowup(msg, hasHistory) {
-    if (!hasHistory) return false;
-    var m = msg.toLowerCase().trim();
-    if (msg.trim().length < 40) return true;
-    for (var i = 0; i < FOLLOWUP_SIGNALS.length; i++) {
-      if (m.startsWith(FOLLOWUP_SIGNALS[i])) return true;
-    }
-    return false;
-  }
-
-  // ── Inline bot reply (no API call needed) ─────────────────────────
-  function addBotMessage(html, cls) {
-    removeThinking();
-    var row = document.createElement('div');
-    row.className = 'msg-row bot';
-    var bubble = document.createElement('div');
-    bubble.className = cls || 'error-msg';
-    bubble.style.cssText = 'background:#fff;border:1px solid #e0e0e0;border-radius:4px 18px 18px 18px;padding:.75rem 1.1rem;max-width:min(560px,92vw);font-size:.9rem;line-height:1.6;';
-    bubble.innerHTML = html;
-    row.appendChild(bubble);
-    messagesEl.appendChild(row);
-    scrollDown();
-    resetInput();
-  }
-
-  // ── Letter personalisation flow (mirrors bot name→phone flow) ─────
-  var pendingLetter      = null; // letter text waiting for name
-  var pendingLetterName  = null; // name collected, waiting for phone
-  var letterFlowJobId    = null;
-
-  function startLetterFlow(letterText, jobId) {
-    pendingLetter     = letterText;
-    pendingLetterName = null;
-    letterFlowJobId   = jobId;
-    var prompt = LANG === 'sw'
-      ? '✍️ <strong>Barua ipo tayari!</strong><br><br>Niambie <strong>jina lako kamili</strong> ili niijaze barua yako:<br><small><em>(au andika /skip kuruka hatua hii)</em></small>'
-      : '✍️ <strong>Your letter is ready!</strong><br><br>Type your <strong>full name</strong> and I\'ll fill it in for you:<br><small><em>(or type /skip to skip this step)</em></small>';
-    addBotMessage(prompt);
-    chatInput.placeholder = LANG === 'sw' ? 'Andika jina lako...' : 'Type your name...';
-    chatInput.focus();
-  }
-
-  function handleLetterFlowInput(text) {
-    // /skip at any point
-    if (text.trim().toLowerCase() === '/skip') {
-      finishLetterFlow('', '');
-      return true;
-    }
-    if (pendingLetter !== null && pendingLetterName === null) {
-      // Collecting name — validate
-      var words = text.trim().split(/\s+/);
-      var isSentence = words.length > 4 || text.length > 50 ||
-        /^(i feel|i want|i am|i was|i will|i need|they|police|there is|someone)/i.test(text);
-      if (isSentence) {
-        var hasDistress = /\b(beat|beaten|beating|hit|kill|angry|hurt|violence|abuse)\b/i.test(text);
-        var msg = hasDistress
-          ? (LANG === 'sw'
-              ? '💙 Naelewa unahisi hasira. Tafadhali andika <strong>jina lako halisi</strong> tu — mfano: <em>John Kamau</em>'
-              : '💙 I understand you\'re angry. Please type just your <strong>real full name</strong> — example: <em>John Kamau</em>')
-          : (LANG === 'sw'
-              ? '⚠️ Hiyo inaonekana kama sentensi. Andika <strong>jina lako</strong> tu — mfano: <em>John Kamau</em>'
-              : '⚠️ That looks like a sentence. Type just your <strong>full name</strong> — example: <em>John Kamau</em>');
-        addBotMessage(msg);
-        return true;
-      }
-      if (!text.trim() || text.trim().length < 2) {
-        addBotMessage(LANG === 'sw' ? '⚠️ Tafadhali andika jina lako.' : '⚠️ Please type your full name.');
-        return true;
-      }
-      pendingLetterName = text.trim().slice(0, 60);
-      var thanks = LANG === 'sw'
-        ? '✅ Asante, <strong>' + pendingLetterName + '</strong>!<br><br>Sasa niambie <strong>nambari yako ya simu</strong>:<br><small><em>(au andika /skip kuruka)</em></small>'
-        : '✅ Got it, <strong>' + pendingLetterName + '</strong>!<br><br>Now type your <strong>phone number</strong>:<br><small><em>(or type /skip to skip)</em></small>';
-      addBotMessage(thanks);
-      chatInput.placeholder = LANG === 'sw' ? '0712345678' : '0712345678';
-      return true;
-    }
-    if (pendingLetter !== null && pendingLetterName !== null) {
-      // Collecting phone — validate
-      var digits = text.trim().replace(/[\s\-\(\)]/g, '');
-      var validPhone = /^\+?\d{9,}$/.test(digits);
-      if (!validPhone) {
-        addBotMessage(LANG === 'sw'
-          ? '⚠️ Hiyo haionekani kama nambari. Jaribu tena (mfano: 0712345678) au andika /skip.'
-          : '⚠️ That doesn\'t look like a phone number. Try again (e.g. 0712345678) or type /skip.');
-        return true;
-      }
-      finishLetterFlow(pendingLetterName, text.trim());
-      return true;
-    }
-    return false;
-  }
-
-  function finishLetterFlow(name, phone) {
-    var letter = pendingLetter || '';
-    pendingLetter     = null;
-    pendingLetterName = null;
-    chatInput.placeholder = "{{ ui.story_placeholder }}";
-
-    if (!letter) {
-      addBotMessage(LANG === 'sw' ? '❓ Una swali lingine?' : '❓ Have another question?');
-      return;
-    }
-
-    // Fill placeholders
-    var today = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
-    var filled = letter
-      .replace(/\[YOUR NAME\]/g,  name || '[YOUR NAME]')
-      .replace(/\[JINA LAKO\]/g,  name || '[JINA LAKO]')
-      .replace(/\[DATE\]/g,       today)
-      .replace(/\[TAREHE\]/g,     today)
-      .replace(/\[YOUR ADDRESS\]/g, '[Your address — add this]')
-      .replace(/\[ANWANI YAKO\]/g,  '[Anwani yako — ongeza hapa]')
-      .replace(/\[ANWANI\]/g,       '[Anwani yako — ongeza hapa]');
-    if (phone) {
-      filled = filled.replace(/\[PHONE NUMBER\]/g,     phone)
-                     .replace(/\[NAMBARI YA SIMU\]/g,  phone);
-    }
-
-    // Inject the filled letter back into the existing card
-    var el = document.getElementById('ltLetter-' + letterFlowJobId);
-    if (el) {
-      renderLetter(el, filled, letterFlowJobId);
-      updateLetterCount(el, letterFlowJobId);
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    var tip = LANG === 'sw'
-      ? '✅ <strong>Barua imejazwa!</strong> Badilisha anwani yako ukihitaji. Kisha unaweza kuunakili au kupakua PDF.<br><br>❓ Una swali lingine?'
-      : '✅ <strong>Letter filled!</strong> Update your address if needed. Then copy or download as PDF.<br><br>❓ Have another question?';
-    addBotMessage(tip);
-  }
-
-  // ── Textarea auto-resize + send enable ───────────────────────────
-  chatInput.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 140) + 'px';
-    sendBtn.disabled = this.value.trim().length < 3;
-  });
-
-  chatInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (!sendBtn.disabled) sendMessage();
-    }
-  });
-
-  sendBtn.addEventListener('click', sendMessage);
-
-  // ── Fill from example chip ────────────────────────────────────────
-  window.fillChat = function(el) {
-    chatInput.value = el.textContent.trim();
-    chatInput.dispatchEvent(new Event('input'));
-    chatInput.focus();
-  };
-
-  // ── Scroll to bottom ──────────────────────────────────────────────
-  function scrollDown() {
-    setTimeout(function() {
-      chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
-    }, 60);
-  }
-
-  // ── Add user bubble ───────────────────────────────────────────────
-  function addUserMessage(text) {
-    welcomeEl.style.display = 'none';
-    var row = document.createElement('div');
-    row.className = 'msg-row user';
-    var bubble = document.createElement('div');
-    bubble.className = 'user-bubble';
-    bubble.textContent = text;
-    row.appendChild(bubble);
-    messagesEl.appendChild(row);
-    scrollDown();
-  }
-
-  // ── Add thinking dots ─────────────────────────────────────────────
-  function addThinking() {
-    var row = document.createElement('div');
-    row.className = 'msg-row bot';
-    row.innerHTML = '<div class="thinking-bubble"><span></span><span></span><span></span></div>';
-    messagesEl.appendChild(row);
-    activeThinking = row;
-    scrollDown();
-    return row;
-  }
-
-  function removeThinking() {
-    if (activeThinking) {
-      activeThinking.remove();
-      activeThinking = null;
-    }
-  }
-
-  // ── Add error message ─────────────────────────────────────────────
-  function addError(msg) {
-    removeThinking();
-    var row = document.createElement('div');
-    row.className = 'msg-row bot';
-    var bubble = document.createElement('div');
-    bubble.className = 'error-msg';
-    bubble.innerHTML = msg;
-    row.appendChild(bubble);
-    messagesEl.appendChild(row);
-    scrollDown();
-    resetInput();
-  }
-
-  // ── Reset input state ─────────────────────────────────────────────
-  function resetInput() {
-    sendBtn.disabled = chatInput.value.trim().length < 3;
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
-
-  // ── Clean markdown for chat ───────────────────────────────────────
-  function parseMarkdown(text) {
-    if (!text) return '';
-    if (window.marked) {
-      return marked.parse(text);
-    }
-    return text.replace(/\n/g, '<br>');
-  }
-
-  // ── Bold law citations ────────────────────────────────────────────
-  function boldCitations(div) {
-    div.querySelectorAll('p').forEach(function(p) {
-      var txt = p.textContent.trim();
-      var m = txt.match(/^(\[.+?\]\s*[–\-]\s*Section\s*[^\(]*\([^\)]*\))\s*/);
-      if (m) {
-        var cit = m[1].trim();
-        var exp = txt.slice(m[0].length).trim();
-        p.innerHTML = '<strong class="law-citation">' + cit + '</strong>' +
-          (exp ? '<span class="law-explanation">' + exp + '</span>' : '');
-      } else if (p.querySelector('strong')) {
-        var s = p.querySelector('strong');
-        if (p.textContent.trim() === s.textContent.trim()) {
-          s.classList.add('law-citation');
-        }
-      }
-    });
-  }
-
-  // ── Render letter with placeholder chips ─────────────────────────
-  function renderLetter(container, text, jobId) {
-    letterOriginal[jobId] = text;
-    var clean = text
-      .replace(/\*\*(.+?)\*\*/g, '$1')
-      .replace(/__(.+?)__/g, '$1')
-      .replace(/\*(.+?)\*/g, '$1')
-      .replace(/^#+\s+/gm, '');
-    var escaped = clean.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    var html = escaped.replace(/\[([^\]]+)\]/g,
-      '<span class="letter-placeholder" tabindex="0">[$1]</span>');
-    container.innerHTML = html;
-
-    // Click chip → select it
-    container.addEventListener('click', function(e) {
-      var chip = e.target.closest('.letter-placeholder');
-      if (!chip) return;
-      var sel = window.getSelection();
-      var range = document.createRange();
-      range.selectNodeContents(chip);
-      sel.removeAllRanges();
-      sel.addRange(range);
-    });
-    container.addEventListener('input', function() {
-      updateLetterCount(container, jobId);
-    });
-  }
-
-  function updateLetterCount(container, jobId) {
-    var badge = document.getElementById('ltCount-' + jobId);
-    if (!badge) return;
-    var n = container.querySelectorAll('.letter-placeholder').length;
-    if (n === 0) {
-      badge.textContent = LANG === 'sw' ? '✅ Imekamilika' : '✅ All filled';
-      badge.classList.add('all-filled');
-    } else {
-      badge.textContent = n + (LANG === 'sw' ? ' kubadilisha' : ' left to fill');
-      badge.classList.remove('all-filled');
-    }
-  }
-
-  // ── Lawyer card ───────────────────────────────────────────────────
-  function renderLawyers(container, queryId) {
-    fetch('/lawyers/for-query/' + queryId + '/', {cache:'no-store'})
-      .then(function(r){ return r.json(); })
-      .then(function(d) {
-        var lawyers = d.lawyers || [];
-        if (!lawyers.length) return;
-        var header = document.createElement('div');
-        header.className = 'bot-card-section';
-        header.innerHTML = '<div class="bot-card-label"><span>💼</span><span>' +
-          (LANG === 'sw' ? 'Mawakili Walioidhinishwa' : 'Verified Lawyers') + '</span></div>';
-        container.appendChild(header);
-        lawyers.forEach(function(l) {
-          var waMsg = LANG === 'sw'
-            ? 'Habari ' + l.name + ', ninahitaji msaada wa kisheria. Nilikupata kwenye HakiMkononi.'
-            : 'Hello ' + l.name + ', I need legal help. I found you on HakiMkononi.';
-          var specs = (l.specialties || []).join(', ');
-          var sec = document.createElement('div');
-          sec.className = 'bot-card-section';
-          sec.style.paddingTop = '.6rem';
-          sec.innerHTML =
-            '<div class="d-flex align-items-start gap-2">' +
-            '<div style="width:36px;height:36px;border-radius:50%;background:var(--haki-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem;">👤</div>' +
-            '<div class="flex-grow-1 min-w-0" style="font-size:.82rem;">' +
-            '<div class="fw-semibold">' + l.name + (l.firm ? ' — <span class="text-muted fw-normal">' + l.firm + '</span>' : '') + '</div>' +
-            '<div class="text-muted">📍 ' + l.county + (specs ? '  ·  ' + specs : '') + '</div>' +
-            (l.bio ? '<div class="text-muted mt-1" style="font-size:.75rem;">' + l.bio + '</div>' : '') +
-            '<div class="d-flex gap-2 mt-1 flex-wrap">' +
-            '<a href="https://wa.me/' + l.wa_num + '?text=' + encodeURIComponent(waMsg) + '" target="_blank" rel="noopener" class="btn btn-sm btn-haki" style="font-size:.75rem;padding:.2em .8em;">💬 WhatsApp</a>' +
-            (l.telegram ? '<a href="https://t.me/' + l.telegram + '" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary" style="font-size:.75rem;padding:.2em .8em;border-color:#2AABEE;color:#2AABEE;">✈️ Telegram</a>' : '') +
-            '</div></div></div>';
-          container.appendChild(sec);
-        });
-      }).catch(function(){});
-  }
-
-  // ── Build and insert bot answer card ─────────────────────────────
-  function addAnswerCard(data) {
-    removeThinking();
-    var jobId = data.job_id || currentJobId;
-    var a = data.answer || {};
-
-    // Serious case
-    if (data.is_serious) {
-      var row = document.createElement('div');
-      row.className = 'msg-row bot';
-      row.innerHTML = '<div class="serious-msg">🚨 <strong>' +
-        (LANG === 'sw' ? 'Kesi Nyeti' : 'Serious Case') + '</strong><br>' +
-        (LANG === 'sw'
-          ? 'Kesi hii inahitaji wakili wa kweli.\n\n📞 NLAS (Bure): 0800 720 120\nnlas.go.ke'
-          : 'This case needs a real lawyer urgently.\n\n📞 NLAS (Free): 0800 720 120\nnlas.go.ke'
-        ) + '</div>';
-      messagesEl.appendChild(row);
-      scrollDown(); resetInput(); return;
-    }
-
-    var row = document.createElement('div');
-    row.className = 'msg-row bot';
-    var card = document.createElement('div');
-    card.className = 'bot-card';
-
-    // Helper to add a section
-    function addSection(labelClass, icon, labelText, contentHtml) {
-      if (!contentHtml) return;
-      var sec = document.createElement('div');
-      sec.className = 'bot-card-section';
-      sec.innerHTML =
-        '<div class="bot-card-label ' + labelClass + '">' +
-        '<span>' + icon + '</span><span>' + labelText + '</span></div>' +
-        '<div class="bot-card-text">' + contentHtml + '</div>';
-      // Bold citations in law section
-      if (labelClass === 'label-law') {
-        boldCitations(sec.querySelector('.bot-card-text'));
-      }
-      card.appendChild(sec);
-    }
-
-    // 1. Law
-    addSection('label-law', '📜',
-      LANG === 'sw' ? 'Sheria Inasema' : 'What The Law Says',
-      parseMarkdown(a.sheria_inasema));
-
-    // 2. Simple explanation
-    addSection('label-simple', '💬',
-      LANG === 'sw' ? 'Tafsiri Rahisi' : 'Plain Explanation',
-      parseMarkdown(a.tafsiri_rahisi));
-
-    // 3. Rights
-    addSection('label-rights', '💪',
-      LANG === 'sw' ? 'Haki Yako' : 'Your Rights',
-      parseMarkdown(a.haki_yako));
-
-    // 4. Letter
-    if (a.andika_hivi) {
-      var letSec = document.createElement('div');
-      letSec.className = 'bot-card-section';
-
-      var letterText = a.andika_hivi;
-      var hasPlaceholders = letterText.indexOf('[YOUR NAME]') !== -1 ||
-                            letterText.indexOf('[JINA LAKO]') !== -1;
-      var countId = 'ltCount-' + jobId;
-
-      letSec.innerHTML =
-        '<div class="bot-card-label label-letter">' +
-        '<span>✉️</span><span>' + (LANG === 'sw' ? 'Andika Hivi' : 'Write This') + '</span>' +
-        (hasPlaceholders ? '<span id="' + countId + '" class="ms-auto" id="ltPlaceholderCount"></span>' : '') +
-        '</div>' +
-        (hasPlaceholders
-          ? '<div class="letter-toolbar">' +
-            '<span style="font-size:.72rem;color:#9b2226;flex:1;">' +
-            (LANG === 'sw' ? 'Bonyeza [NAFASI] ukiwa umechagua, kisha andika maelezo yako.'
-                            : 'Tap any [PLACEHOLDER] to select it, then type your details.') +
-            '</span>' +
-            '<button class="lt-primary" onclick="copyLetter(\'ltLetter-' + jobId + '\')">📋</button>' +
-            '</div>'
-          : '') +
-        '<div id="ltLetter-' + jobId + '" class="chat-letter" contenteditable="true" spellcheck="false"></div>';
-
-      card.appendChild(letSec);
-
-      // Render letter with chips after element is in DOM
-      setTimeout(function() {
-        var el = document.getElementById('ltLetter-' + jobId);
-        if (el) {
-          renderLetter(el, letterText, jobId);
-          if (hasPlaceholders) updateLetterCount(el, jobId);
-        }
-      }, 50);
-    }
-
-    // 5. Sources
-    if (data.sources && data.sources.length) {
-      var srcSec = document.createElement('div');
-      srcSec.className = 'bot-card-section';
-      var srcHtml = '<div class="bot-card-label label-sources"><span>📚</span><span>' +
-        (LANG === 'sw' ? 'Vyanzo vya Sheria' : 'Legal Sources') + '</span></div>' +
-        '<ul class="list-unstyled chat-sources mb-0">';
-      data.sources.slice(0,6).forEach(function(s, i) {
-        srcHtml += '<li>' +
-          '<span class="badge" style="background:var(--haki-light);color:var(--haki-dark);flex-shrink:0;">' + (i+1) + '</span>' +
-          '<span style="flex:1;font-size:.78rem;color:#333;"><strong>' + s.title + '</strong>' +
-          (s.section ? ' — <em class="text-muted">' + s.section + '</em>' : '') + '</span>' +
-          (s.url ? '<a href="' + s.url + '" target="_blank" rel="noopener">↗</a>' : '') +
-          '</li>';
-      });
-      srcHtml += '</ul>';
-      srcSec.innerHTML = srcHtml;
-      card.appendChild(srcSec);
-    }
-
-    // Actions row
-    var actRow = document.createElement('div');
-    actRow.className = 'chat-actions';
-    var letterEl = 'ltLetter-' + jobId;
-    actRow.innerHTML =
-      '<button onclick="copyAnswer(\'' + jobId + '\')" title="Copy full answer">📋 ' +
-      (LANG === 'sw' ? 'Nakili' : 'Copy') + '</button>' +
-      '<button onclick="downloadPDF(' + jobId + ', \'answer\')" title="Download PDF">⬇️ PDF</button>' +
-      (a.andika_hivi
-        ? '<button onclick="downloadPDF(' + jobId + ', \'letter\')" title="Download letter PDF">✉️ ' +
-          (LANG === 'sw' ? 'PDF ya Barua' : 'Letter PDF') + '</button>'
-        : '') +
-      '<button onclick="shareAnswer(' + jobId + ')" title="Share">🔗 ' +
-      (LANG === 'sw' ? 'Shiriki' : 'Share') + '</button>';
-    card.appendChild(actRow);
-
-    // Feedback row
-    var fbRow = document.createElement('div');
-    fbRow.className = 'feedback-row';
-    fbRow.id = 'fb-' + jobId;
-    fbRow.innerHTML =
-      '<span>' + (LANG === 'sw' ? 'Je, ilisaidia?' : 'Was this helpful?') + '</span>' +
-      '<button onclick="sendFeedback(' + (data.query_id||0) + ', true, \'fb-' + jobId + '\')">👍</button>' +
-      '<button onclick="sendFeedback(' + (data.query_id||0) + ', false, \'fb-' + jobId + '\')">👎</button>';
-    card.appendChild(fbRow);
-
-    // Lawyers (async)
-    if (data.query_id) renderLawyers(card, data.query_id);
-
-    row.appendChild(card);
-    messagesEl.appendChild(row);
-
-    // Scroll to top of new answer
-    setTimeout(function() {
-      row.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 80);
-
-    resetInput();
-
-    // Save to localStorage
-    try {
-      var saved = {
-        story: currentStory, county: currentCounty, lang: LANG,
-        answer: data.answer, sources: data.sources,
-        query_id: data.query_id, is_serious: data.is_serious,
-        job_id: jobId, saved_at: Date.now()
-      };
-      localStorage.setItem('haki_job_' + jobId, JSON.stringify(saved));
-    } catch(e) {}
-  }
-
-  // ── Poll status ────────────────────────────────────────────────────
-  function poll() {
-    if (!currentJobId) return;
-    if (Date.now() - startTime > MAX_WAIT_MS) {
-      addError('⏱️ ' + (LANG === 'sw'
-        ? 'Inachukua muda mrefu. Tafadhali jaribu tena.'
-        : 'Taking longer than usual. Please try again.'));
-      return;
-    }
-    fetch('/api/status/' + currentJobId + '/', {cache:'no-store'})
-      .then(function(r){ return r.json(); })
-      .then(function(d) {
-        if (d.status === 'done') {
-          clearInterval(pollTimer);
-          d.job_id = currentJobId;
-          addAnswerCard(d);
-          // ── Save this turn to conversation history ──────────────
-          if (d.assistant_summary && currentStory) {
-            addToHistory(currentStory, d.assistant_summary);
-          }
-          // ── Letter flow — ask for name if letter has placeholders
-          var letter = d.answer && d.answer.andika_hivi;
-          if (letter && (letter.indexOf('[YOUR NAME]') !== -1 || letter.indexOf('[JINA LAKO]') !== -1)) {
-            setTimeout(function() { startLetterFlow(letter, currentJobId); }, 600);
-          }
-        } else if (d.status === 'error') {
-          clearInterval(pollTimer);
-          addError('❌ ' + (d.message || (LANG === 'sw'
-            ? 'Kuna tatizo. Jaribu tena.' : 'An error occurred. Please try again.')));
-        }
-        // pending — keep polling
-      })
-      .catch(function(){ /* network blip */ });
-  }
-
-  // ── Send message ───────────────────────────────────────────────────
-  var currentStory  = '';
-  var currentCounty = '';
-
-  function sendMessage() {
-    var story = chatInput.value.trim();
-    if (story.length < 3) return;
-
-    // ── Letter flow intercepts first ─────────────────────────────
-    if (pendingLetter !== null) {
-      addUserMessage(story);
-      chatInput.value = '';
-      chatInput.style.height = 'auto';
-      sendBtn.disabled = true;
-      handleLetterFlowInput(story);
-      sendBtn.disabled = chatInput.value.trim().length < 3;
-      return;
-    }
-
-    var history     = loadHistory();
-    var hasHistory  = history.length > 0;
-    var msgLower    = story.toLowerCase().trim().replace(/[!?.,:]+$/, '');
-    var isCorrection = detectCorrection(story);
-    var isFollowup   = detectFollowup(story, hasHistory);
-
-    // ── Greeting detection ────────────────────────────────────────
-    if (GREETINGS_SET.has(msgLower) || (story.trim().length < 8 && !hasHistory)) {
-      addUserMessage(story);
-      chatInput.value = '';
-      chatInput.style.height = 'auto';
-      sendBtn.disabled = true;
-      var nudge = hasHistory
-        ? (LANG === 'sw' ? '👋 Karibu tena! Una swali lingine la kisheria?' : '👋 Hi again! Do you have another legal question?')
-        : (LANG === 'sw'
-            ? '👋 Habari!<br><br>Niambie tatizo lako la kisheria.<br><br><em>Mfano: Nilifukuzwa kazi bila notisi na mwajiri wangu.</em>'
-            : '👋 Hello!<br><br>Tell me your legal problem and I\'ll help you.<br><br><em>Example: My employer fired me without notice.</em>');
-      addBotMessage(nudge);
-      sendBtn.disabled = chatInput.value.trim().length < 3;
-      return;
-    }
-
-    // ── Thank-you detection ───────────────────────────────────────
-    if (THANKS_SET.has(msgLower)) {
-      addUserMessage(story);
-      chatInput.value = '';
-      chatInput.style.height = 'auto';
-      sendBtn.disabled = true;
-      var responses_sw = [
-        '😊 Karibu sana!<br><br>Nimefurahi kukusaidia. Haki zako ni muhimu na unastahili kuzijua.<br><br>Ukiwa na swali lingine la kisheria, niko hapa.',
-        '😊 Karibu!<br><br>Kazi yangu ni kuhakikisha Wakenya wote wanajua haki zao. Ukihitaji msaada tena, niambie tu.',
-        '🙏 Karibu sana!<br><br>Nimefurahi kukusaidia. Shiriki HakiMkononi na wengine wanaohitaji msaada wa kisheria.',
-      ];
-      var responses_en = [
-        '😊 You\'re welcome!<br><br>I\'m really glad I could help. Your rights matter and you deserve to know them.<br><br>If you have another question, I\'m here.',
-        '😊 Happy to help!<br><br>That\'s exactly what I\'m here for. No one should face a legal problem alone.',
-        '🙏 You\'re welcome!<br><br>I\'m glad the answer was useful. Share HakiMkononi with others who might need legal help too.',
-      ];
-      var pool = LANG === 'sw' ? responses_sw : responses_en;
-      addBotMessage(pool[Math.floor(Math.random() * pool.length)]);
-      sendBtn.disabled = chatInput.value.trim().length < 3;
-      return;
-    }
-
-    // ── Serious case — instant response, still calls AI for full details ─
-    // (The server will also catch it — this gives immediate feedback)
-    var SERIOUS_KW = ['murder','mauaji','rape','ubakaji','defilement','udhalilishaji',
-                      'terrorism','ugaidi','robbery with violence','manslaughter','kuua'];
-    var msgLow = story.toLowerCase();
-    var isSerious = SERIOUS_KW.some(function(kw){ return msgLow.indexOf(kw) !== -1; });
-    if (isSerious) {
-      addUserMessage(story);
-      chatInput.value = '';
-      chatInput.style.height = 'auto';
-      sendBtn.disabled = true;
-      var sMsg = LANG === 'sw'
-        ? '🚨 <strong>Kesi Nyeti — Tafuta Wakili Haraka</strong><br><br>Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br><small>NLAS = National Legal Aid Service, mawakili wa serikali bila malipo</small><br><br>🌐 www.nlas.go.ke'
-        : '🚨 <strong>Serious Case — Get a Lawyer Urgently</strong><br><br>This situation needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br><small>NLAS = National Legal Aid Service, free government lawyers</small><br><br>🌐 www.nlas.go.ke';
-      addBotMessage(sMsg);
-      sendBtn.disabled = chatInput.value.trim().length < 3;
-      return;
-    }
-
-    // ── Acknowledge correction before thinking ───────────────────
-    if (isCorrection && hasHistory) {
-      addUserMessage(story);
-      chatInput.value = '';
-      chatInput.style.height = 'auto';
-      sendBtn.disabled = true;
-      var ack = LANG === 'sw' ? '_Sawa, naelewa. Acha nirekebishe..._' : '_Got it, let me correct that..._';
-      addBotMessage('<em style="color:#666;">' + (LANG === 'sw' ? 'Sawa, naelewa. Acha nirekebishe...' : 'Got it, let me correct that...') + '</em>');
-    } else {
-      addUserMessage(story);
-      chatInput.value = '';
-      chatInput.style.height = 'auto';
-      sendBtn.disabled = true;
-    }
-
-    currentStory  = story;
-    currentCounty = countySelect.value;
-
-    // Add thinking dots
-    addThinking();
-
-    // Submit job with history
-    startTime = Date.now();
-    fetch('/api/submit/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
-      body: JSON.stringify({
-        story:         story,
-        county:        currentCounty,
-        lang:          LANG,
-        history:       history,
-        is_correction: isCorrection,
-        is_followup:   isFollowup,
-      })
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d) {
-      if (!d.job_id) {
-        addError('❌ ' + (d.error || 'Submission failed.'));
-        return;
-      }
-      currentJobId = d.job_id;
-      clearInterval(pollTimer);
-      pollTimer = setInterval(poll, POLL_MS);
-      poll();
-    })
-    .catch(function() {
-      addError('❌ ' + (LANG === 'sw'
-        ? 'Kuna tatizo la muunganisho. Jaribu tena.'
-        : 'Connection error. Please try again.'));
-    });
-  }
-
-  // ── Copy helpers ───────────────────────────────────────────────────
-  window.copyLetter = function(id) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    try {
-      navigator.clipboard.writeText(el.innerText || el.textContent || '');
-    } catch(e) {}
-  };
-
-  window.copyAnswer = function(jobId) {
-    var card = document.querySelector('[data-job="' + jobId + '"]');
-    var texts = [];
-    document.querySelectorAll('.bot-card .bot-card-text, .bot-card .chat-letter').forEach(function(el) {
-      texts.push((el.innerText || el.textContent || '').trim());
-    });
-    try { navigator.clipboard.writeText(texts.join('\n\n')); } catch(e) {}
-  };
-
-  window.downloadPDF = function(jobId, type) {
-    var url = type === 'letter'
-      ? '/api/letter-pdf/' + jobId + '/'
-      : '/api/answer-pdf/' + jobId + '/';
-    fetch(url, {cache:'no-store'})
-      .then(function(r){ return r.blob(); })
-      .then(function(blob) {
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'HakiMkononi-' + type + '-' + new Date().toISOString().slice(0,10) + '.pdf';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 10000);
-      }).catch(function(){});
-  };
-
-  window.shareAnswer = function(jobId) {
-    var url = location.origin + '/?job=' + jobId + '&lang=' + LANG;
-    if (navigator.share) {
-      navigator.share({ title: 'HakiMkononi', url: url }).catch(function(){});
-    } else {
-      try { navigator.clipboard.writeText(url); } catch(e) {}
-    }
-  };
-
-  window.sendFeedback = function(queryId, helpful, rowId) {
-    var row = document.getElementById(rowId);
-    if (!queryId) { if(row) row.innerHTML = '<span>✅ ' + (LANG==='sw'?'Asante!':'Thanks!') + '</span>'; return; }
-    fetch('/api/feedback/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
-      body: JSON.stringify({ query_id: queryId, helpful: helpful })
-    }).finally(function() {
-      if (row) row.innerHTML = '<span>✅ ' + (LANG==='sw'?'Asante kwa maoni!':'Thank you!') + '</span>';
-    });
-  };
-
-  // ── Voice input ────────────────────────────────────────────────────
-  var mediaRecorder = null, audioChunks = [], isRecording = false;
-
-  if (!navigator.mediaDevices || !window.MediaRecorder) {
-    micBtn.disabled = true;
-    micBtn.style.opacity = '.4';
-  }
-
-  micBtn.addEventListener('click', async function() {
-    if (isRecording) { mediaRecorder.stop(); return; }
-    try {
-      var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioChunks = [];
-      var mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' :
-                 MediaRecorder.isTypeSupported('audio/ogg')  ? 'audio/ogg'  : 'audio/mp4';
-      mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
-      mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) audioChunks.push(e.data); };
-      mediaRecorder.onstop = async function() {
-        isRecording = false;
-        micBtn.classList.remove('recording');
-        micIcon.textContent = '🎤';
-        micStatus.textContent = LANG === 'sw' ? '⏳ Inatafsiri…' : '⏳ Transcribing…';
-        stream.getTracks().forEach(function(t){ t.stop(); });
-        var blob = new Blob(audioChunks, { type: mime });
-        var fd = new FormData();
-        fd.append('audio', blob, 'rec.' + mime.split('/')[1]);
-        fd.append('lang', LANG);
-        fd.append('csrfmiddlewaretoken', CSRF);
-        try {
-          var r = await fetch('/api/transcribe/', { method: 'POST', body: fd });
-          var d = await r.json();
-          if (d.transcript) {
-            chatInput.value = d.transcript;
-            chatInput.dispatchEvent(new Event('input'));
-            micStatus.textContent = LANG === 'sw' ? '✅ Imetafsiriwa!' : '✅ Done!';
-            setTimeout(function(){ micStatus.textContent = ''; }, 3000);
-          } else {
-            micStatus.textContent = LANG === 'sw' ? '❌ Hitilafu' : '❌ Error';
-          }
-        } catch(e) { micStatus.textContent = '❌'; }
-      };
-      mediaRecorder.start();
-      isRecording = true;
-      micBtn.classList.add('recording');
-      micIcon.textContent = '⏹️';
-      micStatus.textContent = LANG === 'sw' ? '🔴 Inarekodia…' : '🔴 Recording…';
-    } catch(e) {
-      micStatus.textContent = e.name === 'NotAllowedError'
-        ? (LANG === 'sw' ? '❌ Ruhusu mic' : '❌ Allow mic access')
-        : '❌ ' + (e.message || 'Mic error');
-    }
-  });
-
-  // ── Restore from URL ?job=ID ───────────────────────────────────────
-  (function restore() {
-    var params = new URLSearchParams(location.search);
-    var savedId = params.get('job');
-    if (!savedId) return;
-    try {
-      var raw = localStorage.getItem('haki_job_' + savedId);
-      if (raw) {
-        var s = JSON.parse(raw);
-        if (Date.now() - (s.saved_at||0) < 86400000) {
-          if (s.story) addUserMessage(s.story);
-          currentJobId = savedId;
-          currentStory = s.story || '';
-          s.job_id = savedId;
-          addAnswerCard(s);
-          return;
-        }
-      }
-    } catch(e) {}
-    // Fetch from server if not in localStorage
-    currentJobId = savedId;
-    addThinking();
-    startTime = Date.now();
-    var t = setInterval(function() {
-      fetch('/api/status/' + savedId + '/', {cache:'no-store'})
-        .then(function(r){ return r.json(); })
-        .then(function(d) {
-          if (d.status === 'done') {
-            clearInterval(t);
-            d.job_id = savedId;
-            addAnswerCard(d);
-          } else if (d.status === 'error') {
-            clearInterval(t);
-            addError(d.message || 'Error loading answer.');
-          }
-        }).catch(function(){ clearInterval(t); addError('Connection error.'); });
-    }, 2000);
+    try{var raw=localStorage.getItem('haki_job_'+savedId);if(raw){var s=JSON.parse(raw);if(Date.now()-(s.saved_at||0)<86400000){if(s.story)addUserMessage(s.story);currentJobId=savedId;currentStory=s.story||'';s.job_id=savedId;addAnswerCard(s);return;}}}catch(e){}
+    currentJobId=savedId;addThinking();startTime=Date.now();
+    var t=setInterval(function(){fetch('/api/status/'+savedId+'/',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){if(d.status==='done'){clearInterval(t);d.job_id=savedId;addAnswerCard(d);}else if(d.status==='error'){clearInterval(t);addError(d.message||'Error loading answer.');}}).catch(function(){clearInterval(t);addError('Connection error.');});},2000);
   })();
 
 })();
