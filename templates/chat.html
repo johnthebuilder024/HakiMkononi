@@ -1036,13 +1036,20 @@
         clearInterval(pollTimer); d.job_id=currentJobId; addAnswerCard(d);
         if(d.assistant_summary&&currentStory)addToHistory(currentStory,d.assistant_summary);
         // On the website the letter is editable inline — no need for the name/phone flow.
-        // Just show a short tip pointing to the clickable placeholders.
+        // Just show a short tip pointing to the clickable placeholders, then a follow-up nudge.
         var letter=d.answer&&d.answer.andika_hivi;
         if(letter&&(letter.indexOf('[YOUR NAME]')!==-1||letter.indexOf('[JINA LAKO]')!==-1)){
           setTimeout(function(){
             addBotBubble(LANG==='sw'
-              ?'✏️ Bonyeza <strong>[NAFASI YOYOTE]</strong> kwenye barua ili kuihariri moja kwa moja.'
-              :'✏️ Tap any <strong>[PLACEHOLDER]</strong> in the letter above to fill it in directly.');
+              ?'✏️ Bonyeza <strong>[NAFASI YOYOTE]</strong> kwenye barua ili kuihariri moja kwa moja.<br><br>❓ Una swali lingine? Andika hapa chini.'
+              :'✏️ Tap any <strong>[PLACEHOLDER]</strong> in the letter above to fill it in directly.<br><br>❓ Have another question? Type it below.');
+          },400);
+        } else {
+          // No letter or no placeholders — just show follow-up nudge
+          setTimeout(function(){
+            addBotBubble(LANG==='sw'
+              ?'❓ Una swali lingine? Andika hapa chini.'
+              :'❓ Have another question? Type it below.');
           },400);
         }
       }else if(d.status==='error'){
