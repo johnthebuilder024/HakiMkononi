@@ -5,7 +5,8 @@
 
 {% block navbar_extra %}
 <button id="newChatBtn" onclick="newChat()"
-        title="{% if lang == 'en' %}Start a new conversation{% else %}Anza mazungumzo mapya{% endif %}">
+        title="{% if lang == 'en' %}Start a new conversation{% else %}Anza mazungumzo mapya{% endif %}"
+        style="display:none;">
   ✏️ {% if lang == 'en' %}New Chat{% else %}Mpya{% endif %}
 </button>
 {% endblock %}
@@ -16,13 +17,126 @@
 /* ── Reset nav for chat mode ──────────────────────────────────────── */
 .navbar { padding-top: .4rem !important; padding-bottom: .4rem !important; }
 
-/* ── Chat layout ──────────────────────────────────────────────────── */
-.chat-page {
+/* ══════════════════════════════════════════════════════════════════
+   OUTER WRAPPER — sidebar + chat side by side
+════════════════════════════════════════════════════════════════════ */
+.chat-outer {
   display: flex;
-  flex-direction: column;
   height: calc(100vh - 54px);
   overflow: hidden;
   background: #f0f2f5;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   LEFT SIDEBAR
+════════════════════════════════════════════════════════════════════ */
+.chat-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: #1a1a2a;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width .25s ease, transform .25s ease;
+}
+
+/* Sidebar header */
+.sidebar-header {
+  padding: .8rem 1rem .6rem;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.sidebar-new-btn {
+  display: flex; align-items: center; gap: .5rem;
+  width: 100%; padding: .55rem .8rem;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
+  color: #fff; font-size: .85rem; font-weight: 600;
+  cursor: pointer; text-align: left;
+  transition: background .15s;
+}
+.sidebar-new-btn:hover { background: rgba(255,255,255,.13); }
+.sidebar-new-btn svg { width: 15px; height: 15px; flex-shrink: 0; opacity: .8; }
+
+/* Conversation list */
+.sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: .5rem 0;
+}
+.sidebar-list::-webkit-scrollbar { width: 3px; }
+.sidebar-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 3px; }
+
+/* Group label (Today / Yesterday / Older) */
+.sidebar-group-label {
+  padding: .55rem 1rem .2rem;
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: rgba(255,255,255,.35);
+}
+
+/* Single conversation item */
+.sidebar-item {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .5rem 1rem;
+  cursor: pointer;
+  border-radius: 6px;
+  margin: 0 .4rem;
+  transition: background .15s;
+  position: relative;
+}
+.sidebar-item:hover { background: rgba(255,255,255,.08); }
+.sidebar-item.active { background: rgba(255,255,255,.13); }
+.sidebar-item-icon {
+  font-size: .85rem; flex-shrink: 0; opacity: .6;
+}
+.sidebar-item-text {
+  flex: 1; min-width: 0;
+  font-size: .82rem; color: rgba(255,255,255,.8);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sidebar-item.active .sidebar-item-text { color: #fff; }
+.sidebar-item-del {
+  opacity: 0; flex-shrink: 0;
+  background: none; border: none; color: rgba(255,255,255,.5);
+  cursor: pointer; font-size: .8rem; padding: .1em .3em;
+  border-radius: 4px; transition: opacity .15s, color .15s;
+}
+.sidebar-item:hover .sidebar-item-del { opacity: 1; }
+.sidebar-item-del:hover { color: #f87171; }
+
+/* Sidebar footer */
+.sidebar-footer {
+  padding: .7rem 1rem;
+  border-top: 1px solid rgba(255,255,255,.08);
+  font-size: .72rem;
+  color: rgba(255,255,255,.3);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Mobile overlay toggle */
+.sidebar-toggle {
+  display: none;
+  background: none; border: none;
+  color: rgba(255,255,255,.85);
+  font-size: 1.2rem; cursor: pointer;
+  padding: .2rem .4rem;
+  margin-right: .25rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   RIGHT — CHAT PANEL
+════════════════════════════════════════════════════════════════════ */
+.chat-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
 }
 
 /* ── Chat window ─────────────────────────────────────────────────── */
@@ -37,144 +151,82 @@
 
 /* ── Welcome screen ───────────────────────────────────────────────── */
 #welcomeScreen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 55vh;
-  padding: 2rem 1rem 1rem;
-  text-align: center;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 55vh; padding: 2rem 1rem 1rem; text-align: center;
 }
 .welcome-avatar {
-  width: 72px; height: 72px;
-  border-radius: 50%;
+  width: 72px; height: 72px; border-radius: 50%;
   background: var(--haki-green);
   display: flex; align-items: center; justify-content: center;
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 4px 20px rgba(26,122,60,.3);
-  overflow: hidden;
+  font-size: 2rem; margin-bottom: 1rem;
+  box-shadow: 0 4px 20px rgba(26,122,60,.3); overflow: hidden;
 }
 .welcome-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-#welcomeScreen h2 {
-  font-size: 1.4rem; font-weight: 800;
-  color: var(--haki-dark); margin-bottom: .3rem;
-}
+#welcomeScreen h2 { font-size: 1.4rem; font-weight: 800; color: var(--haki-dark); margin-bottom: .3rem; }
 #welcomeScreen h2 span { color: var(--haki-gold); }
 #welcomeScreen p { color: #666; font-size: .9rem; max-width: 400px; margin: 0 auto 1.25rem; }
-.example-chips {
-  display: flex; flex-wrap: wrap;
-  gap: .45rem; justify-content: center;
-  max-width: 520px;
-}
+.example-chips { display: flex; flex-wrap: wrap; gap: .45rem; justify-content: center; max-width: 520px; }
 .example-chips .chip {
-  background: #fff;
-  border: 1.5px solid #dde8dc;
-  border-radius: 20px;
-  padding: .35em .9em;
-  font-size: .82rem;
-  color: var(--haki-dark);
-  cursor: pointer;
-  transition: all .15s;
-  white-space: nowrap;
+  background: #fff; border: 1.5px solid #dde8dc; border-radius: 20px;
+  padding: .35em .9em; font-size: .82rem; color: var(--haki-dark);
+  cursor: pointer; transition: all .15s; white-space: nowrap;
 }
-.example-chips .chip:hover {
-  background: var(--haki-green); color: #fff; border-color: var(--haki-green);
-}
+.example-chips .chip:hover { background: var(--haki-green); color: #fff; border-color: var(--haki-green); }
 
 /* ── Message rows ────────────────────────────────────────────────── */
 .msg-row {
-  display: flex;
-  margin-bottom: .75rem;
-  padding: 0 1rem;
-  animation: fadeUp .22s ease;
-  align-items: flex-end;
-  gap: .5rem;
+  display: flex; margin-bottom: .75rem; padding: 0 1rem;
+  animation: fadeUp .22s ease; align-items: flex-end; gap: .5rem;
 }
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(8px); }
-  to   { opacity:1; transform:translateY(0); }
-}
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 .msg-row.user { justify-content: flex-end; }
 .msg-row.bot  { justify-content: flex-start; }
 
-/* ── Bot avatar chip (shown next to bot messages) ────────────────── */
 .bot-avatar {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  background: var(--haki-green);
-  flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--haki-green); flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: .85rem;
-  align-self: flex-end;
-  overflow: hidden;
+  font-size: .85rem; align-self: flex-end; overflow: hidden;
   box-shadow: 0 1px 4px rgba(26,122,60,.25);
 }
 .bot-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
-/* ── User bubble ─────────────────────────────────────────────────── */
 .user-bubble {
-  background: var(--haki-green);
-  color: #fff;
+  background: var(--haki-green); color: #fff;
   border-radius: 18px 18px 4px 18px;
-  padding: .65rem 1rem;
-  max-width: 70%;
-  font-size: .93rem;
-  line-height: 1.5;
-  word-break: break-word;
+  padding: .65rem 1rem; max-width: 70%;
+  font-size: .93rem; line-height: 1.5; word-break: break-word;
   box-shadow: 0 2px 6px rgba(26,122,60,.2);
 }
 
-/* ── Thinking bubble ─────────────────────────────────────────────── */
 .thinking-bubble {
-  background: #fff;
-  border-radius: 18px 18px 18px 4px;
-  padding: .7rem 1.1rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,.07);
+  background: #fff; border-radius: 18px 18px 18px 4px;
+  padding: .7rem 1.1rem; box-shadow: 0 2px 6px rgba(0,0,0,.07);
   display: flex; align-items: center; gap: 5px;
 }
 .thinking-bubble span {
   width: 7px; height: 7px; border-radius: 50%;
-  background: var(--haki-green);
-  display: inline-block;
+  background: var(--haki-green); display: inline-block;
   animation: bounce 1.2s ease-in-out infinite;
 }
-.thinking-bubble span:nth-child(2) { animation-delay: .2s; }
-.thinking-bubble span:nth-child(3) { animation-delay: .4s; }
-@keyframes bounce {
-  0%,80%,100% { transform: scale(.65); opacity:.5; }
-  40%          { transform: scale(1);   opacity:1; }
-}
+.thinking-bubble span:nth-child(2){animation-delay:.2s}
+.thinking-bubble span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:scale(.65);opacity:.5}40%{transform:scale(1);opacity:1}}
 
-/* ── Bot answer card — conversational, NOT tabbed ────────────────── */
+/* ── Bot answer card ─────────────────────────────────────────────── */
 .bot-card {
-  background: #fff;
-  border-radius: 4px 18px 18px 18px;
+  background: #fff; border-radius: 4px 18px 18px 18px;
   box-shadow: 0 2px 10px rgba(0,0,0,.07);
-  max-width: min(680px, 88vw);
-  overflow: hidden;
+  max-width: min(680px, 88vw); overflow: hidden;
 }
-
-/* Each section flows naturally — no hard tab dividers */
-.bot-card-section {
-  padding: .9rem 1.1rem .6rem;
-}
-.bot-card-section + .bot-card-section {
-  border-top: 1px solid #f3f3f3;
-}
-
-/* Section label — small pill, not a tab header */
+.bot-card-section { padding: .9rem 1.1rem .6rem; }
+.bot-card-section + .bot-card-section { border-top: 1px solid #f3f3f3; }
 .bot-card-label {
-  display: inline-flex;
-  align-items: center;
-  gap: .3rem;
-  font-size: .7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  margin-bottom: .5rem;
-  padding: .15em .6em;
-  border-radius: 20px;
+  display: inline-flex; align-items: center; gap: .3rem;
+  font-size: .7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; margin-bottom: .5rem;
+  padding: .15em .6em; border-radius: 20px;
 }
 .label-law    { background: #eaf5ee; color: var(--haki-green); }
 .label-simple { background: #e8f4fb; color: #0077b6; }
@@ -182,109 +234,73 @@
 .label-letter { background: #fdf0f0; color: #9b2226; }
 .label-sources{ background: #f5f5f5; color: #555; }
 
-/* ── Answer prose ─────────────────────────────────────────────────── */
-.bot-card-text {
-  font-size: .88rem;
-  line-height: 1.75;
-  color: #1a1a1a;
-}
+.bot-card-text { font-size: .88rem; line-height: 1.75; color: #1a1a1a; }
 .bot-card-text p { margin-bottom: .4rem; }
 .bot-card-text p:last-child { margin-bottom: 0; }
-.bot-card-text ul, .bot-card-text ol { padding-left: 1.3rem; margin-bottom: .4rem; }
+.bot-card-text ul,.bot-card-text ol { padding-left: 1.3rem; margin-bottom: .4rem; }
 .bot-card-text li { margin-bottom: .2rem; }
 .bot-card-text strong { font-weight: 700; color: var(--haki-dark); }
-.bot-card-text .law-citation {
-  display: block; font-weight: 700;
-  color: var(--haki-dark); margin-bottom: .2rem;
-}
+.bot-card-text .law-citation { display: block; font-weight: 700; color: var(--haki-dark); margin-bottom: .2rem; }
 .bot-card-text .law-explanation { display: block; margin-bottom: .5rem; }
 
-/* ── Letter ──────────────────────────────────────────────────────── */
 .chat-letter {
-  font-family: 'Courier New', monospace;
-  font-size: .79rem; line-height: 1.8;
-  white-space: pre-wrap;
-  background: #fdfaf7;
-  border: 1.5px solid #e8ddd0;
-  border-radius: 6px;
-  padding: .7rem .9rem;
-  outline: none; min-height: 60px;
+  font-family: 'Courier New', monospace; font-size: .79rem; line-height: 1.8;
+  white-space: pre-wrap; background: #fdfaf7; border: 1.5px solid #e8ddd0;
+  border-radius: 6px; padding: .7rem .9rem; outline: none; min-height: 60px;
   transition: border-color .2s;
 }
 .chat-letter:focus { border-color: #9b2226; }
 .letter-placeholder {
-  display: inline; color: #7a4200;
-  background: #fff3e0; padding: .04em .3em;
-  border-radius: 3px; font-size: .77rem; font-weight: 600;
-  cursor: pointer; border: 1px dashed #f0a040;
+  display: inline; color: #7a4200; background: #fff3e0;
+  padding: .04em .3em; border-radius: 3px; font-size: .77rem;
+  font-weight: 600; cursor: pointer; border: 1px dashed #f0a040;
 }
 .letter-placeholder:hover { background: #ffe0b2; }
 .lt-count-badge {
-  font-size: .7rem; font-weight: 700;
-  padding: .1em .5em; border-radius: 20px;
-  background: #fff3e0; color: #7a4200;
+  font-size: .7rem; font-weight: 700; padding: .1em .5em;
+  border-radius: 20px; background: #fff3e0; color: #7a4200;
   border: 1px solid #f0a040; margin-left: .4rem;
 }
 .lt-count-badge.all-filled { background:#e8f5e9; color:#1a7a3c; border-color:#a5d6a7; }
 
-/* ── Sources ─────────────────────────────────────────────────────── */
 .chat-sources { font-size: .77rem; }
-.chat-sources li {
-  display: flex; align-items: flex-start; gap: .4rem;
-  padding: .28rem 0; border-bottom: 1px solid #f5f5f5;
-}
+.chat-sources li { display: flex; align-items: flex-start; gap: .4rem; padding: .28rem 0; border-bottom: 1px solid #f5f5f5; }
 .chat-sources li:last-child { border-bottom: none; }
 .chat-sources a { color: var(--haki-green); font-weight: 600; }
 
-/* ── Serious case ────────────────────────────────────────────────── */
 .serious-msg {
-  background: #fff8e1;
-  border-left: 4px solid #ffc107;
-  border-radius: 4px 12px 12px 4px;
-  padding: .85rem 1.1rem;
-  max-width: min(560px, 88vw);
-  font-size: .9rem; line-height: 1.6;
+  background: #fff8e1; border-left: 4px solid #ffc107;
+  border-radius: 4px 12px 12px 4px; padding: .85rem 1.1rem;
+  max-width: min(560px, 88vw); font-size: .9rem; line-height: 1.6;
 }
 
-/* ── Generic bot bubble (greetings, thanks, etc.) ────────────────── */
 .bot-bubble {
-  background: #fff;
-  border-radius: 4px 18px 18px 18px;
-  padding: .7rem 1.1rem;
-  max-width: min(520px, 88vw);
+  background: #fff; border-radius: 4px 18px 18px 18px;
+  padding: .7rem 1.1rem; max-width: min(520px, 88vw);
   font-size: .9rem; line-height: 1.65;
-  box-shadow: 0 2px 6px rgba(0,0,0,.07);
-  color: #1a1a1a;
+  box-shadow: 0 2px 6px rgba(0,0,0,.07); color: #1a1a1a;
 }
 
-/* ── Error bubble ────────────────────────────────────────────────── */
 .error-msg {
   background: #fff0f0; border: 1px solid #f5c6cb;
-  border-radius: 4px 18px 18px 18px;
-  padding: .7rem 1.1rem; max-width: min(420px, 85vw);
-  font-size: .88rem; color: #721c24;
+  border-radius: 4px 18px 18px 18px; padding: .7rem 1.1rem;
+  max-width: min(420px, 85vw); font-size: .88rem; color: #721c24;
 }
 
-/* ── Actions row ─────────────────────────────────────────────────── */
 .chat-actions {
   display: flex; flex-wrap: wrap; gap: .35rem;
   padding: .55rem 1.1rem .7rem;
-  border-top: 1px solid #f3f3f3;
-  background: #fafafa;
+  border-top: 1px solid #f3f3f3; background: #fafafa;
 }
-.chat-actions button, .chat-actions a {
-  font-size: .73rem; padding: .22em .7em;
-  border-radius: 20px; border: 1px solid #ddd;
-  background: #fff; color: #444; cursor: pointer;
-  text-decoration: none; transition: all .15s; white-space: nowrap;
+.chat-actions button,.chat-actions a {
+  font-size: .73rem; padding: .22em .7em; border-radius: 20px;
+  border: 1px solid #ddd; background: #fff; color: #444;
+  cursor: pointer; text-decoration: none; transition: all .15s; white-space: nowrap;
 }
 .chat-actions button:hover { background: #f0f0f0; }
-.chat-actions .act-primary {
-  background: var(--haki-green); color: #fff; border-color: var(--haki-green);
-}
+.chat-actions .act-primary { background: var(--haki-green); color: #fff; border-color: var(--haki-green); }
 .chat-actions .act-primary:hover { background: var(--haki-dark); }
 
-/* ── Letter toolbar ──────────────────────────────────────────────── */
 .letter-toolbar {
   display: flex; gap: .35rem; align-items: center;
   padding: .35rem .5rem; background: #fdf4f4;
@@ -295,87 +311,61 @@
   padding: .15em .5em; font-size: .72rem; border-radius: 4px;
   border: 1px solid #c8a8a8; background: #fff; color: #5a2222; cursor: pointer;
 }
-.letter-toolbar button.lt-primary {
-  background: #9b2226; color: #fff; border-color: #9b2226;
-}
+.letter-toolbar button.lt-primary { background: #9b2226; color: #fff; border-color: #9b2226; }
 
-/* ── Feedback row ────────────────────────────────────────────────── */
 .feedback-row {
   display: flex; align-items: center; gap: .4rem;
-  padding: .45rem 1.1rem;
-  background: #fafafa; border-top: 1px solid #f0f0f0;
-  font-size: .77rem; color: #888;
+  padding: .45rem 1.1rem; background: #fafafa;
+  border-top: 1px solid #f0f0f0; font-size: .77rem; color: #888;
 }
 .feedback-row button {
-  padding: .18em .65em; border-radius: 20px;
-  border: 1px solid #ddd; background: #fff;
-  cursor: pointer; font-size: .77rem; transition: background .15s;
+  padding: .18em .65em; border-radius: 20px; border: 1px solid #ddd;
+  background: #fff; cursor: pointer; font-size: .77rem; transition: background .15s;
 }
 .feedback-row button:hover { background: #f0f0f0; }
 
-/* ── New Chat button — lives in navbar, injected by chat page ─────── */
+/* ── New Chat button in navbar ───────────────────────────────────── */
 #newChatBtn {
-  background: transparent;
-  border: 1.5px solid rgba(255,255,255,.5);
-  border-radius: 20px;
-  padding: .25em .8em;
-  font-size: .78rem;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  transition: all .15s;
-  display: none; /* hidden until first message */
-  white-space: nowrap;
+  background: transparent; border: 1.5px solid rgba(255,255,255,.5);
+  border-radius: 20px; padding: .25em .8em; font-size: .78rem;
+  font-weight: 600; color: #fff; cursor: pointer;
+  transition: all .15s; white-space: nowrap;
 }
 #newChatBtn:hover { background: rgba(255,255,255,.15); }
 
 /* ── Input bar ───────────────────────────────────────────────────── */
 .chat-input-bar {
-  background: #fff;
-  border-top: 1px solid #e0e0e0;
+  background: #fff; border-top: 1px solid #e0e0e0;
   padding: .5rem 1rem .65rem;
   box-shadow: 0 -2px 10px rgba(0,0,0,.05);
 }
 .chat-input-inner { max-width: 740px; margin: 0 auto; }
 
-/* ── County + meta row sits ABOVE the textarea ───────────────────── */
 .chat-meta {
   display: flex; align-items: center; gap: .5rem;
   flex-wrap: wrap; padding: 0 0 .4rem;
-  border-bottom: 1px solid #f0f0f0;
-  margin-bottom: .4rem;
+  border-bottom: 1px solid #f0f0f0; margin-bottom: .4rem;
 }
 .chat-meta select {
-  font-size: .8rem; padding: .28em .65em;
-  border-radius: 20px; border: 1px solid #ddd;
-  background: #fff; color: #444; outline: none;
-  cursor: pointer;
+  font-size: .8rem; padding: .28em .65em; border-radius: 20px;
+  border: 1px solid #ddd; background: #fff; color: #444;
+  outline: none; cursor: pointer;
 }
 .chat-meta select:hover { border-color: var(--haki-green); }
 .chat-meta .mic-status { font-size: .76rem; color: #888; flex: 1; }
-.chat-meta .county-label {
-  font-size: .75rem; color: #999; font-weight: 500;
-}
-.chat-disclaimer {
-  font-size: .68rem; color: #bbb;
-  margin-left: auto;
-}
+.chat-meta .county-label { font-size: .75rem; color: #999; font-weight: 500; }
+.chat-disclaimer { font-size: .68rem; color: #bbb; margin-left: auto; }
 
-/* ── Textarea wrap ───────────────────────────────────────────────── */
 .chat-textarea-wrap {
   display: flex; align-items: flex-end; gap: .5rem;
-  background: #f3f3f3;
-  border-radius: 24px; border: 2px solid transparent;
+  background: #f3f3f3; border-radius: 24px; border: 2px solid transparent;
   padding: .45rem .45rem .45rem .85rem;
   transition: border-color .2s, background .2s;
 }
-.chat-textarea-wrap:focus-within {
-  background: #fff; border-color: var(--haki-green);
-}
+.chat-textarea-wrap:focus-within { background: #fff; border-color: var(--haki-green); }
 #chatInput {
-  flex: 1; border: none; background: transparent;
-  resize: none; outline: none; font-size: .93rem;
-  line-height: 1.5; max-height: 130px; overflow-y: auto;
+  flex: 1; border: none; background: transparent; resize: none; outline: none;
+  font-size: .93rem; line-height: 1.5; max-height: 130px; overflow-y: auto;
   font-family: inherit;
 }
 .chat-send-btn {
@@ -389,7 +379,6 @@
 .chat-send-btn:disabled { background: #ccc; cursor: not-allowed; }
 .chat-send-btn svg { width: 18px; height: 18px; }
 
-/* ── Mic button ──────────────────────────────────────────────────── */
 .chat-mic-btn {
   width: 36px; height: 36px; border-radius: 50%;
   border: 1.5px solid #ddd; background: #fff; color: #666;
@@ -401,12 +390,24 @@
   background: #dc3545; border-color: #dc3545; color: #fff;
   animation: micPulse 1.2s ease-in-out infinite;
 }
-@keyframes micPulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(220,53,69,.4); }
-  50%      { box-shadow: 0 0 0 7px rgba(220,53,69,0); }
-}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(220,53,69,.4)}50%{box-shadow:0 0 0 7px rgba(220,53,69,0)}}
 
-/* ── Responsive ──────────────────────────────────────────────────── */
+/* ── Mobile sidebar overlay ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar-toggle { display: block; }
+  .chat-sidebar {
+    position: fixed; left: 0; top: 54px; bottom: 0;
+    width: 280px; z-index: 500;
+    transform: translateX(-100%);
+  }
+  .chat-sidebar.open { transform: translateX(0); }
+  .sidebar-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.45); z-index: 499;
+  }
+  .sidebar-backdrop.show { display: block; }
+  .chat-outer { position: relative; }
+}
 @media (max-width: 600px) {
   .msg-row { padding: 0 .5rem; }
   .user-bubble { max-width: 82%; }
@@ -417,73 +418,103 @@
 {% endblock %}
 
 {% block content %}
-<div class="chat-page">
-  <!-- Scrollable messages area -->
-  <div id="chatWindow">
-    <div class="container" style="max-width:760px;">
+<!-- Mobile sidebar backdrop -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 
-      <!-- Welcome screen -->
-      <div id="welcomeScreen">
-        <div class="welcome-avatar">
-          <img src="{% static 'img/logo.png' %}" alt="HakiMkononi"
-               onerror="this.parentElement.textContent='⚖️'">
-        </div>
-        <h2>Haki<span>Mkononi</span></h2>
-        <p>{{ ui.hero_sub }}</p>
-        <div class="example-chips">
-          {% for chip in ui.chips %}
-          <span class="chip" onclick="fillChat(this)">{{ chip }}</span>
-          {% endfor %}
-        </div>
-        <p class="mt-2 small text-muted" style="font-size:.75rem;">{{ ui.hero_note }}</p>
-      </div>
+<div class="chat-outer">
 
-      <!-- Messages injected here -->
-      <div id="messagesContainer"></div>
-
+  <!-- ══ LEFT SIDEBAR ══════════════════════════════════════════════ -->
+  <aside class="chat-sidebar" id="chatSidebar" aria-label="{% if lang == 'en' %}Conversation history{% else %}Historia ya mazungumzo{% endif %}">
+    <div class="sidebar-header">
+      <button class="sidebar-new-btn" onclick="newChat()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        {% if lang == 'en' %}New Chat{% else %}Mazungumzo Mapya{% endif %}
+      </button>
     </div>
-  </div>
-
-  <!-- Fixed input bar -->
-  <div class="chat-input-bar">
-    <div class="chat-input-inner">
-
-      <!-- County + status row ABOVE the textarea -->
-      <div class="chat-meta">
-        <span class="county-label">{% if lang == 'en' %}County:{% else %}Kaunti:{% endif %}</span>
-        <select id="countySelect" aria-label="{{ ui.field_county }}">
-          <option value="">{% if lang == 'en' %}All Kenya{% else %}Kenya Yote{% endif %}</option>
-          {% for c in counties %}
-          <option value="{{ c }}">{{ c }}</option>
-          {% endfor %}
-        </select>
-        <span class="mic-status" id="micStatus"></span>
-        <span class="chat-disclaimer">{{ ui.disclaimer }}</span>
-      </div>
-
-      <!-- Textarea + mic + send -->
-      <div class="chat-textarea-wrap">
-        <textarea id="chatInput" rows="1"
-                  placeholder="{{ ui.story_placeholder }}"
-                  aria-label="{{ ui.field_story }}"></textarea>
-        <button class="chat-mic-btn" id="micBtn" type="button"
-                title="{% if lang == 'en' %}Tap to speak{% else %}Bonyeza kusema{% endif %}">
-          <span id="micIcon">🎤</span>
-        </button>
-        <button class="chat-send-btn" id="sendBtn" type="button"
-                title="{% if lang == 'en' %}Send{% else %}Tuma{% endif %}"
-                disabled>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"></line>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-          </svg>
-        </button>
-      </div>
-
+    <div class="sidebar-list" id="sidebarList">
+      <!-- Populated by JS -->
     </div>
-  </div>
-</div>
+    <div class="sidebar-footer">
+      {% if lang == 'en' %}Saved in this browser only{% else %}Imehifadhiwa kwenye kivinjari hiki tu{% endif %}
+    </div>
+  </aside>
+
+  <!-- ══ RIGHT CHAT PANEL ══════════════════════════════════════════ -->
+  <div class="chat-page">
+
+    <!-- Scrollable messages area -->
+    <div id="chatWindow">
+      <div class="container" style="max-width:760px;">
+
+        <!-- Welcome screen -->
+        <div id="welcomeScreen">
+          <!-- Mobile sidebar toggle inside welcome -->
+          <div style="display:none;" id="mobileSidebarHint">
+            <button class="sidebar-toggle" onclick="openSidebar()" style="display:block;margin:0 auto .5rem;color:var(--haki-green);background:none;border:1px solid var(--haki-green);border-radius:8px;padding:.3em .8em;font-size:.8rem;">
+              ☰ {% if lang == 'en' %}Past chats{% else %}Mazungumzo ya awali{% endif %}
+            </button>
+          </div>
+          <div class="welcome-avatar">
+            <img src="{% static 'img/logo.png' %}" alt="HakiMkononi"
+                 onerror="this.parentElement.textContent='⚖️'">
+          </div>
+          <h2>Haki<span>Mkononi</span></h2>
+          <p>{{ ui.hero_sub }}</p>
+          <div class="example-chips">
+            {% for chip in ui.chips %}
+            <span class="chip" onclick="fillChat(this)">{{ chip }}</span>
+            {% endfor %}
+          </div>
+          <p class="mt-2 small text-muted" style="font-size:.75rem;">{{ ui.hero_note }}</p>
+        </div>
+
+        <!-- Messages injected here -->
+        <div id="messagesContainer"></div>
+
+      </div>
+    </div>
+
+    <!-- Fixed input bar -->
+    <div class="chat-input-bar">
+      <div class="chat-input-inner">
+        <div class="chat-meta">
+          <span class="county-label">{% if lang == 'en' %}County:{% else %}Kaunti:{% endif %}</span>
+          <select id="countySelect" aria-label="{{ ui.field_county }}">
+            <option value="">{% if lang == 'en' %}All Kenya{% else %}Kenya Yote{% endif %}</option>
+            {% for c in counties %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+          </select>
+          <span class="mic-status" id="micStatus"></span>
+          <span class="chat-disclaimer">{{ ui.disclaimer }}</span>
+        </div>
+        <div class="chat-textarea-wrap">
+          <textarea id="chatInput" rows="1"
+                    placeholder="{{ ui.story_placeholder }}"
+                    aria-label="{{ ui.field_story }}"></textarea>
+          <button class="chat-mic-btn" id="micBtn" type="button"
+                  title="{% if lang == 'en' %}Tap to speak{% else %}Bonyeza kusema{% endif %}">
+            <span id="micIcon">🎤</span>
+          </button>
+          <button class="chat-send-btn" id="sendBtn" type="button"
+                  title="{% if lang == 'en' %}Send{% else %}Tuma {% endif %}"
+                  disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .chat-page -->
+</div><!-- end .chat-outer -->
 {% endblock %}
 
 
@@ -493,6 +524,7 @@
   var LANG = "{{ lang }}";
   var CSRF = "{{ csrf_token }}";
 
+  // ── DOM refs ──────────────────────────────────────────────────────
   var chatWindow   = document.getElementById('chatWindow');
   var messagesEl   = document.getElementById('messagesContainer');
   var welcomeEl    = document.getElementById('welcomeScreen');
@@ -503,35 +535,244 @@
   var micIcon      = document.getElementById('micIcon');
   var micStatus    = document.getElementById('micStatus');
   var newChatBtn   = document.getElementById('newChatBtn');
+  var sidebarEl    = document.getElementById('chatSidebar');
+  var sidebarList  = document.getElementById('sidebarList');
+  var backdrop     = document.getElementById('sidebarBackdrop');
+  var mobileHint   = document.getElementById('mobileSidebarHint');
 
-  var currentJobId   = null;
-  var pollTimer      = null;
-  var POLL_MS        = 5000;
-  var MAX_WAIT_MS    = 300000;  // 5 minutes — Render cold starts can be slow
-  var startTime      = 0;
-  var activeThinking = null;
-  var letterOriginal = {};
-  var currentStory   = '';
-  var currentCounty  = '';
-  var reassuranceSent = false; // tracks whether mid-wait message was shown
+  // ── Core state ────────────────────────────────────────────────────
+  var currentJobId     = null;
+  var pollTimer        = null;
+  var POLL_MS          = 5000;
+  var MAX_WAIT_MS      = 300000;
+  var startTime        = 0;
+  var activeThinking   = null;
+  var letterOriginal   = {};
+  var currentStory     = '';
+  var currentCounty    = '';
+  var reassuranceSent  = false;
 
-  // ── Conversation memory ───────────────────────────────────────────
+  // ── Conversation sidebar state ────────────────────────────────────
+  var CONV_LIST_KEY   = 'haki_conv_list';
+  var CONV_MAX        = 20;       // max conversations kept
+  var activeConvId    = null;     // currently open conversation ID
+
+  // ════════════════════════════════════════════════════════════════
+  //  SIDEBAR — open / close (mobile)
+  // ════════════════════════════════════════════════════════════════
+  window.openSidebar  = function(){ sidebarEl.classList.add('open');    backdrop.classList.add('show'); };
+  window.closeSidebar = function(){ sidebarEl.classList.remove('open'); backdrop.classList.remove('show'); };
+
+  // Add mobile toggle to navbar brand area
+  (function injectMobileToggle(){
+    var toggle = document.createElement('button');
+    toggle.className = 'sidebar-toggle';
+    toggle.setAttribute('aria-label', LANG==='sw'?'Fungua historia':'Open history');
+    toggle.innerHTML = '☰';
+    toggle.onclick = openSidebar;
+    var brand = document.querySelector('.navbar-brand');
+    if(brand) brand.parentNode.insertBefore(toggle, brand);
+  })();
+
+  // ════════════════════════════════════════════════════════════════
+  //  CONVERSATION PERSISTENCE  (localStorage)
+  // ════════════════════════════════════════════════════════════════
+  function convKey(id){ return 'haki_conv_' + id; }
+
+  function loadConvList(){
+    try{ var l=JSON.parse(localStorage.getItem(CONV_LIST_KEY)||'[]'); return Array.isArray(l)?l:[]; }catch(e){return[];}
+  }
+  function saveConvList(list){
+    try{ localStorage.setItem(CONV_LIST_KEY, JSON.stringify(list)); }catch(e){}
+  }
+
+  function loadConv(id){
+    try{ return JSON.parse(localStorage.getItem(convKey(id))||'null'); }catch(e){return null;}
+  }
+  function saveConv(conv){
+    try{
+      localStorage.setItem(convKey(conv.id), JSON.stringify(conv));
+      var list = loadConvList();
+      if(list.indexOf(conv.id)===-1){ list.unshift(conv.id); }
+      else{ list.splice(list.indexOf(conv.id),1); list.unshift(conv.id); }
+      // trim to max
+      while(list.length>CONV_MAX){
+        var old=list.pop();
+        try{ localStorage.removeItem(convKey(old)); }catch(e){}
+      }
+      saveConvList(list);
+    }catch(e){}
+  }
+  function deleteConv(id){
+    try{
+      localStorage.removeItem(convKey(id));
+      var list=loadConvList(); list.splice(list.indexOf(id),1); saveConvList(list);
+    }catch(e){}
+  }
+
+  // Snapshot current chat DOM as array of {type, html/text} for restoration
+  function snapshotMessages(){
+    var rows = messagesEl.querySelectorAll('.msg-row');
+    var snap = [];
+    rows.forEach(function(row){
+      if(row.classList.contains('user')){
+        var b = row.querySelector('.user-bubble');
+        if(b) snap.push({t:'user', text: b.textContent});
+      } else {
+        snap.push({t:'bot', html: row.innerHTML});
+      }
+    });
+    return snap;
+  }
+
+  // Save the current conversation (called after each AI answer arrives)
+  function persistCurrentConv(){
+    if(!activeConvId || !currentStory) return;
+    var conv = loadConv(activeConvId) || { id: activeConvId, created: Date.now() };
+    conv.title    = currentStory.slice(0,55);
+    conv.lang     = LANG;
+    conv.updated  = Date.now();
+    conv.history  = loadHistory();
+    conv.messages = snapshotMessages();
+    saveConv(conv);
+    renderSidebar();
+  }
+
+  // Start a brand-new conversation (called by newChat)
+  function startNewConv(){
+    activeConvId = Date.now().toString();
+  }
+
+  // Restore a past conversation into the chat area
+  function restoreConv(id){
+    var conv = loadConv(id);
+    if(!conv) return;
+    closeSidebar();
+
+    // Clear current state
+    clearInterval(pollTimer); pollTimer=null; currentJobId=null;
+    reassuranceSent=false; pendingLetter=null; pendingLetterName=null;
+    chatInput.value=''; chatInput.style.height='auto'; sendBtn.disabled=true;
+
+    // Set active
+    activeConvId = id;
+    currentStory = conv.title || '';
+    if(conv.history) saveHistory(conv.history);
+    else clearHistory();
+
+    // Restore messages
+    messagesEl.innerHTML = '';
+    welcomeEl.style.display = 'none';
+    newChatBtn.style.display = 'block';
+
+    if(conv.messages && conv.messages.length){
+      conv.messages.forEach(function(m){
+        var row = document.createElement('div');
+        if(m.t === 'user'){
+          row.className = 'msg-row user';
+          var b = document.createElement('div'); b.className='user-bubble'; b.textContent=m.text;
+          row.appendChild(b);
+        } else {
+          row.className = 'msg-row bot';
+          row.innerHTML = m.html;
+        }
+        messagesEl.appendChild(row);
+      });
+      scrollDown();
+    }
+    renderSidebar();
+  }
+
+  // Delete a conversation from sidebar
+  window.deleteConversation = function(id, ev){
+    ev.stopPropagation();
+    deleteConv(id);
+    if(activeConvId === id){
+      // Was the active one — start fresh
+      activeConvId = null;
+      newChat();
+    } else {
+      renderSidebar();
+    }
+  };
+
+  // ── Render sidebar list ───────────────────────────────────────────
+  function renderSidebar(){
+    var list = loadConvList();
+    if(!list.length){
+      sidebarList.innerHTML =
+        '<div style="padding:1.5rem 1rem;text-align:center;font-size:.8rem;color:rgba(255,255,255,.3);">' +
+        (LANG==='sw'?'Mazungumzo yako yataonekana hapa':'Your conversations will appear here') +
+        '</div>';
+      return;
+    }
+    var now = Date.now();
+    var DAY = 86400000;
+    var groups = { today:[], yesterday:[], older:[] };
+    list.forEach(function(id){
+      var conv = loadConv(id); if(!conv) return;
+      var age = now - (conv.updated||conv.created||0);
+      if(age < DAY) groups.today.push(conv);
+      else if(age < DAY*2) groups.yesterday.push(conv);
+      else groups.older.push(conv);
+    });
+
+    var html = '';
+    function renderGroup(label, convs){
+      if(!convs.length) return;
+      html += '<div class="sidebar-group-label">'+label+'</div>';
+      convs.forEach(function(conv){
+        var isActive = conv.id === activeConvId;
+        html +=
+          '<div class="sidebar-item'+(isActive?' active':'')+ '" onclick="restoreConv(\''+conv.id+'\')">' +
+          '<span class="sidebar-item-icon">⚖️</span>' +
+          '<span class="sidebar-item-text">'+escHtml(conv.title||'...')+'</span>' +
+          '<button class="sidebar-item-del" onclick="deleteConversation(\''+conv.id+'\',event)" ' +
+          'title="'+(LANG==='sw'?'Futa':'Delete')+'">✕</button>' +
+          '</div>';
+      });
+    }
+    renderGroup(LANG==='sw'?'Leo':'Today',         groups.today);
+    renderGroup(LANG==='sw'?'Jana':'Yesterday',     groups.yesterday);
+    renderGroup(LANG==='sw'?'Zamani':'Older',       groups.older);
+
+    sidebarList.innerHTML = html;
+
+    // Show mobile hint if there are past conversations
+    if(mobileHint) mobileHint.style.display = list.length ? 'block' : 'none';
+  }
+
+  function escHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Expose restoreConv to global scope for onclick
+  window.restoreConv = restoreConv;
+
+  // ════════════════════════════════════════════════════════════════
+  //  CONVERSATION HISTORY (AI memory)
+  // ════════════════════════════════════════════════════════════════
   var HISTORY_KEY = 'haki_history_' + LANG;
   var HISTORY_MAX = 8;
 
-  function loadHistory() {
-    try { var h = JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); return Array.isArray(h)?h.slice(-HISTORY_MAX):[]; } catch(e){return[];}
+  function loadHistory(){
+    try{var h=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');return Array.isArray(h)?h.slice(-HISTORY_MAX):[];}catch(e){return[];}
   }
-  function saveHistory(h) {
-    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(h.slice(-HISTORY_MAX))); } catch(e){}
+  function saveHistory(h){
+    try{localStorage.setItem(HISTORY_KEY,JSON.stringify(h.slice(-HISTORY_MAX)));}catch(e){}
   }
-  function addToHistory(u, a) {
-    var h = loadHistory(); h.push({role:'user',content:u}); h.push({role:'assistant',content:a||'Answered.'}); saveHistory(h);
+  function addToHistory(u,a){
+    var h=loadHistory();h.push({role:'user',content:u});h.push({role:'assistant',content:a||'Answered.'});saveHistory(h);
   }
-  function clearHistory() { try{localStorage.removeItem(HISTORY_KEY);}catch(e){} }
+  function clearHistory(){try{localStorage.removeItem(HISTORY_KEY);}catch(e){}}
 
-  // ── New Chat ──────────────────────────────────────────────────────
-  window.newChat = function() {
+  // ════════════════════════════════════════════════════════════════
+  //  NEW CHAT
+  // ════════════════════════════════════════════════════════════════
+  window.newChat = function(){
+    // Save current conversation before clearing if there's content
+    if(activeConvId && messagesEl.children.length) persistCurrentConv();
+
     clearHistory();
     clearInterval(pollTimer); pollTimer=null; currentJobId=null;
     messagesEl.innerHTML='';
@@ -539,22 +780,26 @@
     newChatBtn.style.display='none';
     chatInput.value=''; chatInput.style.height='auto'; sendBtn.disabled=true;
     chatInput.placeholder="{{ ui.story_placeholder }}";
-    pendingLetter=null; pendingLetterName=null;
-    reassuranceSent=false;
+    pendingLetter=null; pendingLetterName=null; reassuranceSent=false;
+    activeConvId=null; currentStory='';
+    closeSidebar();
+    renderSidebar();
   };
 
-  // ── Correction / follow-up detection ─────────────────────────────
+  // ════════════════════════════════════════════════════════════════
+  //  CORRECTION / FOLLOW-UP DETECTION
+  // ════════════════════════════════════════════════════════════════
   var CORRECTION_SIGNALS=['actually','wait','no wait','sorry','i meant','i mean','correction','not that','ignore that','forget that','scratch that','not exactly','to clarify','what i meant','actually no','siyo','hapana','nilimaanisha','nilikuwa nasema','acha','samahani','sahihisha','kwa kweli','nilikosea','si hivyo'];
   var FOLLOWUP_SIGNALS=['what about','and ','also ','but ','how about','what if','can i','do i','is it','so ','then ','what happens','and if','does that mean','what else','tell me more','na ','lakini','vipi','je ','pia ','zaidi','basi ','kisha '];
   var THANKS_SET=new Set(['thanks','thank you','thank you so much','thanks a lot','asante','asante sana','nashukuru','shukrani','sawa asante','nimeshukuru','appreciated','helpful','that helped','you helped me','umesaidia','great','wonderful','excellent','perfect','amazing','awesome']);
   var GREETINGS_SET=new Set(['hello','hi','hey','habari','habari yako','sasa','mambo','niaje','vipi','sup','hola','salamu','good morning','good afternoon','good evening','ok','okay','sawa','yes','no','ndiyo','hapana']);
 
-  function detectCorrection(msg) {
+  function detectCorrection(msg){
     var m=msg.toLowerCase().trim();
     for(var i=0;i<CORRECTION_SIGNALS.length;i++){var s=CORRECTION_SIGNALS[i];if(m.startsWith(s+' ')||m.startsWith(s+',')||m===s)return true;}
     return false;
   }
-  function detectFollowup(msg,hasHistory) {
+  function detectFollowup(msg,hasHistory){
     if(!hasHistory)return false;
     var m=msg.toLowerCase().trim();
     if(msg.trim().length<40)return true;
@@ -562,10 +807,12 @@
     return false;
   }
 
-  // ── Letter flow ───────────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════
+  //  LETTER PERSONALISATION FLOW
+  // ════════════════════════════════════════════════════════════════
   var pendingLetter=null, pendingLetterName=null, letterFlowJobId=null;
 
-  function startLetterFlow(letterText,jobId) {
+  function startLetterFlow(letterText,jobId){
     pendingLetter=letterText; pendingLetterName=null; letterFlowJobId=jobId;
     addBotBubble(LANG==='sw'
       ?'✍️ <strong>Barua ipo tayari!</strong><br><br>Niambie <strong>jina lako kamili</strong>:<br><small><em>(au /skip kuruka)</em></small>'
@@ -574,7 +821,7 @@
     chatInput.focus();
   }
 
-  function handleLetterFlowInput(text) {
+  function handleLetterFlowInput(text){
     if(text.trim().toLowerCase()==='/skip'){finishLetterFlow('','');return true;}
     if(pendingLetter!==null&&pendingLetterName===null){
       var words=text.trim().split(/\s+/);
@@ -596,12 +843,12 @@
     if(pendingLetter!==null&&pendingLetterName!==null){
       var digits=text.trim().replace(/[\s\-\(\)]/g,'');
       if(!/^\+?\d{9,}$/.test(digits)){addBotBubble(LANG==='sw'?'⚠️ Hiyo haionekani kama nambari. Jaribu tena au /skip.':'⚠️ That doesn\'t look like a phone number. Try again or /skip.');return true;}
-      finishLetterFlow(pendingLetterName,text.trim());return true;
+      finishLetterFlow(pendingLetterName,text.trim()); return true;
     }
     return false;
   }
 
-  function finishLetterFlow(name,phone) {
+  function finishLetterFlow(name,phone){
     var letter=pendingLetter||''; pendingLetter=null; pendingLetterName=null;
     chatInput.placeholder="{{ ui.story_placeholder }}";
     if(!letter){addBotBubble(LANG==='sw'?'❓ Una swali lingine?':'❓ Have another question?');return;}
@@ -615,22 +862,27 @@
     addBotBubble(LANG==='sw'
       ?'✅ <strong>Barua imejazwa!</strong> Badilisha anwani yako ukihitaji, kisha nakili au upakue PDF.<br><br>❓ Una swali lingine?'
       :'✅ <strong>Letter filled!</strong> Update your address if needed, then copy or download as PDF.<br><br>❓ Have another question?');
+    persistCurrentConv();
   }
 
-  // ── Input resize + enable ─────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════
+  //  INPUT / SEND
+  // ════════════════════════════════════════════════════════════════
   chatInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,130)+'px';sendBtn.disabled=this.value.trim().length<3;});
   chatInput.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!sendBtn.disabled)sendMessage();}});
   sendBtn.addEventListener('click',sendMessage);
-
   window.fillChat=function(el){chatInput.value=el.textContent.trim();chatInput.dispatchEvent(new Event('input'));chatInput.focus();};
 
   function scrollDown(){setTimeout(function(){chatWindow.scrollTo({top:chatWindow.scrollHeight,behavior:'smooth'});},60);}
 
   function addUserMessage(text){
+    // Start a new conversation if none active
+    if(!activeConvId) startNewConv();
     welcomeEl.style.display='none'; newChatBtn.style.display='block';
     var row=document.createElement('div'); row.className='msg-row user';
     var b=document.createElement('div'); b.className='user-bubble'; b.textContent=text;
     row.appendChild(b); messagesEl.appendChild(row); scrollDown();
+    closeSidebar();
   }
 
   function avatarHTML(){return '<div class="bot-avatar"><img src="/static/img/logo.png" alt="HakiMkononi" onerror="this.parentElement.textContent=\'⚖️\'"></div>';}
@@ -659,11 +911,7 @@
 
   function resetInput(){sendBtn.disabled=chatInput.value.trim().length<3;clearInterval(pollTimer);pollTimer=null;}
 
-  function parseMarkdown(text){
-    if(!text)return'';
-    if(window.marked)return marked.parse(text);
-    return text.replace(/\n/g,'<br>');
-  }
+  function parseMarkdown(text){if(!text)return'';if(window.marked)return marked.parse(text);return text.replace(/\n/g,'<br>');}
 
   function boldCitations(div){
     div.querySelectorAll('p').forEach(function(p){
@@ -712,7 +960,8 @@
     if(data.is_serious){
       var row=document.createElement('div'); row.className='msg-row bot';
       row.innerHTML=avatarHTML()+'<div class="serious-msg">🚨 <strong>'+(LANG==='sw'?'Kesi Nyeti — Tafuta Wakili Haraka':'Serious Case — Get a Lawyer Urgently')+'</strong><br><br>'+(LANG==='sw'?'Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br>🌐 www.nlas.go.ke':'This case needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br>🌐 www.nlas.go.ke')+'</div>';
-      messagesEl.appendChild(row); scrollDown(); resetInput(); return;
+      messagesEl.appendChild(row); scrollDown(); resetInput();
+      persistCurrentConv(); return;
     }
     var row=document.createElement('div'); row.className='msg-row bot';
     var card=document.createElement('div'); card.className='bot-card';
@@ -724,9 +973,9 @@
       if(lc==='label-law')boldCitations(sec.querySelector('.bot-card-text'));
       card.appendChild(sec);
     }
-    addSection('label-law','📜',LANG==='sw'?'Sheria Inasema':'What The Law Says',parseMarkdown(a.sheria_inasema));
-    addSection('label-simple','💬',LANG==='sw'?'Tafsiri Rahisi':'Plain Explanation',parseMarkdown(a.tafsiri_rahisi));
-    addSection('label-rights','💪',LANG==='sw'?'Haki Yako':'Your Rights',parseMarkdown(a.haki_yako));
+    addSection('label-law',   '📜',LANG==='sw'?'Sheria Inasema':'What The Law Says',   parseMarkdown(a.sheria_inasema));
+    addSection('label-simple','💬',LANG==='sw'?'Tafsiri Rahisi':'Plain Explanation',    parseMarkdown(a.tafsiri_rahisi));
+    addSection('label-rights','💪',LANG==='sw'?'Haki Yako':'Your Rights',              parseMarkdown(a.haki_yako));
 
     if(a.andika_hivi){
       var letSec=document.createElement('div'); letSec.className='bot-card-section';
@@ -761,28 +1010,30 @@
     setTimeout(function(){row.scrollIntoView({behavior:'smooth',block:'start'});},80);
     resetInput();
 
+    // Save to per-job localStorage (for ?job= URL sharing)
     try{localStorage.setItem('haki_job_'+jobId,JSON.stringify({story:currentStory,county:currentCounty,lang:LANG,answer:data.answer,sources:data.sources,query_id:data.query_id,is_serious:data.is_serious,job_id:jobId,saved_at:Date.now()}));}catch(e){}
+
+    // Save full conversation to sidebar history
+    persistCurrentConv();
   }
 
+  // ════════════════════════════════════════════════════════════════
+  //  POLL
+  // ════════════════════════════════════════════════════════════════
   function poll(){
     if(!currentJobId)return;
-    var elapsed = Date.now()-startTime;
+    var elapsed=Date.now()-startTime;
     if(elapsed>MAX_WAIT_MS){
       addError('⏱️ '+(LANG==='sw'?'Imechukua muda mrefu sana. Tafadhali jaribu tena.':'This is taking too long. Please try again.'));
       return;
     }
-    // Send a reassurance message at ~30s so user knows we're working
-    if(!reassuranceSent && elapsed>30000){
+    if(!reassuranceSent&&elapsed>30000){
       reassuranceSent=true;
-      var msg=LANG==='sw'
-        ?'_Bado inasoma sheria... inaweza kuchukua hadi dakika moja._'
-        :'_Still reading the law... this can take up to a minute._';
-      addBotBubble('<em style="color:#888;">'+msg+'</em>');
+      addBotBubble('<em style="color:#888;">'+(LANG==='sw'?'_Bado inasoma sheria... inaweza kuchukua hadi dakika moja._':'_Still reading the law... this can take up to a minute._')+'</em>');
     }
     fetch('/api/status/'+currentJobId+'/',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
       if(d.status==='done'){
-        clearInterval(pollTimer);
-        d.job_id=currentJobId; addAnswerCard(d);
+        clearInterval(pollTimer); d.job_id=currentJobId; addAnswerCard(d);
         if(d.assistant_summary&&currentStory)addToHistory(currentStory,d.assistant_summary);
         var letter=d.answer&&d.answer.andika_hivi;
         if(letter&&(letter.indexOf('[YOUR NAME]')!==-1||letter.indexOf('[JINA LAKO]')!==-1)){setTimeout(function(){startLetterFlow(letter,currentJobId);},600);}
@@ -793,9 +1044,13 @@
     }).catch(function(){});
   }
 
+  // ════════════════════════════════════════════════════════════════
+  //  SEND MESSAGE
+  // ════════════════════════════════════════════════════════════════
   function sendMessage(){
     var story=chatInput.value.trim(); if(story.length<3)return;
     if(pendingLetter!==null){addUserMessage(story);chatInput.value='';chatInput.style.height='auto';sendBtn.disabled=true;handleLetterFlowInput(story);sendBtn.disabled=chatInput.value.trim().length<3;return;}
+
     var history=loadHistory(), hasHistory=history.length>0;
     var msgLower=story.toLowerCase().trim().replace(/[!?.,:]+$/,'');
     var isCorrection=detectCorrection(story), isFollowup=detectFollowup(story,hasHistory);
@@ -803,29 +1058,27 @@
     if(GREETINGS_SET.has(msgLower)||(story.trim().length<8&&!hasHistory)){
       addUserMessage(story);chatInput.value='';chatInput.style.height='auto';sendBtn.disabled=true;
       addBotBubble(hasHistory?(LANG==='sw'?'👋 Karibu tena! Una swali lingine la kisheria?':'👋 Hi again! Do you have another legal question?'):(LANG==='sw'?'👋 Habari!<br><br>Niambie tatizo lako la kisheria.<br><br><em>Mfano: Nilifukuzwa kazi bila notisi na mwajiri wangu.</em>':'👋 Hello!<br><br>Tell me your legal problem and I\'ll help you.<br><br><em>Example: My employer fired me without notice.</em>'));
-      sendBtn.disabled=chatInput.value.trim().length<3;return;
+      sendBtn.disabled=chatInput.value.trim().length<3; return;
     }
     if(THANKS_SET.has(msgLower)){
       addUserMessage(story);chatInput.value='';chatInput.style.height='auto';sendBtn.disabled=true;
-      var sw=['😊 Karibu sana!<br><br>Nimefurahi kukusaidia. Ukiwa na swali lingine la kisheria, niko hapa.','😊 Karibu!<br><br>Kazi yangu ni kuhakikisha Wakenya wote wanajua haki zao.','🙏 Karibu sana!<br><br>Shiriki HakiMkononi na wengine wanaohitaji msaada wa kisheria.'];
-      var en=['😊 You\'re welcome!<br><br>I\'m glad I could help. Your rights matter.<br><br>If you have another question, I\'m here.','😊 Happy to help!<br><br>No one should face a legal problem alone.','🙏 You\'re welcome!<br><br>Share HakiMkononi with others who might need legal help too.'];
+      var sw=['😊 Karibu sana!<br><br>Nimefurahi kukusaidia. Ukiwa na swali lingine, niko hapa.','😊 Karibu!<br><br>Kazi yangu ni kuhakikisha Wakenya wanajua haki zao.','🙏 Karibu sana!<br><br>Shiriki HakiMkononi na wengine wanaohitaji msaada wa kisheria.'];
+      var en=['😊 You\'re welcome!<br><br>Glad I could help. If you have another question, I\'m here.','😊 Happy to help!<br><br>No one should face a legal problem alone.','🙏 You\'re welcome!<br><br>Share HakiMkononi with others who might need legal help too.'];
       addBotBubble((LANG==='sw'?sw:en)[Math.floor(Math.random()*3)]);
-      sendBtn.disabled=chatInput.value.trim().length<3;return;
+      sendBtn.disabled=chatInput.value.trim().length<3; return;
     }
     var SERIOUS_KW=['murder','mauaji','rape','ubakaji','defilement','udhalilishaji','terrorism','ugaidi','robbery with violence','manslaughter','kuua'];
     if(SERIOUS_KW.some(function(kw){return story.toLowerCase().indexOf(kw)!==-1;})){
       addUserMessage(story);chatInput.value='';chatInput.style.height='auto';sendBtn.disabled=true;
       addBotBubble(LANG==='sw'?'🚨 <strong>Kesi Nyeti — Tafuta Wakili Haraka</strong><br><br>Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br>🌐 www.nlas.go.ke':'🚨 <strong>Serious Case — Get a Lawyer Urgently</strong><br><br>This situation needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br>🌐 www.nlas.go.ke');
-      sendBtn.disabled=chatInput.value.trim().length<3;return;
+      sendBtn.disabled=chatInput.value.trim().length<3; return;
     }
 
     addUserMessage(story); chatInput.value=''; chatInput.style.height='auto'; sendBtn.disabled=true;
     if(isCorrection&&hasHistory){addBotBubble('<em style="color:#888;">'+(LANG==='sw'?'Sawa, naelewa. Acha nirekebishe...':'Got it, let me correct that...')+'</em>');}
     currentStory=story; currentCounty=countySelect.value;
-    reassuranceSent=false;
-    addThinking();
+    reassuranceSent=false; addThinking(); startTime=Date.now();
 
-    startTime=Date.now();
     fetch('/api/submit/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
       body:JSON.stringify({story:story,county:currentCounty,lang:LANG,history:history,is_correction:isCorrection,is_followup:isFollowup})})
     .then(function(r){return r.json();})
@@ -835,13 +1088,18 @@
     }).catch(function(){addError('❌ '+(LANG==='sw'?'Kuna tatizo la muunganisho. Jaribu tena.':'Connection error. Please try again.'));});
   }
 
+  // ════════════════════════════════════════════════════════════════
+  //  HELPERS
+  // ════════════════════════════════════════════════════════════════
   window.copyLetter=function(id){var el=document.getElementById(id);if(el)try{navigator.clipboard.writeText(el.innerText||el.textContent||'');}catch(e){}};
   window.copyAnswer=function(jobId){var texts=[];document.querySelectorAll('.bot-card .bot-card-text,.bot-card .chat-letter').forEach(function(el){texts.push((el.innerText||el.textContent||'').trim());});try{navigator.clipboard.writeText(texts.join('\n\n'));}catch(e){}};
   window.downloadPDF=function(jobId,type){var url=type==='letter'?'/api/letter-pdf/'+jobId+'/':'/api/answer-pdf/'+jobId+'/';fetch(url,{cache:'no-store'}).then(function(r){return r.blob();}).then(function(blob){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='HakiMkononi-'+type+'-'+new Date().toISOString().slice(0,10)+'.pdf';a.style.display='none';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(a.href);},10000);}).catch(function(){});};
   window.shareAnswer=function(jobId){var url=location.origin+'/?job='+jobId+'&lang='+LANG;if(navigator.share)navigator.share({title:'HakiMkononi',url:url}).catch(function(){});else try{navigator.clipboard.writeText(url);}catch(e){}};
   window.sendFeedback=function(queryId,helpful,rowId){var row=document.getElementById(rowId);if(!queryId){if(row)row.innerHTML='<span>✅ '+(LANG==='sw'?'Asante!':'Thanks!')+'</span>';return;}fetch('/api/feedback/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},body:JSON.stringify({query_id:queryId,helpful:helpful})}).finally(function(){if(row)row.innerHTML='<span>✅ '+(LANG==='sw'?'Asante kwa maoni!':'Thank you!')+'</span>';});};
 
-  // ── Voice ─────────────────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════
+  //  VOICE INPUT
+  // ════════════════════════════════════════════════════════════════
   var mediaRecorder=null,audioChunks=[],isRecording=false;
   if(!navigator.mediaDevices||!window.MediaRecorder){micBtn.disabled=true;micBtn.style.opacity='.4';}
   micBtn.addEventListener('click',async function(){
@@ -865,13 +1123,23 @@
     }catch(e){micStatus.textContent=e.name==='NotAllowedError'?(LANG==='sw'?'❌ Ruhusu mic':'❌ Allow mic access'):'❌'+(e.message||'Mic error');}
   });
 
-  // ── Restore from ?job=ID ──────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════
+  //  RESTORE FROM ?job=ID
+  // ════════════════════════════════════════════════════════════════
   (function restore(){
     var params=new URLSearchParams(location.search),savedId=params.get('job');
-    if(!savedId)return;
-    try{var raw=localStorage.getItem('haki_job_'+savedId);if(raw){var s=JSON.parse(raw);if(Date.now()-(s.saved_at||0)<86400000){if(s.story)addUserMessage(s.story);currentJobId=savedId;currentStory=s.story||'';s.job_id=savedId;addAnswerCard(s);return;}}}catch(e){}
-    currentJobId=savedId;addThinking();startTime=Date.now();
-    var t=setInterval(function(){fetch('/api/status/'+savedId+'/',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){if(d.status==='done'){clearInterval(t);d.job_id=savedId;addAnswerCard(d);}else if(d.status==='error'){clearInterval(t);addError(d.message||'Error loading answer.');}}).catch(function(){clearInterval(t);addError('Connection error.');});},2000);
+    if(!savedId){ renderSidebar(); return; }
+    try{
+      var raw=localStorage.getItem('haki_job_'+savedId);
+      if(raw){var s=JSON.parse(raw);if(Date.now()-(s.saved_at||0)<86400000){if(s.story)addUserMessage(s.story);currentJobId=savedId;currentStory=s.story||'';s.job_id=savedId;addAnswerCard(s);renderSidebar();return;}}
+    }catch(e){}
+    currentJobId=savedId; addThinking(); startTime=Date.now();
+    var t=setInterval(function(){
+      fetch('/api/status/'+savedId+'/',{cache:'no-store'}).then(function(r){return r.json();})
+        .then(function(d){if(d.status==='done'){clearInterval(t);d.job_id=savedId;addAnswerCard(d);}else if(d.status==='error'){clearInterval(t);addError(d.message||'Error loading answer.');}})
+        .catch(function(){clearInterval(t);addError('Connection error.');});
+    },2000);
+    renderSidebar();
   })();
 
 })();
