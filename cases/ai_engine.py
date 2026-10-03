@@ -152,7 +152,7 @@ Mimi [JINA LAKO], ninaandika barua hii kudai haki zangu. [Eleza tatizo haswa kwa
 
 Chini ya [Jina la Sheria, Kifungu], [eleza haki haswa].
 
-Naitaka [ombi haswa] ndani ya siku 14 tangu kupokea barua hii. Kama ombi hili halitafanyika, nitachukua hatua za kisheria ikiwemo kuwasiliana na [mahali husika].
+Naitaka [ombi haswa] ndani ya [muda unaofaa — tumia "mara moja" kwa kesi za kukamatwa, "masaa 24" kwa kesi za dharura, "siku 14" kwa kesi za ajira/nyumba/walaji] tangu kupokea barua hii. Kama ombi hili halitafanyika, nitachukua hatua za kisheria ikiwemo kuwasiliana na [mahali husika].
 
 Wako katika heshima,
 [JINA LAKO]
@@ -220,7 +220,7 @@ I, [YOUR NAME], write to formally demand compliance with my legal rights. [State
 
 Under [Act Name, Section Number], [state exactly what the law requires].
 
-I demand that [specific demand] within 14 days of receiving this letter. Failure to comply will compel me to seek legal redress through the [Labour Court/Magistrate/relevant authority].
+I demand that [specific demand] within [appropriate timeframe — use "immediately" for arrest/detention cases, "24 hours" for urgent safety cases, "14 days" for employment/landlord/consumer cases] of receiving this letter. Failure to comply will compel me to seek legal redress through the [Labour Court/Magistrate/High Court/relevant authority].
 
 Yours faithfully,
 [YOUR NAME]
@@ -281,7 +281,7 @@ Mimi [JINA LAKO], ninaandika barua hii kudai haki zangu. [Eleza tatizo haswa kwa
 
 Chini ya [Jina la Sheria, Kifungu], [eleza haki haswa].
 
-Naitaka [ombi haswa] ndani ya siku 14 tangu kupokea barua hii. Kama ombi hili halitafanyika, nitachukua hatua za kisheria.
+Naitaka [ombi haswa] ndani ya [muda unaofaa — "mara moja" kwa kukamatwa, "masaa 24" kwa dharura, "siku 14" kwa ajira/nyumba] tangu kupokea barua hii. Kama ombi hili halitafanyika, nitachukua hatua za kisheria.
 
 Wako katika heshima,
 [JINA LAKO]

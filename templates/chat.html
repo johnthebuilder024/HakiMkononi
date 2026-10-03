@@ -854,7 +854,7 @@
     if(!letter){addBotBubble(LANG==='sw'?'❓ Una swali lingine?':'❓ Have another question?');return;}
     var today=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
     var filled=letter.replace(/\[YOUR NAME\]/g,name||'[YOUR NAME]').replace(/\[JINA LAKO\]/g,name||'[JINA LAKO]')
-      .replace(/\[DATE\]/g,today).replace(/\[TAREHE\]/g,today)
+      .replace(/\[DATE\]/g,today).replace(/\[date\]/g,today).replace(/\[TAREHE\]/g,today).replace(/\[tarehe\]/g,today)
       .replace(/\[YOUR ADDRESS\]/g,'[Your address — add this]').replace(/\[ANWANI YAKO\]/g,'[Anwani yako — ongeza hapa]').replace(/\[ANWANI\]/g,'[Anwani yako — ongeza hapa]');
     if(phone){filled=filled.replace(/\[PHONE NUMBER\]/g,phone).replace(/\[NAMBARI YA SIMU\]/g,phone);}
     var el=document.getElementById('ltLetter-'+letterFlowJobId);
