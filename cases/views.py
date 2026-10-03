@@ -416,8 +416,6 @@ def answer_pdf(request, job_id):
                   "rights": "Your Rights & Next Steps", "letter": "Demand Letter"},
         "sw":    {"law": "Sheria Inasema", "simple": "Tafsiri Rahisi",
                   "rights": "Haki Yako", "letter": "Andika Hivi"},
-        "en":    {"law": "What The Law Says", "simple": "Plain Explanation",
-                  "rights": "Your Rights", "letter": "Write This"},
     }
     L = labels.get(lang, labels["sw"])
 
