@@ -397,7 +397,7 @@ def _call_nvidia(messages: list, model: str) -> str:
         "model":       model,
         "messages":    messages,
         "temperature": 0.2,
-        "max_tokens":  2500,
+        "max_tokens":  4000,   # enough for 4-section answer + full demand letter
         "stream":      False,
     }
     resp = http_requests.post(
@@ -416,7 +416,7 @@ def _call_openai(messages: list) -> str:
         "model":       model,
         "messages":    messages,
         "temperature": 0.2,
-        "max_tokens":  2500,
+        "max_tokens":  4000,   # enough for 4-section answer + full demand letter
     }
     resp = http_requests.post(
         OPENAI_URL,
@@ -433,7 +433,7 @@ def _call_groq(messages: list) -> str:
         "model":       GROQ_MODEL,
         "messages":    messages,
         "temperature": 0.2,
-        "max_tokens":  3500,
+        "max_tokens":  4000,   # enough for 4-section answer + full demand letter
     }
     resp = http_requests.post(
         GROQ_URL,
@@ -549,7 +549,7 @@ def _stream_nvidia(messages: list, model: str):
         "model":       model,
         "messages":    messages,
         "temperature": 0.2,
-        "max_tokens":  2500,
+        "max_tokens":  4000,   # enough for 4-section answer + full demand letter
         "stream":      True,
     }
     headers = {**_nvidia_headers(), "Accept": "text/event-stream"}
