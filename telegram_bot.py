@@ -147,7 +147,7 @@ def _lang_keyboard():
     )
 
 
-async def _typing_loop(bot, chat_id: int, stop_event):
+async def _typing_loop(bot, chat_id: int, stop_event, lang: str = 'en'):
     """
     Keeps sending 'typing' action every 4 seconds until stop_event is set.
     After 8 seconds also sends a short reassurance message (returned so caller
@@ -156,6 +156,10 @@ async def _typing_loop(bot, chat_id: int, stop_event):
     import asyncio
     reassurance_msg = None
     elapsed = 0
+    reassurance_text = {
+        'sw': '_Bado inasoma sheria..._',
+        'en': '_Still reading the law..._',
+    }.get(lang, '_Still reading the law..._')
     while not stop_event.is_set():
         try:
             await bot.send_chat_action(chat_id=chat_id, action="typing")
@@ -168,7 +172,7 @@ async def _typing_loop(bot, chat_id: int, stop_event):
             try:
                 reassurance_msg = await bot.send_message(
                     chat_id=chat_id,
-                    text="_Still reading the law..._",
+                    text=reassurance_text,
                     parse_mode="Markdown",
                 )
             except Exception:
@@ -186,30 +190,13 @@ def _main_keyboard(lang: str):
             [["🎤 Tuma Sauti", "❓ Swali Jipya"],
              ["📞 Pata Wakili", "⚖️ /help"]],
             resize_keyboard=True,
-            one_time_keyboard=False,   # persistent — stays visible
+            one_time_keyboard=False,
         )
     return ReplyKeyboardMarkup(
         [["🎤 Send Voice", "❓ New Question"],
          ["📞 Find a Lawyer", "⚖️ /help"]],
         resize_keyboard=True,
         one_time_keyboard=False,
-    )
-
-
-def _main_keyboard(lang: str):
-    """Quick reply keyboard shown after an answer."""
-    if lang == 'sw':
-        return ReplyKeyboardMarkup(
-            [["❓ Swali jingine", "📞 Pata Wakili"],
-             ["🗑️ Anza upya", "⚖️ /help"]],
-            resize_keyboard=True,
-            one_time_keyboard=True,
-        )
-    return ReplyKeyboardMarkup(
-        [["❓ Ask another question", "📞 Find a Lawyer"],
-         ["🗑️ Start fresh", "⚖️ /help"]],
-        resize_keyboard=True,
-        one_time_keyboard=True,
     )
 
 
@@ -270,11 +257,6 @@ def _repair_letter(letter: str, lang: str = "en") -> str:
             "Yours faithfully,\n[YOUR NAME]\n[PHONE NUMBER]"
         )
     return letter
-    return ReplyKeyboardMarkup(
-        [["1️⃣ Kiswahili", "2️⃣ English"]],
-        one_time_keyboard=True,
-        resize_keyboard=True,
-    )
 
 
 
@@ -343,7 +325,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 "_Type /language to change language._"
             ),
         }.get(lang, f"👋 Welcome back{name_greeting}! Tell me your legal problem.")
-        await update.message.reply_text(msg, parse_mode="Markdown", reply_markup=ReplyKeyboardRemove())
+        await update.message.reply_text(msg, parse_mode="Markdown", reply_markup=_main_keyboard(lang))
         return ANSWERING
 
     # New user — show language picker
@@ -516,7 +498,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         import asyncio
         stop_typing_v  = asyncio.Event()
         typing_task_v  = asyncio.create_task(
-            _typing_loop(context.bot, update.effective_chat.id, stop_typing_v)
+            _typing_loop(context.bot, update.effective_chat.id, stop_typing_v, lang)
         )
 
         # Run AI in thread
@@ -550,12 +532,23 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
                 pass
 
         if is_serious:
-            await ack_msg.edit_text(
-                "🚨 *Kesi Nyeti*\n\nKesi hii inahitaji wakili haraka.\n\n*NLAS (Bure):* 0800 720 120\nwww.nlas.go.ke"
-                if lang == 'sw' else
-                "🚨 *Serious Case*\n\nThis needs a lawyer urgently.\n\n*NLAS (Free):* 0800 720 120\nwww.nlas.go.ke",
-                parse_mode="Markdown"
-            )
+            serious_voice = {
+                'sw': (
+                    "🚨 *Kesi Nyeti — Tafuta Wakili Haraka*\n\n"
+                    "Kesi hii inahitaji wakili wa kweli, si AI.\n\n"
+                    "📞 *NLAS (Bure):* 0800 720 120\n"
+                    "_NLAS = National Legal Aid Service, mawakili wa serikali bila malipo_\n\n"
+                    "🌐 www.nlas.go.ke"
+                ),
+                'en': (
+                    "🚨 *Serious Case — Get a Lawyer Urgently*\n\n"
+                    "This situation needs a real lawyer, not an AI.\n\n"
+                    "📞 *NLAS (Free):* 0800 720 120\n"
+                    "_NLAS = National Legal Aid Service, free government lawyers_\n\n"
+                    "🌐 www.nlas.go.ke"
+                ),
+            }.get(lang, "🚨 *Serious Case* — Contact NLAS: 0800 720 120 (free lawyers)")
+            await ack_msg.edit_text(serious_voice, parse_mode="Markdown")
             return ANSWERING
 
         reply_lang = 'sw' if lang == 'sheng' else lang
@@ -705,7 +698,6 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     _QUESTION_BUTTONS = {'❓ swali jingine', '❓ ask another question', 'ask another question',
                          'swali jingine', '❓ new question', '❓ swali jipya', 'new question', 'swali jipya'}
     _VOICE_BUTTONS    = {'🎤 send voice', '🎤 tuma sauti', 'send voice', 'tuma sauti'}
-
     msg_clean = message.lower().strip().rstrip('!?.')
 
     # Voice prompt button
@@ -856,7 +848,7 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 "🚨 *Serious Case — Get a Lawyer Urgently*\n\n"
                 "This situation needs a real lawyer, not an AI.\n\n"
                 "📞 *NLAS (Free):* 0800 720 120\n"
-                "_NLAS = National Legal Aid Service — free government lawyers_\n\n"
+                "_NLAS = National Legal Aid Service, free government lawyers_\n\n"
                 "🌐 www.nlas.go.ke"
             ),
         }.get(lang, "🚨 *Serious Case* — Contact NLAS: 0800 720 120 (free lawyers)")
@@ -867,7 +859,7 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     import asyncio
     stop_typing  = asyncio.Event()
     typing_task  = asyncio.create_task(
-        _typing_loop(context.bot, update.effective_chat.id, stop_typing)
+        _typing_loop(context.bot, update.effective_chat.id, stop_typing, lang)
     )
 
     try:
@@ -1120,13 +1112,10 @@ async def handle_letter_phone(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     await update.message.reply_text(intro, parse_mode="Markdown")
 
-    # Send letter in chunks to avoid Telegram 4096 char limit
+    # Send letter in plain text chunks — easier to read and copy on mobile
     MAX_CHUNK = 3800
     for i in range(0, len(filled), MAX_CHUNK):
-        await update.message.reply_text(
-            f"```\n{filled[i:i+MAX_CHUNK]}\n```",
-            parse_mode="Markdown"
-        )
+        await update.message.reply_text(filled[i:i+MAX_CHUNK])
 
     tip = {
         'sw': (
@@ -1239,7 +1228,7 @@ async def cmd_skip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             parse_mode="Markdown"
         )
         for i in range(0, len(filled), 3800):
-            await update.message.reply_text(f"```\n{filled[i:i+3800]}\n```", parse_mode="Markdown")
+            await update.message.reply_text(filled[i:i+3800])
 
     msg = {
         'sw': '👍 Badilisha nafasi zilizobaki mwenyewe.\n\n❓ Una swali lingine?',
