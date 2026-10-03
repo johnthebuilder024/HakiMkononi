@@ -301,6 +301,158 @@ def _format_answer(answer: dict, top_laws: list, lang: str) -> str:
     return '\n\n'.join(p for p in parts if p)
 
 
+# ── Conversation memory helpers ───────────────────────────────────────────────
+
+# How many past turns (user + assistant pairs) to keep in memory.
+# 4 pairs = 8 messages. Enough for context without inflating the prompt.
+_HISTORY_MAX_TURNS = 4
+
+# Correction signals — user is changing/correcting what they said before
+_CORRECTION_SIGNALS_EN = {
+    'actually', 'wait', 'no wait', 'sorry', 'i meant', 'i mean',
+    'correction', 'not that', 'let me correct', 'i made a mistake',
+    'i got it wrong', 'ignore that', 'forget that', 'scratch that',
+    'not exactly', 'to clarify', 'let me clarify', 'what i meant',
+    'i should say', 'more precisely', 'to be precise', 'actually no',
+}
+_CORRECTION_SIGNALS_SW = {
+    'siyo', 'hapana', 'nilimaanisha', 'nilikuwa nasema', 'acha',
+    'samahani', 'sahihisha', 'kwa kweli', 'kweli ni', 'badala yake',
+    'nilikosea', 'si hivyo', 'namaanisha', 'ukweli ni', 'tuseme',
+    'nirudie', 'bado', 'si sahihi', 'sio hivyo', 'actually',
+}
+
+# Follow-up signals — short message that references the prior topic
+_FOLLOWUP_SIGNALS_EN = {
+    'what about', 'and', 'also', 'but', 'how about', 'what if',
+    'can i', 'do i', 'is it', 'so', 'then', 'okay so', 'ok so',
+    'what happens', 'and if', 'does that mean', 'so i can',
+    'what else', 'anything else', 'more', 'tell me more',
+    'elaborate', 'explain more', 'go on', 'continue',
+}
+_FOLLOWUP_SIGNALS_SW = {
+    'na', 'lakini', 'vipi', 'je', 'sawa basi', 'na kama',
+    'pia', 'zaidi', 'eleza zaidi', 'endelea', 'basi', 'sasa',
+    'kisha', 'halafu', 'je niaweza', 'ninaweza', 'itamaanisha',
+    'nini kingine', 'zaidi ya hivo', 'niambie zaidi',
+}
+
+
+def _detect_correction(message: str) -> bool:
+    """
+    Returns True if the message looks like the user is correcting
+    or clarifying something they said before.
+    Checks for correction signal words at the start of the message.
+    """
+    msg = message.lower().strip()
+    all_signals = _CORRECTION_SIGNALS_EN | _CORRECTION_SIGNALS_SW
+    # Check if message starts with a correction signal
+    for signal in all_signals:
+        if msg.startswith(signal + ' ') or msg.startswith(signal + ',') or msg == signal:
+            return True
+    return False
+
+
+def _detect_followup(message: str, history: list) -> bool:
+    """
+    Returns True if this looks like a follow-up on the previous topic
+    rather than a completely new question.
+    Conditions: has prior history AND message starts with a follow-up signal
+    OR message is short (< 40 chars) and there is history.
+    """
+    if not history:
+        return False
+    msg = message.lower().strip()
+    # Short standalone messages with history are almost always follow-ups
+    if len(message.strip()) < 40:
+        return True
+    all_signals = _FOLLOWUP_SIGNALS_EN | _FOLLOWUP_SIGNALS_SW
+    for signal in all_signals:
+        if msg.startswith(signal + ' ') or msg.startswith(signal + ','):
+            return True
+    return False
+
+
+def _add_to_history(context_user_data: dict, user_msg: str, assistant_summary: str):
+    """
+    Append a user+assistant turn to the conversation history.
+    Trims to _HISTORY_MAX_TURNS pairs to keep memory bounded.
+    Stores a condensed assistant summary (not the full formatted reply)
+    so we don't blow up the prompt size.
+    """
+    history = context_user_data.get('history', [])
+    history.append({'role': 'user',      'content': user_msg})
+    history.append({'role': 'assistant', 'content': assistant_summary})
+    # Keep only the last N turns (2 messages per turn)
+    if len(history) > _HISTORY_MAX_TURNS * 2:
+        history = history[-(  _HISTORY_MAX_TURNS * 2):]
+    context_user_data['history'] = history
+
+
+def _build_groq_messages(system_prompt: str, history: list, current_user_msg: str) -> list:
+    """
+    Build the full messages array for Groq:
+      [system] + [past turns...] + [current user message]
+
+    The system prompt already has the law context injected.
+    History entries are the real prior conversation.
+    This gives Groq genuine multi-turn memory.
+    """
+    messages = [{'role': 'system', 'content': system_prompt}]
+    messages.extend(history)
+    messages.append({'role': 'user', 'content': current_user_msg})
+    return messages
+
+
+def _summarise_answer(answer: dict) -> str:
+    """
+    Create a concise summary of the bot's answer to store in history.
+    We store the law + simple explanation only (not the full letter)
+    to keep history tokens manageable.
+    """
+    parts = []
+    if answer.get('law'):
+        # First 300 chars of the law section
+        parts.append(answer['law'][:300].strip())
+    if answer.get('simple'):
+        parts.append(answer['simple'][:300].strip())
+    if answer.get('loophole'):
+        parts.append(answer['loophole'][:200].strip())
+    return '\n\n'.join(parts) if parts else 'Answered.'
+
+
+def _build_contextual_query(message: str, history: list, is_correction: bool) -> str:
+    """
+    For follow-ups and corrections, enrich the current message with
+    context from the last user turn so the RAG search finds the right laws.
+
+    Example:
+      History last user: "My employer fired me without notice"
+      Current message:   "What about my salary?"
+      Result:            "My employer fired me without notice. What about my salary?"
+    """
+    if not history:
+        return message
+
+    # Find the last user message in history
+    last_user_msg = ''
+    for turn in reversed(history):
+        if turn['role'] == 'user':
+            last_user_msg = turn['content']
+            break
+
+    if not last_user_msg:
+        return message
+
+    if is_correction:
+        # Correction: the new message replaces the old one in context
+        # but we still want RAG to know the topic
+        return f"{last_user_msg} — correction: {message}"
+    else:
+        # Follow-up: append the new question to the old context
+        return f"{last_user_msg}. {message}"
+
+
 # ── Command handlers ──────────────────────────────────────────────────────────
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -501,6 +653,12 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             _typing_loop(context.bot, update.effective_chat.id, stop_typing_v, lang)
         )
 
+        # ── Memory: detect correction or follow-up ────────────────────────
+        v_history       = context.user_data.get('history', [])
+        v_is_correction = _detect_correction(transcript)
+        v_is_followup   = _detect_followup(transcript, v_history)
+        v_rag_query     = _build_contextual_query(transcript, v_history, v_is_correction)
+
         # Run AI in thread
         @sync_to_async(thread_sensitive=False)
         def run_ai():
@@ -510,13 +668,13 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             )
             if is_serious_criminal(transcript):
                 return None, None, True
-            top_laws   = find_relevant_laws(transcript, top_n=8, category_boost=['constitution'])
+            top_laws   = find_relevant_laws(v_rag_query, top_n=8, category_boost=['constitution'])
             reply_lang = 'sw' if lang == 'sheng' else lang
             ctx        = format_law_context(top_laws)
             system     = SYSTEM_PROMPTS[reply_lang].format(context=ctx)
             user_msg   = _USER_MESSAGES[reply_lang].format(story=transcript)
-            raw        = _call_groq([{"role": "system", "content": system},
-                                     {"role": "user",   "content": user_msg}])
+            groq_messages = _build_groq_messages(system, v_history, user_msg)
+            raw        = _call_groq(groq_messages)
             answer     = parse_answer_sections(raw, lang=reply_lang)
             return answer, top_laws, False
 
@@ -569,6 +727,10 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             if current: chunks.append(current)
             for chunk in chunks:
                 await update.message.reply_text(chunk, parse_mode="Markdown")
+
+        # ── Save this voice turn to conversation history ─────────────────
+        reply_lang_v = 'sw' if lang == 'sheng' else lang
+        _add_to_history(context.user_data, transcript, _summarise_answer(answer))
 
         # ── Letter personalisation — same flow as typed questions ────────
         if answer.get('letter') and (
@@ -813,22 +975,30 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     is_greeting = msg_lower_stripped in _GREETINGS or len(message.strip()) < 8
 
     if is_greeting:
-        nudge = {
-            'sw': (
-                "👋 Habari!\n\n"
-                "Niambie tatizo lako la kisheria ili nikusaidie.\n\n"
-                "*Mfano:*\n"
-                "_Nilifukuzwa kazi bila notisi na mwajiri wangu._\n\n"
-                "Andika tatizo lako na nitakusaidia kuelewa haki zako."
-            ),
-            'en': (
-                "👋 Hello!\n\n"
-                "Tell me your legal problem and I'll help you.\n\n"
-                "*Example:*\n"
-                "_My employer fired me without notice._\n\n"
-                "Describe your situation and I'll explain your rights."
-            ),
-        }.get(lang, "👋 Hello! Tell me your legal problem and I'll help.")
+        # If we have conversation history, the greeting might be mid-session
+        history = context.user_data.get('history', [])
+        if history:
+            nudge = {
+                'sw': "👋 Karibu tena! Una swali lingine la kisheria?",
+                'en': "👋 Welcome back! Do you have another legal question?",
+            }.get(lang, "👋 Hi again! Any other question?")
+        else:
+            nudge = {
+                'sw': (
+                    "👋 Habari!\n\n"
+                    "Niambie tatizo lako la kisheria ili nikusaidie.\n\n"
+                    "*Mfano:*\n"
+                    "_Nilifukuzwa kazi bila notisi na mwajiri wangu._\n\n"
+                    "Andika tatizo lako na nitakusaidia kuelewa haki zako."
+                ),
+                'en': (
+                    "👋 Hello!\n\n"
+                    "Tell me your legal problem and I'll help you.\n\n"
+                    "*Example:*\n"
+                    "_My employer fired me without notice._\n\n"
+                    "Describe your situation and I'll explain your rights."
+                ),
+            }.get(lang, "👋 Hello! Tell me your legal problem and I'll help.")
         await update.message.reply_text(nudge, parse_mode="Markdown",
                                         reply_markup=_main_keyboard(lang))
         return ANSWERING
@@ -854,6 +1024,22 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await update.message.reply_text(serious, parse_mode="Markdown")
         return ANSWERING
 
+    # ── Memory: detect correction or follow-up ───────────────────────────
+    history        = context.user_data.get('history', [])
+    is_correction  = _detect_correction(message)
+    is_followup    = _detect_followup(message, history)
+
+    # Acknowledge correction naturally before answering
+    if is_correction and history:
+        ack = {
+            'sw': '_Sawa, naelewa. Acha nirekebishe..._',
+            'en': '_Got it, let me correct that..._',
+        }.get(lang, '_Got it..._')
+        await update.message.reply_text(ack, parse_mode="Markdown")
+
+    # Build the enriched query for RAG (adds prior context to short messages)
+    rag_query = _build_contextual_query(message, history, is_correction)
+
     # Typing indicator immediately + reassurance after 8s if still waiting
     import asyncio
     stop_typing  = asyncio.Event()
@@ -864,16 +1050,18 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     try:
         @sync_to_async(thread_sensitive=False)
         def run_ai():
-            top_laws = find_relevant_laws(message, top_n=8, category_boost=['constitution'])
-            ctx_text = format_law_context(top_laws)
             reply_lang = 'sw' if lang == 'sheng' else lang
+            # RAG uses enriched query so follow-ups find the right laws
+            top_laws = find_relevant_laws(rag_query, top_n=8, category_boost=['constitution'])
+            ctx_text = format_law_context(top_laws)
             system   = SYSTEM_PROMPTS[reply_lang].format(context=ctx_text)
+            # The user_msg for Groq is always the real current message —
+            # history provides the prior context, not a concatenated string
             user_msg = _USER_MESSAGES[reply_lang].format(story=message)
-            raw      = _call_groq([
-                {"role": "system", "content": system},
-                {"role": "user",   "content": user_msg},
-            ])
-            answer = parse_answer_sections(raw, lang=reply_lang)
+            # Build multi-turn messages array with full history
+            groq_messages = _build_groq_messages(system, history, user_msg)
+            raw      = _call_groq(groq_messages)
+            answer   = parse_answer_sections(raw, lang=reply_lang)
             return answer, top_laws, reply_lang
 
         answer, top_laws, reply_lang = await run_ai()
@@ -903,6 +1091,9 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             if current: chunks.append(current)
             for chunk in chunks:
                 await update.message.reply_text(chunk, parse_mode="Markdown")
+
+        # ── Save this turn to conversation history ────────────────────────
+        _add_to_history(context.user_data, message, _summarise_answer(answer))
 
         # ── Show matched lawyers if any are available ─────────────────────
         @sync_to_async(thread_sensitive=False)
@@ -956,14 +1147,20 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await update.message.reply_text(name_prompt, parse_mode="Markdown")
             return FILLING_LETTER
 
-        followup = {
-            'sw': '❓ Una swali lingine? Andika au bonyeza chini.',
-            'en': '❓ Have another question? Type it or tap below.',
-        }.get(reply_lang, '❓ Any other question?')
+        # Follow-up nudge — context-aware if mid-conversation
+        if is_followup or is_correction:
+            followup = {
+                'sw': '❓ Kuna kitu kingine unachotaka kujua kuhusu hili?',
+                'en': '❓ Anything else you want to know about this?',
+            }.get(reply_lang, '❓ Anything else?')
+        else:
+            followup = {
+                'sw': '❓ Una swali lingine? Andika au bonyeza chini.',
+                'en': '❓ Have another question? Type it or tap below.',
+            }.get(reply_lang, '❓ Any other question?')
         await update.message.reply_text(followup, reply_markup=_main_keyboard(reply_lang))
 
     except Exception as e:
-        logger.error(f"Answer error: {e}", exc_info=True)
         # Stop typing loop and clean up on error
         stop_typing.set()
         try:
@@ -1173,8 +1370,8 @@ async def cmd_clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = await _get_user(update.effective_user.id)
     lang = user.lang
 
-    # Clear all pending data (letter, phone, name)
-    context.user_data.clear()
+    # Clear all pending data (letter, phone, name) AND conversation history
+    context.user_data.clear()   # this wipes history, pending_letter, letter_name, etc.
 
     # Reset conversation state to active but keep language preference
     await _set_user_state(user, WhatsAppUser.STATE_ACTIVE)
