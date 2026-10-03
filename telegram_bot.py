@@ -574,7 +574,6 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         if answer.get('letter') and (
             '[YOUR NAME]' in answer['letter'] or '[JINA LAKO]' in answer['letter']
         ):
-            from cases.rag import _repair_letter
             repaired = _repair_letter(answer['letter'], reply_lang)
             context.user_data['pending_letter'] = repaired
             context.user_data['letter_lang']    = reply_lang
@@ -935,8 +934,9 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 await update.message.reply_text(card, parse_mode="Markdown", disable_web_page_preview=True)
 
         # ── If letter was generated, ask for name to personalise it ──────────
-        if answer.get('letter') and '[YOUR NAME]' in answer['letter'] or \
-           answer.get('letter') and '[JINA LAKO]' in answer['letter']:
+        if answer.get('letter') and (
+            '[YOUR NAME]' in answer['letter'] or '[JINA LAKO]' in answer['letter']
+        ):
             # Repair letter before storing so it's always complete
             repaired = _repair_letter(answer['letter'], reply_lang)
             context.user_data['pending_letter'] = repaired
