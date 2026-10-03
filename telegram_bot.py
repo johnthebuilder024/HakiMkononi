@@ -865,20 +865,24 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if msg_clean in _VOICE_BUTTONS:
         voice_tip = {
             'sw': (
-                "🎤 *Jinsi ya kutuma sauti:*\n\n"
-                "1. Bonyeza na ushikilie ikoni ya 🎤 kwenye kibodi yako\n"
+                "🎤 *Jinsi ya kutuma ujumbe wa sauti kwenye Telegram:*\n\n"
+                "Tazama upande wa kulia wa sanduku la ujumbe — utaona kitufe cha duara la bluu 🔵\n\n"
+                "1. Bonyeza na ushikilie kitufe hicho cha bluu 🔵 upande wa kulia\n"
                 "2. Sema swali lako la kisheria\n"
-                "3. Acha kidole. Ujumbe wa sauti utatumwa moja kwa moja\n\n"
+                "3. Acha kidole — ujumbe utatumwa moja kwa moja\n\n"
+                "_(Kama unaandika kitu, kitufe kitakuwa cha kutuma ➤ — futa maandishi kwanza)_\n\n"
                 "_Mfano: 'Mwajiri wangu alinifukuza bila notisi...'_"
             ),
             'en': (
-                "🎤 *How to send a voice message:*\n\n"
-                "1. Press and hold the 🎤 microphone icon on your keyboard\n"
+                "🎤 *How to send a voice message on Telegram:*\n\n"
+                "Look at the right side of the message box — you'll see a blue circle button 🔵\n\n"
+                "1. Press and hold that blue circle 🔵 on the right\n"
                 "2. Speak your legal question clearly\n"
-                "3. Release. Your voice note will be sent automatically\n\n"
+                "3. Release — your voice note sends automatically\n\n"
+                "_(If you see a send arrow ➤ instead, clear the text box first)_\n\n"
                 "_Example: 'My employer fired me without notice...'_"
             ),
-        }.get(lang, "🎤 Press and hold the mic icon on your keyboard to record.")
+        }.get(lang, "🎤 Press and hold the blue circle button on the right of the message box to record.")
         await update.message.reply_text(voice_tip, parse_mode="Markdown",
                                         reply_markup=_main_keyboard(lang))
         return ANSWERING
