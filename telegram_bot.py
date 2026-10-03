@@ -866,23 +866,23 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         voice_tip = {
             'sw': (
                 "🎤 *Jinsi ya kutuma ujumbe wa sauti kwenye Telegram:*\n\n"
-                "Tazama upande wa kulia wa sanduku la ujumbe — utaona kitufe cha duara la bluu 🔵\n\n"
-                "1. Bonyeza na ushikilie kitufe hicho cha bluu 🔵 upande wa kulia\n"
-                "2. Sema swali lako la kisheria\n"
-                "3. Acha kidole — ujumbe utatumwa moja kwa moja\n\n"
-                "_(Kama unaandika kitu, kitufe kitakuwa cha kutuma ➤ — futa maandishi kwanza)_\n\n"
+                "Upande wa kulia wa sanduku la ujumbe utaona ikoni moja ya hizi mbili:\n\n"
+                "• Ikoni ya 📹 (video) — *gusa mara moja* kubadilisha kuwa 🎤\n"
+                "• Ikoni ya 🎤 (maikrofoni) — *shika kidole* na useme swali lako\n\n"
+                "Acha kidole — ujumbe wa sauti utatumwa moja kwa moja.\n\n"
+                "_(Hakikisha sanduku la maandishi liko tupu kwanza)_\n\n"
                 "_Mfano: 'Mwajiri wangu alinifukuza bila notisi...'_"
             ),
             'en': (
                 "🎤 *How to send a voice message on Telegram:*\n\n"
-                "Look at the right side of the message box — you'll see a blue circle button 🔵\n\n"
-                "1. Press and hold that blue circle 🔵 on the right\n"
-                "2. Speak your legal question clearly\n"
-                "3. Release — your voice note sends automatically\n\n"
-                "_(If you see a send arrow ➤ instead, clear the text box first)_\n\n"
+                "On the right side of the message box you will see one of two icons:\n\n"
+                "• 📹 video icon — *tap it once* to switch it to the 🎤 microphone\n"
+                "• 🎤 microphone — *press and hold* it, then speak your question\n\n"
+                "Release your finger — the voice note sends automatically.\n\n"
+                "_(Make sure the text box is empty first)_\n\n"
                 "_Example: 'My employer fired me without notice...'_"
             ),
-        }.get(lang, "🎤 Press and hold the blue circle button on the right of the message box to record.")
+        }.get(lang, "🎤 On the right of the message box: tap 📹 once to get 🎤, then press and hold 🎤 to record.")
         await update.message.reply_text(voice_tip, parse_mode="Markdown",
                                         reply_markup=_main_keyboard(lang))
         return ANSWERING
