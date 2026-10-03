@@ -1198,19 +1198,28 @@ async def handle_letter_name(update: Update, context: ContextTypes.DEFAULT_TYPE)
         'they', 'police', 'officer', 'help me', 'please', 'what',
         'why', 'when', 'how', 'who', 'this', 'that', 'the ',
         'nahisi', 'ninahisi', 'nataka', 'mimi ni', 'wao', 'polisi',
+        'there is', 'there are', 'someone', 'a police', 'the police',
     ]
     name_lower = name.lower()
+
+    # A real name: 1-4 words, under 50 chars, no sentence starters
+    word_count = len(name.split())
     looks_like_sentence = (
-        len(name.split()) > 5 or
+        word_count > 4 or               # more than 4 words is almost never a name
         len(name) > 50 or
-        any(name_lower.startswith(p) or (' ' + p) in name_lower for p in _NOT_A_NAME_PHRASES)
+        any(name_lower.startswith(p) or (' ' + p) in name_lower
+            for p in _NOT_A_NAME_PHRASES)
     )
 
     if looks_like_sentence:
-        # Respond with empathy if it sounds like frustration/distress
-        _DISTRESS_WORDS = ['beat', 'hit', 'kill', 'angry', 'hurt', 'pain',
-                           'piga', 'pigo', 'hasira', 'jeuri', 'umenidhulumu']
-        is_distressed = any(w in name_lower for w in _DISTRESS_WORDS)
+        # Use whole-word matching for distress words to avoid false positives
+        _DISTRESS_WORDS = [
+            'beat', 'beaten', 'beating', 'hit', 'hitting', 'kill', 'killing',
+            'angry', 'hurt', 'hurting', 'pain', 'piga', 'pigo', 'hasira',
+            'jeuri', 'umenidhulumu', 'violence', 'violent', 'abuse', 'abused',
+        ]
+        name_words = set(re.sub(r'[^\w\s]', '', name_lower).split())
+        is_distressed = bool(name_words & set(_DISTRESS_WORDS))
 
         if is_distressed:
             empathy = {
@@ -1218,15 +1227,15 @@ async def handle_letter_name(update: Update, context: ContextTypes.DEFAULT_TYPE)
                     "💙 Naelewa unahisi hasira na maumivu.\n\n"
                     "Hali yako ni ngumu sana na ni haki kukuwa na hasira.\n"
                     "Barua hii itakusaidia kupigana kwa njia ya kisheria.\n\n"
-                    "Tafadhali niambie *jina lako halisi* ili niweke katika barua:"
+                    "Tafadhali niambie *jina lako halisi* tu — mfano: _John Kamau_"
                 ),
                 'en': (
                     "💙 I understand you're feeling angry and hurt.\n\n"
                     "What happened to you is serious and your anger makes complete sense.\n"
                     "This letter will help you fight back through the law.\n\n"
-                    "Please type your *real full name* so I can put it in the letter:"
+                    "Please type your *real full name* only — example: _John Kamau_"
                 ),
-            }.get(lang, "💙 I understand. Please type your real full name for the letter:")
+            }.get(lang, "💙 I understand. Please type your real name only — example: John Kamau")
         else:
             empathy = {
                 'sw': (
@@ -1250,20 +1259,23 @@ async def handle_letter_name(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
         return FILLING_LETTER
 
-    context.user_data['letter_name'] = name
+    # Sanity cap — a real name should not be longer than 60 chars
+    # (catches edge cases that slip past the word count check)
+    display_name = name[:60]
+    context.user_data['letter_name'] = display_name
 
     phone_prompt = {
         'sw': (
-            f"✅ Asante, *{name}*!\n\n"
+            f"✅ Asante, *{display_name}*!\n\n"
             "Sasa niambie *nambari yako ya simu*:\n"
             "_(au andika /skip kuruka)_"
         ),
         'en': (
-            f"✅ Got it, *{name}*!\n\n"
+            f"✅ Got it, *{display_name}*!\n\n"
             "Now type your *phone number*:\n"
             "_(or type /skip to skip)_"
         ),
-    }.get(lang, f"✅ {name}. Type your phone number (or /skip):")
+    }.get(lang, f"✅ {display_name}. Type your phone number (or /skip):")
     await update.message.reply_text(phone_prompt, parse_mode="Markdown")
     return FILLING_PHONE
 
