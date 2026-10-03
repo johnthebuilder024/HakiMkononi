@@ -653,10 +653,15 @@ def stream_answer(user_story: str, laws: list, lang: str = "sw"):
 
 # ─── Public synchronous entry point ──────────────────────────────────────────
 
-def get_answer(user_story: str, laws: list, lang: str = "sw") -> dict:
+def get_answer(user_story: str, laws: list, lang: str = "sw",
+               history: list = None) -> dict:
     """
     Main entry point for the background job thread.
     Returns a dict with the 4-box answer.
+
+    history — optional list of prior {role, content} turns from the web chat.
+              When provided, passed to the AI so it has conversation memory.
+              Same format used by the Telegram bot.
     """
     lang = lang if lang in SYSTEM_PROMPTS else "sw"
     # Sheng is understood as input but we reply in Kiswahili
@@ -671,10 +676,14 @@ def get_answer(user_story: str, laws: list, lang: str = "sw") -> dict:
     context  = format_law_context(laws)
     system   = SYSTEM_PROMPTS[lang].format(context=context)
     user_msg = _USER_MESSAGES[lang].format(story=user_story)
-    messages = [
-        {"role": "system", "content": system},
-        {"role": "user",   "content": user_msg},
-    ]
+
+    # Build multi-turn message array — same logic as the Telegram bot
+    messages = [{"role": "system", "content": system}]
+    if history:
+        # Trim to last 4 turns (8 messages) to keep prompt size sane
+        trimmed = history[-(8):]
+        messages.extend(trimmed)
+    messages.append({"role": "user", "content": user_msg})
 
     try:
         raw = _call_with_fallback(messages, lang=lang)
@@ -684,6 +693,6 @@ def get_answer(user_story: str, laws: list, lang: str = "sw") -> dict:
                 "raw": str(exc), "is_serious": False, "api_error": True}
 
     sections = parse_answer_sections(raw, lang=lang)
-    sections["raw"]       = raw
+    sections["raw"]        = raw
     sections["is_serious"] = False
     return sections

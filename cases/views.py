@@ -13,6 +13,7 @@ Endpoints:
 """
 
 import json
+import re
 import threading
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -21,23 +22,116 @@ from django.utils import timezone
 
 from cases.models import Law, Query, AnswerJob
 from cases.rag import find_relevant_laws
-from cases.ai_engine import get_answer
+from cases.ai_engine import get_answer, is_serious_criminal
+
+
+# ── Conversation memory helpers (mirrors telegram_bot.py) ────────────────────
+
+_CORRECTION_SIGNALS = {
+    # English
+    'actually', 'wait', 'no wait', 'sorry', 'i meant', 'i mean',
+    'correction', 'not that', 'let me correct', 'i made a mistake',
+    'ignore that', 'forget that', 'scratch that', 'not exactly',
+    'to clarify', 'let me clarify', 'what i meant', 'actually no',
+    # Swahili
+    'siyo', 'hapana', 'nilimaanisha', 'nilikuwa nasema', 'acha',
+    'samahani', 'sahihisha', 'kwa kweli', 'kweli ni', 'badala yake',
+    'nilikosea', 'si hivyo', 'namaanisha', 'ukweli ni',
+}
+
+_FOLLOWUP_SIGNALS = {
+    # English
+    'what about', 'and', 'also', 'but', 'how about', 'what if',
+    'can i', 'do i', 'is it', 'so', 'then', 'okay so', 'ok so',
+    'what happens', 'and if', 'does that mean', 'so i can',
+    'what else', 'anything else', 'more', 'tell me more', 'elaborate',
+    # Swahili
+    'na', 'lakini', 'vipi', 'je', 'sawa basi', 'na kama',
+    'pia', 'zaidi', 'eleza zaidi', 'endelea', 'basi', 'sasa',
+    'kisha', 'halafu', 'je niaweza', 'ninaweza',
+}
+
+_THANKS = {
+    'thanks', 'thank you', 'thank you so much', 'thanks a lot',
+    'asante', 'asante sana', 'nashukuru', 'shukrani', 'sawa asante',
+    'nimeshukuru', 'appreciated', 'helpful', 'that helped', 'you helped me',
+    'umesaidia', 'great', 'wonderful', 'excellent', 'perfect', 'amazing',
+}
+
+_GREETINGS = {
+    'hello', 'hi', 'hey', 'habari', 'habari yako', 'sasa', 'mambo',
+    'niaje', 'vipi', 'sup', 'hola', 'salamu', 'good morning',
+    'good afternoon', 'good evening', 'ok', 'okay', 'sawa',
+}
+
+
+def _detect_correction(message: str) -> bool:
+    msg = message.lower().strip()
+    for signal in _CORRECTION_SIGNALS:
+        if msg.startswith(signal + ' ') or msg.startswith(signal + ',') or msg == signal:
+            return True
+    return False
+
+
+def _detect_followup(message: str, has_history: bool) -> bool:
+    if not has_history:
+        return False
+    msg = message.lower().strip()
+    if len(message.strip()) < 40:
+        return True
+    for signal in _FOLLOWUP_SIGNALS:
+        if msg.startswith(signal + ' ') or msg.startswith(signal + ','):
+            return True
+    return False
+
+
+def _build_rag_query(message: str, history: list, is_correction: bool) -> str:
+    """Enrich short/follow-up messages with prior context for better RAG results."""
+    if not history:
+        return message
+    last_user = ''
+    for turn in reversed(history):
+        if turn.get('role') == 'user':
+            last_user = turn['content']
+            break
+    if not last_user:
+        return message
+    if is_correction:
+        return f"{last_user} — correction: {message}"
+    return f"{last_user}. {message}"
+
+
+def _summarise_answer(answer: dict) -> str:
+    """Store a concise summary in history — not the full formatted answer."""
+    parts = []
+    if answer.get('law'):
+        parts.append(answer['law'][:300].strip())
+    if answer.get('simple'):
+        parts.append(answer['simple'][:300].strip())
+    return '\n\n'.join(parts) if parts else 'Answered.'
 
 
 # ─── Background worker ───────────────────────────────────────────────────────
 
-def _run_job(job_id: int):
+def _run_job(job_id: int, history: list = None, rag_query: str = None):
     """
     Runs in a background thread.
-    Calls the AI, fills in the AnswerJob row, creates a Query row.
+    Calls the AI with conversation history, fills in the AnswerJob row.
     Never raises — all errors go into the job record.
     """
     try:
         job = AnswerJob.objects.get(pk=job_id)
+        # Use enriched RAG query when available (for follow-ups/corrections)
+        search_story = rag_query or job.story
         top_laws = find_relevant_laws(
-            user_story=job.story, top_n=8, category_boost=["constitution"]
+            user_story=search_story, top_n=8, category_boost=["constitution"]
         )
-        answer = get_answer(user_story=job.story, laws=top_laws, lang=job.lang)
+        answer = get_answer(
+            user_story=job.story,
+            laws=top_laws,
+            lang=job.lang,
+            history=history or [],
+        )
 
         query = Query.objects.create(
             user_identifier="web-anonymous",
@@ -50,6 +144,9 @@ def _run_job(job_id: int):
             raw_answer=answer.get("raw", ""),
         )
         query.laws_used.set(top_laws)
+
+        # Build summary to return to client so it can update localStorage history
+        summary = _summarise_answer(answer)
 
         AnswerJob.objects.filter(pk=job_id).update(
             status=AnswerJob.STATUS_DONE,
@@ -65,12 +162,24 @@ def _run_job(job_id: int):
             query=query,
             finished_at=timezone.now(),
         )
+        # Store summary for the client to add to its history
+        # We piggyback it in a separate field using the raw_answer slot isn't ideal
+        # so we store it in the job's error_message field only when status=done (it's blank then)
+        # Actually: we return it in the status response extra field — store in sources_json extra key
+        # Cleanest: store in a temp cache dict keyed by job_id
+        _job_summaries[job_id] = summary
+
     except Exception as exc:
         AnswerJob.objects.filter(pk=job_id).update(
             status=AnswerJob.STATUS_ERROR,
             error_message=str(exc)[:500],
             finished_at=timezone.now(),
         )
+
+
+# Small in-process cache: job_id → assistant summary text
+# Used to send the summary back to the browser so it can update localStorage history
+_job_summaries: dict = {}
 
 
 # ─── /api/submit/ ─────────────────────────────────────────────────────────────
@@ -80,16 +189,29 @@ def _run_job(job_id: int):
 def submit_job(request):
     """
     POST /api/submit/
-    Body: {"story": "...", "county": "...", "lang": "sw|en"}
+    Body: {
+      "story":   "...",
+      "county":  "...",
+      "lang":    "sw|en",
+      "history": [{"role":"user","content":"..."},{"role":"assistant","content":"..."},...],
+      "is_correction": false,
+      "is_followup":   false
+    }
 
     Creates an AnswerJob, fires the AI in a background thread,
     and returns the job_id immediately (< 1 second).
+    For greetings/thanks detected on the client, no job is created —
+    the client handles them locally. But if they reach here, we treat
+    them as normal questions.
     """
     try:
         body   = json.loads(request.body)
         story  = body.get("story",  "").strip()
         county = body.get("county", "").strip()
         lang   = body.get("lang",   "sw").strip()
+        history       = body.get("history", [])
+        is_correction = bool(body.get("is_correction", False))
+        is_followup   = bool(body.get("is_followup", False))
     except (json.JSONDecodeError, TypeError):
         return JsonResponse({"error": "Invalid JSON."}, status=400)
 
@@ -103,13 +225,33 @@ def submit_job(request):
     if lang not in ("sw", "en"):
         lang = "sw"
 
+    # Validate history — must be a list of role/content dicts, max 8 entries
+    if not isinstance(history, list):
+        history = []
+    history = [
+        h for h in history
+        if isinstance(h, dict) and h.get('role') in ('user', 'assistant')
+           and isinstance(h.get('content'), str)
+    ][-8:]  # trim to last 4 turns
+
+    # Build enriched RAG query for follow-ups and corrections
+    rag_query = _build_rag_query(story, history, is_correction) if (is_correction or is_followup) else story
+
     job = AnswerJob.objects.create(story=story, county=county, lang=lang)
 
     # Fire and forget — Django response returns while thread works
-    t = threading.Thread(target=_run_job, args=(job.pk,), daemon=True)
+    t = threading.Thread(
+        target=_run_job,
+        args=(job.pk, history, rag_query),
+        daemon=True,
+    )
     t.start()
 
-    return JsonResponse({"job_id": job.pk, "status": "pending"})
+    return JsonResponse({
+        "job_id": job.pk,
+        "status": "pending",
+        "is_correction": is_correction,
+    })
 
 
 # ─── /api/status/<job_id>/ ────────────────────────────────────────────────────
@@ -150,6 +292,9 @@ def job_status(request, job_id):
     except (json.JSONDecodeError, ValueError):
         sources = []
 
+    # Include assistant summary so the browser can update its localStorage history
+    summary = _job_summaries.pop(job.pk, "")
+
     return JsonResponse({
         "status":    "done",
         "query_id":  job.query_id,
@@ -162,6 +307,7 @@ def job_status(request, job_id):
         },
         "sources":    sources,
         "elapsed_seconds": elapsed,
+        "assistant_summary": summary,  # used by browser to update conversation history
     })
 
 

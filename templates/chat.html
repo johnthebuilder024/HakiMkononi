@@ -496,6 +496,208 @@
   var activeThinking = null; // the current thinking bubble element
   var letterOriginal = {}; // jobId → original letter text
 
+  // ── Conversation memory (localStorage) ───────────────────────────
+  // history = [{role:'user',content:'...'},{role:'assistant',content:'...'},...]
+  var HISTORY_KEY    = 'haki_history_' + LANG;
+  var HISTORY_MAX    = 8; // messages = 4 turns
+
+  function loadHistory() {
+    try {
+      var raw = localStorage.getItem(HISTORY_KEY);
+      if (!raw) return [];
+      var h = JSON.parse(raw);
+      return Array.isArray(h) ? h.slice(-HISTORY_MAX) : [];
+    } catch(e) { return []; }
+  }
+
+  function saveHistory(history) {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-HISTORY_MAX)));
+    } catch(e) {}
+  }
+
+  function addToHistory(userMsg, assistantSummary) {
+    var h = loadHistory();
+    h.push({role:'user',      content: userMsg});
+    h.push({role:'assistant', content: assistantSummary || 'Answered.'});
+    saveHistory(h);
+  }
+
+  function clearHistory() {
+    try { localStorage.removeItem(HISTORY_KEY); } catch(e) {}
+  }
+
+  // ── Correction / follow-up detection (mirrors bot logic) ─────────
+  var CORRECTION_SIGNALS = [
+    'actually', 'wait', 'no wait', 'sorry', 'i meant', 'i mean',
+    'correction', 'not that', 'ignore that', 'forget that', 'scratch that',
+    'not exactly', 'to clarify', 'what i meant', 'actually no',
+    'siyo', 'hapana', 'nilimaanisha', 'nilikuwa nasema', 'acha',
+    'samahani', 'sahihisha', 'kwa kweli', 'nilikosea', 'si hivyo',
+  ];
+
+  var FOLLOWUP_SIGNALS = [
+    'what about', 'and ', 'also ', 'but ', 'how about', 'what if',
+    'can i', 'do i', 'is it', 'so ', 'then ', 'what happens',
+    'and if', 'does that mean', 'what else', 'tell me more',
+    'na ', 'lakini', 'vipi', 'je ', 'pia ', 'zaidi', 'basi ', 'kisha ',
+  ];
+
+  var THANKS_SET = new Set([
+    'thanks','thank you','thank you so much','thanks a lot','asante',
+    'asante sana','nashukuru','shukrani','sawa asante','nimeshukuru',
+    'appreciated','helpful','that helped','you helped me','umesaidia',
+    'great','wonderful','excellent','perfect','amazing','awesome',
+  ]);
+
+  var GREETINGS_SET = new Set([
+    'hello','hi','hey','habari','habari yako','sasa','mambo','niaje',
+    'vipi','sup','hola','salamu','good morning','good afternoon',
+    'good evening','ok','okay','sawa','yes','no','ndiyo','hapana',
+  ]);
+
+  function detectCorrection(msg) {
+    var m = msg.toLowerCase().trim();
+    for (var i = 0; i < CORRECTION_SIGNALS.length; i++) {
+      var s = CORRECTION_SIGNALS[i];
+      if (m.startsWith(s + ' ') || m.startsWith(s + ',') || m === s) return true;
+    }
+    return false;
+  }
+
+  function detectFollowup(msg, hasHistory) {
+    if (!hasHistory) return false;
+    var m = msg.toLowerCase().trim();
+    if (msg.trim().length < 40) return true;
+    for (var i = 0; i < FOLLOWUP_SIGNALS.length; i++) {
+      if (m.startsWith(FOLLOWUP_SIGNALS[i])) return true;
+    }
+    return false;
+  }
+
+  // ── Inline bot reply (no API call needed) ─────────────────────────
+  function addBotMessage(html, cls) {
+    removeThinking();
+    var row = document.createElement('div');
+    row.className = 'msg-row bot';
+    var bubble = document.createElement('div');
+    bubble.className = cls || 'error-msg';
+    bubble.style.cssText = 'background:#fff;border:1px solid #e0e0e0;border-radius:4px 18px 18px 18px;padding:.75rem 1.1rem;max-width:min(560px,92vw);font-size:.9rem;line-height:1.6;';
+    bubble.innerHTML = html;
+    row.appendChild(bubble);
+    messagesEl.appendChild(row);
+    scrollDown();
+    resetInput();
+  }
+
+  // ── Letter personalisation flow (mirrors bot name→phone flow) ─────
+  var pendingLetter      = null; // letter text waiting for name
+  var pendingLetterName  = null; // name collected, waiting for phone
+  var letterFlowJobId    = null;
+
+  function startLetterFlow(letterText, jobId) {
+    pendingLetter     = letterText;
+    pendingLetterName = null;
+    letterFlowJobId   = jobId;
+    var prompt = LANG === 'sw'
+      ? '✍️ <strong>Barua ipo tayari!</strong><br><br>Niambie <strong>jina lako kamili</strong> ili niijaze barua yako:<br><small><em>(au andika /skip kuruka hatua hii)</em></small>'
+      : '✍️ <strong>Your letter is ready!</strong><br><br>Type your <strong>full name</strong> and I\'ll fill it in for you:<br><small><em>(or type /skip to skip this step)</em></small>';
+    addBotMessage(prompt);
+    chatInput.placeholder = LANG === 'sw' ? 'Andika jina lako...' : 'Type your name...';
+    chatInput.focus();
+  }
+
+  function handleLetterFlowInput(text) {
+    // /skip at any point
+    if (text.trim().toLowerCase() === '/skip') {
+      finishLetterFlow('', '');
+      return true;
+    }
+    if (pendingLetter !== null && pendingLetterName === null) {
+      // Collecting name — validate
+      var words = text.trim().split(/\s+/);
+      var isSentence = words.length > 4 || text.length > 50 ||
+        /^(i feel|i want|i am|i was|i will|i need|they|police|there is|someone)/i.test(text);
+      if (isSentence) {
+        var hasDistress = /\b(beat|beaten|beating|hit|kill|angry|hurt|violence|abuse)\b/i.test(text);
+        var msg = hasDistress
+          ? (LANG === 'sw'
+              ? '💙 Naelewa unahisi hasira. Tafadhali andika <strong>jina lako halisi</strong> tu — mfano: <em>John Kamau</em>'
+              : '💙 I understand you\'re angry. Please type just your <strong>real full name</strong> — example: <em>John Kamau</em>')
+          : (LANG === 'sw'
+              ? '⚠️ Hiyo inaonekana kama sentensi. Andika <strong>jina lako</strong> tu — mfano: <em>John Kamau</em>'
+              : '⚠️ That looks like a sentence. Type just your <strong>full name</strong> — example: <em>John Kamau</em>');
+        addBotMessage(msg);
+        return true;
+      }
+      if (!text.trim() || text.trim().length < 2) {
+        addBotMessage(LANG === 'sw' ? '⚠️ Tafadhali andika jina lako.' : '⚠️ Please type your full name.');
+        return true;
+      }
+      pendingLetterName = text.trim().slice(0, 60);
+      var thanks = LANG === 'sw'
+        ? '✅ Asante, <strong>' + pendingLetterName + '</strong>!<br><br>Sasa niambie <strong>nambari yako ya simu</strong>:<br><small><em>(au andika /skip kuruka)</em></small>'
+        : '✅ Got it, <strong>' + pendingLetterName + '</strong>!<br><br>Now type your <strong>phone number</strong>:<br><small><em>(or type /skip to skip)</em></small>';
+      addBotMessage(thanks);
+      chatInput.placeholder = LANG === 'sw' ? '0712345678' : '0712345678';
+      return true;
+    }
+    if (pendingLetter !== null && pendingLetterName !== null) {
+      // Collecting phone — validate
+      var digits = text.trim().replace(/[\s\-\(\)]/g, '');
+      var validPhone = /^\+?\d{9,}$/.test(digits);
+      if (!validPhone) {
+        addBotMessage(LANG === 'sw'
+          ? '⚠️ Hiyo haionekani kama nambari. Jaribu tena (mfano: 0712345678) au andika /skip.'
+          : '⚠️ That doesn\'t look like a phone number. Try again (e.g. 0712345678) or type /skip.');
+        return true;
+      }
+      finishLetterFlow(pendingLetterName, text.trim());
+      return true;
+    }
+    return false;
+  }
+
+  function finishLetterFlow(name, phone) {
+    var letter = pendingLetter || '';
+    pendingLetter     = null;
+    pendingLetterName = null;
+    chatInput.placeholder = "{{ ui.story_placeholder }}";
+
+    if (!letter) {
+      addBotMessage(LANG === 'sw' ? '❓ Una swali lingine?' : '❓ Have another question?');
+      return;
+    }
+
+    // Fill placeholders
+    var today = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
+    var filled = letter
+      .replace(/\[YOUR NAME\]/g,  name || '[YOUR NAME]')
+      .replace(/\[JINA LAKO\]/g,  name || '[JINA LAKO]')
+      .replace(/\[DATE\]/g,       today)
+      .replace(/\[TAREHE\]/g,     today)
+      .replace(/\[YOUR ADDRESS\]/g, '[Your address — add this]')
+      .replace(/\[ANWANI YAKO\]/g,  '[Anwani yako — ongeza hapa]')
+      .replace(/\[ANWANI\]/g,       '[Anwani yako — ongeza hapa]');
+    if (phone) {
+      filled = filled.replace(/\[PHONE NUMBER\]/g,     phone)
+                     .replace(/\[NAMBARI YA SIMU\]/g,  phone);
+    }
+
+    // Inject the filled letter back into the existing card
+    var el = document.getElementById('ltLetter-' + letterFlowJobId);
+    if (el) {
+      renderLetter(el, filled, letterFlowJobId);
+      updateLetterCount(el, letterFlowJobId);
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    var tip = LANG === 'sw'
+      ? '✅ <strong>Barua imejazwa!</strong> Badilisha anwani yako ukihitaji. Kisha unaweza kuunakili au kupakua PDF.<br><br>❓ Una swali lingine?'
+      : '✅ <strong>Letter filled!</strong> Update your address if needed. Then copy or download as PDF.<br><br>❓ Have another question?';
+    addBotMessage(tip);
+  }
+
   // ── Textarea auto-resize + send enable ───────────────────────────
   chatInput.addEventListener('input', function() {
     this.style.height = 'auto';
@@ -864,6 +1066,15 @@
           clearInterval(pollTimer);
           d.job_id = currentJobId;
           addAnswerCard(d);
+          // ── Save this turn to conversation history ──────────────
+          if (d.assistant_summary && currentStory) {
+            addToHistory(currentStory, d.assistant_summary);
+          }
+          // ── Letter flow — ask for name if letter has placeholders
+          var letter = d.answer && d.answer.andika_hivi;
+          if (letter && (letter.indexOf('[YOUR NAME]') !== -1 || letter.indexOf('[JINA LAKO]') !== -1)) {
+            setTimeout(function() { startLetterFlow(letter, currentJobId); }, 600);
+          }
         } else if (d.status === 'error') {
           clearInterval(pollTimer);
           addError('❌ ' + (d.message || (LANG === 'sw'
@@ -882,26 +1093,114 @@
     var story = chatInput.value.trim();
     if (story.length < 3) return;
 
+    // ── Letter flow intercepts first ─────────────────────────────
+    if (pendingLetter !== null) {
+      addUserMessage(story);
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      sendBtn.disabled = true;
+      handleLetterFlowInput(story);
+      sendBtn.disabled = chatInput.value.trim().length < 3;
+      return;
+    }
+
+    var history     = loadHistory();
+    var hasHistory  = history.length > 0;
+    var msgLower    = story.toLowerCase().trim().replace(/[!?.,:]+$/, '');
+    var isCorrection = detectCorrection(story);
+    var isFollowup   = detectFollowup(story, hasHistory);
+
+    // ── Greeting detection ────────────────────────────────────────
+    if (GREETINGS_SET.has(msgLower) || (story.trim().length < 8 && !hasHistory)) {
+      addUserMessage(story);
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      sendBtn.disabled = true;
+      var nudge = hasHistory
+        ? (LANG === 'sw' ? '👋 Karibu tena! Una swali lingine la kisheria?' : '👋 Hi again! Do you have another legal question?')
+        : (LANG === 'sw'
+            ? '👋 Habari!<br><br>Niambie tatizo lako la kisheria.<br><br><em>Mfano: Nilifukuzwa kazi bila notisi na mwajiri wangu.</em>'
+            : '👋 Hello!<br><br>Tell me your legal problem and I\'ll help you.<br><br><em>Example: My employer fired me without notice.</em>');
+      addBotMessage(nudge);
+      sendBtn.disabled = chatInput.value.trim().length < 3;
+      return;
+    }
+
+    // ── Thank-you detection ───────────────────────────────────────
+    if (THANKS_SET.has(msgLower)) {
+      addUserMessage(story);
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      sendBtn.disabled = true;
+      var responses_sw = [
+        '😊 Karibu sana!<br><br>Nimefurahi kukusaidia. Haki zako ni muhimu na unastahili kuzijua.<br><br>Ukiwa na swali lingine la kisheria, niko hapa.',
+        '😊 Karibu!<br><br>Kazi yangu ni kuhakikisha Wakenya wote wanajua haki zao. Ukihitaji msaada tena, niambie tu.',
+        '🙏 Karibu sana!<br><br>Nimefurahi kukusaidia. Shiriki HakiMkononi na wengine wanaohitaji msaada wa kisheria.',
+      ];
+      var responses_en = [
+        '😊 You\'re welcome!<br><br>I\'m really glad I could help. Your rights matter and you deserve to know them.<br><br>If you have another question, I\'m here.',
+        '😊 Happy to help!<br><br>That\'s exactly what I\'m here for. No one should face a legal problem alone.',
+        '🙏 You\'re welcome!<br><br>I\'m glad the answer was useful. Share HakiMkononi with others who might need legal help too.',
+      ];
+      var pool = LANG === 'sw' ? responses_sw : responses_en;
+      addBotMessage(pool[Math.floor(Math.random() * pool.length)]);
+      sendBtn.disabled = chatInput.value.trim().length < 3;
+      return;
+    }
+
+    // ── Serious case — instant response, still calls AI for full details ─
+    // (The server will also catch it — this gives immediate feedback)
+    var SERIOUS_KW = ['murder','mauaji','rape','ubakaji','defilement','udhalilishaji',
+                      'terrorism','ugaidi','robbery with violence','manslaughter','kuua'];
+    var msgLow = story.toLowerCase();
+    var isSerious = SERIOUS_KW.some(function(kw){ return msgLow.indexOf(kw) !== -1; });
+    if (isSerious) {
+      addUserMessage(story);
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      sendBtn.disabled = true;
+      var sMsg = LANG === 'sw'
+        ? '🚨 <strong>Kesi Nyeti — Tafuta Wakili Haraka</strong><br><br>Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br><small>NLAS = National Legal Aid Service, mawakili wa serikali bila malipo</small><br><br>🌐 www.nlas.go.ke'
+        : '🚨 <strong>Serious Case — Get a Lawyer Urgently</strong><br><br>This situation needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br><small>NLAS = National Legal Aid Service, free government lawyers</small><br><br>🌐 www.nlas.go.ke';
+      addBotMessage(sMsg);
+      sendBtn.disabled = chatInput.value.trim().length < 3;
+      return;
+    }
+
+    // ── Acknowledge correction before thinking ───────────────────
+    if (isCorrection && hasHistory) {
+      addUserMessage(story);
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      sendBtn.disabled = true;
+      var ack = LANG === 'sw' ? '_Sawa, naelewa. Acha nirekebishe..._' : '_Got it, let me correct that..._';
+      addBotMessage('<em style="color:#666;">' + (LANG === 'sw' ? 'Sawa, naelewa. Acha nirekebishe...' : 'Got it, let me correct that...') + '</em>');
+    } else {
+      addUserMessage(story);
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      sendBtn.disabled = true;
+    }
+
     currentStory  = story;
     currentCounty = countySelect.value;
-
-    // Clear input immediately
-    chatInput.value = '';
-    chatInput.style.height = 'auto';
-    sendBtn.disabled = true;
-
-    // Add user bubble
-    addUserMessage(story);
 
     // Add thinking dots
     addThinking();
 
-    // Submit job
+    // Submit job with history
     startTime = Date.now();
     fetch('/api/submit/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
-      body: JSON.stringify({ story: story, county: currentCounty, lang: LANG })
+      body: JSON.stringify({
+        story:         story,
+        county:        currentCounty,
+        lang:          LANG,
+        history:       history,
+        is_correction: isCorrection,
+        is_followup:   isFollowup,
+      })
     })
     .then(function(r){ return r.json(); })
     .then(function(d) {
