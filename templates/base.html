@@ -131,6 +131,7 @@
            class="lang-pill {% if lang == l.lang_code %}active{% endif %}"
            title="{{ l.lang_name }}">{{ l.lang_name }}</a>
         {% endfor %}
+        {% block navbar_extra %}{% endblock %}
       </div>
     </div>
   </div>

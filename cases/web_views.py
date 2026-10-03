@@ -259,7 +259,7 @@ def _render_with_lang(request, template, context, lang):
     return response
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "HEAD"])
 def home(request):
     lang = _get_lang(request)
     resp = _render_with_lang(request, "chat.html", {"counties": COUNTIES}, lang)

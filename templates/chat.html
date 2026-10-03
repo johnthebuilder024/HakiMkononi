@@ -3,6 +3,13 @@
 
 {% block title %}HakiMkononi | {{ ui.hero_title }}{% endblock %}
 
+{% block navbar_extra %}
+<button id="newChatBtn" onclick="newChat()"
+        title="{% if lang == 'en' %}Start a new conversation{% else %}Anza mazungumzo mapya{% endif %}">
+  ✏️ {% if lang == 'en' %}New Chat{% else %}Mpya{% endif %}
+</button>
+{% endblock %}
+
 {% block extra_head %}
 <script src="{% static 'js/marked.min.js' %}"></script>
 <style>
@@ -306,34 +313,55 @@
 }
 .feedback-row button:hover { background: #f0f0f0; }
 
-/* ── New Chat button (floating, top-right of window) ─────────────── */
+/* ── New Chat button — lives in navbar, injected by chat page ─────── */
 #newChatBtn {
-  position: fixed;
-  top: 62px;
-  right: 1rem;
-  z-index: 100;
-  background: #fff;
-  border: 1.5px solid #dde8dc;
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,.5);
   border-radius: 20px;
-  padding: .3em .85em;
+  padding: .25em .8em;
   font-size: .78rem;
   font-weight: 600;
-  color: var(--haki-green);
+  color: #fff;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,.1);
   transition: all .15s;
   display: none; /* hidden until first message */
+  white-space: nowrap;
 }
-#newChatBtn:hover { background: var(--haki-green); color: #fff; border-color: var(--haki-green); }
+#newChatBtn:hover { background: rgba(255,255,255,.15); }
 
 /* ── Input bar ───────────────────────────────────────────────────── */
 .chat-input-bar {
   background: #fff;
   border-top: 1px solid #e0e0e0;
-  padding: .65rem 1rem;
+  padding: .5rem 1rem .65rem;
   box-shadow: 0 -2px 10px rgba(0,0,0,.05);
 }
 .chat-input-inner { max-width: 740px; margin: 0 auto; }
+
+/* ── County + meta row sits ABOVE the textarea ───────────────────── */
+.chat-meta {
+  display: flex; align-items: center; gap: .5rem;
+  flex-wrap: wrap; padding: 0 0 .4rem;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: .4rem;
+}
+.chat-meta select {
+  font-size: .8rem; padding: .28em .65em;
+  border-radius: 20px; border: 1px solid #ddd;
+  background: #fff; color: #444; outline: none;
+  cursor: pointer;
+}
+.chat-meta select:hover { border-color: var(--haki-green); }
+.chat-meta .mic-status { font-size: .76rem; color: #888; flex: 1; }
+.chat-meta .county-label {
+  font-size: .75rem; color: #999; font-weight: 500;
+}
+.chat-disclaimer {
+  font-size: .68rem; color: #bbb;
+  margin-left: auto;
+}
+
+/* ── Textarea wrap ───────────────────────────────────────────────── */
 .chat-textarea-wrap {
   display: flex; align-items: flex-end; gap: .5rem;
   background: #f3f3f3;
@@ -378,35 +406,17 @@
   50%      { box-shadow: 0 0 0 7px rgba(220,53,69,0); }
 }
 
-/* ── Meta row ────────────────────────────────────────────────────── */
-.chat-meta {
-  display: flex; align-items: center; gap: .5rem;
-  flex-wrap: wrap; padding: .35rem 0 0;
-}
-.chat-meta select {
-  font-size: .78rem; padding: .22em .55em;
-  border-radius: 20px; border: 1px solid #ddd;
-  background: #fff; color: #555; outline: none;
-}
-.chat-meta .mic-status { font-size: .76rem; color: #888; flex: 1; }
-.chat-disclaimer { font-size: .69rem; color: #bbb; text-align: right; }
-
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .msg-row { padding: 0 .5rem; }
   .user-bubble { max-width: 82%; }
   .bot-card, .bot-bubble, .serious-msg { max-width: 94vw; }
-  #newChatBtn { top: 58px; right: .6rem; }
+  .chat-meta { gap: .35rem; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- New Chat button — appears after first message -->
-<button id="newChatBtn" onclick="newChat()" title="Start a new conversation">
-  ✏️ {% if lang == 'en' %}New Chat{% else %}Mazungumzo Mapya{% endif %}
-</button>
-
 <div class="chat-page">
   <!-- Scrollable messages area -->
   <div id="chatWindow">
@@ -437,6 +447,21 @@
   <!-- Fixed input bar -->
   <div class="chat-input-bar">
     <div class="chat-input-inner">
+
+      <!-- County + status row ABOVE the textarea -->
+      <div class="chat-meta">
+        <span class="county-label">{% if lang == 'en' %}County:{% else %}Kaunti:{% endif %}</span>
+        <select id="countySelect" aria-label="{{ ui.field_county }}">
+          <option value="">{% if lang == 'en' %}All Kenya{% else %}Kenya Yote{% endif %}</option>
+          {% for c in counties %}
+          <option value="{{ c }}">{{ c }}</option>
+          {% endfor %}
+        </select>
+        <span class="mic-status" id="micStatus"></span>
+        <span class="chat-disclaimer">{{ ui.disclaimer }}</span>
+      </div>
+
+      <!-- Textarea + mic + send -->
       <div class="chat-textarea-wrap">
         <textarea id="chatInput" rows="1"
                   placeholder="{{ ui.story_placeholder }}"
@@ -455,16 +480,7 @@
           </svg>
         </button>
       </div>
-      <div class="chat-meta">
-        <select id="countySelect" aria-label="{{ ui.field_county }}">
-          <option value="">{{ ui.county_default }}</option>
-          {% for c in counties %}
-          <option value="{{ c }}">{{ c }}</option>
-          {% endfor %}
-        </select>
-        <span class="mic-status" id="micStatus"></span>
-        <span class="chat-disclaimer">{{ ui.disclaimer }}</span>
-      </div>
+
     </div>
   </div>
 </div>
@@ -491,12 +507,13 @@
   var currentJobId   = null;
   var pollTimer      = null;
   var POLL_MS        = 5000;
-  var MAX_WAIT_MS    = 180000;
+  var MAX_WAIT_MS    = 300000;  // 5 minutes — Render cold starts can be slow
   var startTime      = 0;
   var activeThinking = null;
   var letterOriginal = {};
   var currentStory   = '';
   var currentCounty  = '';
+  var reassuranceSent = false; // tracks whether mid-wait message was shown
 
   // ── Conversation memory ───────────────────────────────────────────
   var HISTORY_KEY = 'haki_history_' + LANG;
@@ -523,6 +540,7 @@
     chatInput.value=''; chatInput.style.height='auto'; sendBtn.disabled=true;
     chatInput.placeholder="{{ ui.story_placeholder }}";
     pendingLetter=null; pendingLetterName=null;
+    reassuranceSent=false;
   };
 
   // ── Correction / follow-up detection ─────────────────────────────
@@ -748,14 +766,30 @@
 
   function poll(){
     if(!currentJobId)return;
-    if(Date.now()-startTime>MAX_WAIT_MS){addError('⏱️ '+(LANG==='sw'?'Inachukua muda mrefu. Jaribu tena.':'Taking longer than usual. Please try again.'));return;}
+    var elapsed = Date.now()-startTime;
+    if(elapsed>MAX_WAIT_MS){
+      addError('⏱️ '+(LANG==='sw'?'Imechukua muda mrefu sana. Tafadhali jaribu tena.':'This is taking too long. Please try again.'));
+      return;
+    }
+    // Send a reassurance message at ~30s so user knows we're working
+    if(!reassuranceSent && elapsed>30000){
+      reassuranceSent=true;
+      var msg=LANG==='sw'
+        ?'_Bado inasoma sheria... inaweza kuchukua hadi dakika moja._'
+        :'_Still reading the law... this can take up to a minute._';
+      addBotBubble('<em style="color:#888;">'+msg+'</em>');
+    }
     fetch('/api/status/'+currentJobId+'/',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
       if(d.status==='done'){
-        clearInterval(pollTimer); d.job_id=currentJobId; addAnswerCard(d);
+        clearInterval(pollTimer);
+        d.job_id=currentJobId; addAnswerCard(d);
         if(d.assistant_summary&&currentStory)addToHistory(currentStory,d.assistant_summary);
         var letter=d.answer&&d.answer.andika_hivi;
         if(letter&&(letter.indexOf('[YOUR NAME]')!==-1||letter.indexOf('[JINA LAKO]')!==-1)){setTimeout(function(){startLetterFlow(letter,currentJobId);},600);}
-      }else if(d.status==='error'){clearInterval(pollTimer);addError('❌ '+(d.message||(LANG==='sw'?'Kuna tatizo. Jaribu tena.':'An error occurred. Please try again.')));}
+      }else if(d.status==='error'){
+        clearInterval(pollTimer);
+        addError('❌ '+(d.message||(LANG==='sw'?'Kuna tatizo. Jaribu tena.':'An error occurred. Please try again.')));
+      }
     }).catch(function(){});
   }
 
@@ -788,6 +822,7 @@
     addUserMessage(story); chatInput.value=''; chatInput.style.height='auto'; sendBtn.disabled=true;
     if(isCorrection&&hasHistory){addBotBubble('<em style="color:#888;">'+(LANG==='sw'?'Sawa, naelewa. Acha nirekebishe...':'Got it, let me correct that...')+'</em>');}
     currentStory=story; currentCounty=countySelect.value;
+    reassuranceSent=false;
     addThinking();
 
     startTime=Date.now();
