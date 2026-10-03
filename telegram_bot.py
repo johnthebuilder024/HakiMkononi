@@ -841,7 +841,7 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 "🚨 *Kesi Nyeti — Tafuta Wakili Haraka*\n\n"
                 "Kesi hii inahitaji wakili wa kweli, si AI.\n\n"
                 "📞 *NLAS (Bure):* 0800 720 120\n"
-                "_NLAS = National Legal Aid Service — mawakili wa serikali bila malipo_\n\n"
+                "_NLAS = National Legal Aid Service, mawakili wa serikali bila malipo_\n\n"
                 "🌐 www.nlas.go.ke"
             ),
             'en': (
