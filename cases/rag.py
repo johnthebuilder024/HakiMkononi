@@ -428,8 +428,19 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         # Tenant disputes: boost landlord_tenant strongly, suppress bare land sections
         if is_tenant and entry['category'] == 'landlord_tenant':
             score += 0.20   # strong boost — Landlord & Tenant Act should win
-        if is_tenant and not is_land and entry['category'] == 'land':
-            score -= 0.08   # suppress Land Act when it's a pure rental dispute
+        # Extra title-based boost: directly target the Landlord and Tenant Act / Rent Restriction Act
+        if is_tenant and entry['category'] == 'landlord_tenant' and any(
+            k in (entry['title'] or '').lower()
+            for k in ['landlord and tenant', 'landlord & tenant', 'rent restriction',
+                      'distress for rent', 'shops, hotels']
+        ):
+            score += 0.12   # double reward for the exact right Act
+        # Suppress Land Act eviction sections when it's a rental dispute (tenant pays rent)
+        if is_tenant and entry['category'] == 'land' and any(
+            k in (entry['title'] or '').lower()
+            for k in ['land act', 'land registration', 'community land']
+        ):
+            score -= 0.12   # Land Act 2012 is for land ownership, not tenancy
         if is_criminal and entry['category'] == 'criminal_procedure':
             score += 0.14
         # Always boost Constitution for criminal cases — Article 49 must appear
