@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.http import JsonResponse
 from cases.web_views import home, about, ask_web, dashboard
 from cases.web_views import lawyer_register, lawyer_documents, lawyer_status
-from cases.web_views import lawyers_connect, lawyers_for_query
+from cases.web_views import lawyers_connect, lawyers_for_query, lawyers_landing
 
 admin.site.site_header = "HakiMkononi Admin"
 admin.site.site_title  = "HakiMkononi"
@@ -30,6 +30,7 @@ urlpatterns = [
     path("about/",                     about,              name="about"),
     path("dashboard/",                 dashboard,          name="dashboard"),
     # Lawyers
+    path("lawyers/",                                lawyers_landing,    name="lawyers_landing"),
     path("lawyers/register/",                       lawyer_register,    name="lawyer_register"),
     path("lawyers/documents/<int:lawyer_id>/",      lawyer_documents,   name="lawyer_documents"),
     path("lawyers/status/<int:lawyer_id>/",         lawyer_status,      name="lawyer_status"),

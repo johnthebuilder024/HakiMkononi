@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{% if lang == "en" %}Join as a Verified Lawyer | HakiMkononi{% else %}Jiunge kama Wakili Aliyeidhinishwa | HakiMkononi{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="py-5" style="background: linear-gradient(135deg, var(--haki-green) 0%, var(--haki-dark) 100%);">
+  <div class="container text-center text-white py-3">
+    <div style="font-size:3rem;">⚖️</div>
+    <h1 class="display-6 fw-bold mb-2">
+      {% if lang == "en" %}Reach Clients Who Need You{% else %}Fikia Wateja Wanaokuhitaji{% endif %}
+    </h1>
+    <p class="lead mb-4" style="color:rgba(255,255,255,.85); max-width:620px; margin-left:auto; margin-right:auto;">
+      {% if lang == "en" %}
+        Every day, Kenyans ask HakiMkononi legal questions it cannot fully resolve.
+        Join our verified lawyer network and get connected to clients who need real legal help.
+      {% else %}
+        Kila siku, Wakenya wanauliza maswali ya kisheria ambayo HakiMkononi haiwezi kuyatatua kikamilifu.
+        Jiunge na mtandao wetu wa mawakili walioidhinishwa na upate wateja wanaohitaji msaada wa kweli.
+      {% endif %}
+    </p>
+    <a href="{% url 'lawyer_register' %}" class="btn btn-lg px-5 fw-bold"
+       style="background:var(--haki-gold); color:#1a1a2e; border:none;">
+      {% if lang == "en" %}Join as a Lawyer →{% else %}Jiunge Kama Wakili →{% endif %}
+    </a>
+    {% if verified_count > 0 %}
+    <p class="mt-3 mb-0 small" style="color:rgba(255,255,255,.7);">
+      {% if lang == "en" %}
+        {{ verified_count }} verified lawyer{{ verified_count|pluralize }} already on the platform
+      {% else %}
+        Mawakili {{ verified_count }} walioidhinishwa tayari kwenye jukwaa
+      {% endif %}
+    </p>
+    {% endif %}
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-9">
+
+        <h2 class="h4 fw-bold text-center mb-4" style="color:var(--haki-dark);">
+          {% if lang == "en" %}How It Works{% else %}Inafanya Kazi Vipi{% endif %}
+        </h2>
+
+        <div class="row g-4 mb-5">
+          <div class="col-12 col-md-4">
+            <div class="card card-haki h-100 text-center p-3">
+              <div style="font-size:2.2rem;">1️⃣</div>
+              <h6 class="fw-bold mt-2">
+                {% if lang == "en" %}Register{% else %}Jisajili{% endif %}
+              </h6>
+              <p class="text-muted small mb-0">
+                {% if lang == "en" %}
+                  Fill in your details and LSK practicing certificate number.
+                {% else %}
+                  Jaza maelezo yako na nambari ya cheti chako cha LSK.
+                {% endif %}
+              </p>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="card card-haki h-100 text-center p-3">
+              <div style="font-size:2.2rem;">2️⃣</div>
+              <h6 class="fw-bold mt-2">
+                {% if lang == "en" %}Get Verified{% else %}Thibitishwa{% endif %}
+              </h6>
+              <p class="text-muted small mb-0">
+                {% if lang == "en" %}
+                  Upload your certificate, ID and a selfie. We verify within 24–48 hours.
+                {% else %}
+                  Pakia cheti chako, kitambulisho na selfie. Tunathibitisha ndani ya masaa 24–48.
+                {% endif %}
+              </p>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="card card-haki h-100 text-center p-3">
+              <div style="font-size:2.2rem;">3️⃣</div>
+              <h6 class="fw-bold mt-2">
+                {% if lang == "en" %}Get Clients{% else %}Pata Wateja{% endif %}
+              </h6>
+              <p class="text-muted small mb-0">
+                {% if lang == "en" %}
+                  Your profile appears to users whose questions match your specialty and county.
+                {% else %}
+                  Wasifu wako unaonekana kwa watumiaji ambao maswali yao yanalingana na utaalamu na kaunti yako.
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Why join -->
+        <div class="card card-haki mb-4">
+          <div class="card-header py-3" style="background:var(--haki-light);">
+            <h2 class="h5 fw-bold mb-0" style="color:var(--haki-green);">
+              {% if lang == "en" %}Why Join HakiMkononi{% else %}Kwa Nini Ujiunge na HakiMkononi{% endif %}
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <div class="col-12 col-sm-6">
+                <div class="d-flex gap-3 align-items-start">
+                  <span style="font-size:1.6rem;">📍</span>
+                  <div>
+                    <h6 class="fw-bold mb-1">
+                      {% if lang == "en" %}County & specialty matching{% else %}Ulinganifu wa kaunti na utaalamu{% endif %}
+                    </h6>
+                    <p class="text-muted small mb-0">
+                      {% if lang == "en" %}
+                        You only appear to clients in your area asking about your areas of practice.
+                      {% else %}
+                        Unaonekana tu kwa wateja walio karibu nawe wanaouliza kuhusu maeneo yako ya utaalamu.
+                      {% endif %}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="d-flex gap-3 align-items-start">
+                  <span style="font-size:1.6rem;">💬</span>
+                  <div>
+                    <h6 class="fw-bold mb-1">
+                      {% if lang == "en" %}Direct WhatsApp & Telegram{% else %}WhatsApp na Telegram Moja kwa Moja{% endif %}
+                    </h6>
+                    <p class="text-muted small mb-0">
+                      {% if lang == "en" %}
+                        Clients reach you directly — no middleman, no commission on your fees.
+                      {% else %}
+                        Wateja wanakufikia moja kwa moja — hakuna mpatanishi, hakuna kamisheni kwenye ada zako.
+                      {% endif %}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="d-flex gap-3 align-items-start">
+                  <span style="font-size:1.6rem;">✅</span>
+                  <div>
+                    <h6 class="fw-bold mb-1">
+                      {% if lang == "en" %}Verified badge builds trust{% else %}Alama ya kuthibitishwa inajenga uaminifu{% endif %}
+                    </h6>
+                    <p class="text-muted small mb-0">
+                      {% if lang == "en" %}
+                        Every lawyer on the platform is LSK-verified. Clients know you're legitimate.
+                      {% else %}
+                        Kila wakili kwenye jukwaa amethibitishwa na LSK. Wateja wanajua ni halali.
+                      {% endif %}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="d-flex gap-3 align-items-start">
+                  <span style="font-size:1.6rem;">🆓</span>
+                  <div>
+                    <h6 class="fw-bold mb-1">
+                      {% if lang == "en" %}Free to join{% else %}Bure kujiunga{% endif %}
+                    </h6>
+                    <p class="text-muted small mb-0">
+                      {% if lang == "en" %}
+                        No sign-up fee. Verification is free. You keep 100% of what your clients pay you.
+                      {% else %}
+                        Hakuna ada ya kujisajili. Uthibitishaji ni bure. Unabaki na 100% ya ada ya wateja wako.
+                      {% endif %}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- What you need -->
+        <div class="card card-haki mb-4">
+          <div class="card-header py-3" style="background:var(--haki-light);">
+            <h2 class="h5 fw-bold mb-0" style="color:var(--haki-green);">
+              {% if lang == "en" %}What You'll Need to Verify{% else %}Utahitaji Nini Kuthibitisha{% endif %}
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <ul class="mb-0" style="font-size:.95rem;">
+              <li class="mb-2">
+                {% if lang == "en" %}Valid LSK number (format: P.XXX/XXXX/YYYY){% else %}Nambari sahihi ya LSK (muundo: P.XXX/XXXX/YYYY){% endif %}
+              </li>
+              <li class="mb-2">
+                {% if lang == "en" %}Current LSK Practicing Certificate{% else %}Cheti cha Sasa cha Utendaji cha LSK{% endif %}
+              </li>
+              <li class="mb-2">
+                {% if lang == "en" %}National ID or Passport{% else %}Kitambulisho cha Taifa au Pasipoti{% endif %}
+              </li>
+              <li class="mb-2">
+                {% if lang == "en" %}A selfie holding your ID{% else %}Picha yako ukiwa unashikilia kitambulisho{% endif %}
+              </li>
+              <li class="mb-0">
+                {% if lang == "en" %}KRA PIN Certificate{% else %}Cheti cha KRA PIN{% endif %}
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="text-center py-4">
+          <a href="{% url 'lawyer_register' %}" class="btn btn-haki btn-lg px-5 fw-bold">
+            {% if lang == "en" %}Start Your Application →{% else %}Anza Maombi Yako →{% endif %}
+          </a>
+          <p class="text-muted small mt-3 mb-0">
+            {% if lang == "en" %}
+              Already applied? <a href="{% url 'lawyer_register' %}">Check your status here</a>
+            {% else %}
+              Umeomba tayari? <a href="{% url 'lawyer_register' %}">Angalia hali yako hapa</a>
+            {% endif %}
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

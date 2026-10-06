@@ -26,6 +26,7 @@ UI = {
         # Nav
         "nav_home":         "Nyumbani",
         "nav_about":        "Kuhusu",
+        "nav_lawyers":      "Mawakili",
 
         # Hero
         "hero_title":       "Sheria Yako, Mkononi Mwako",
@@ -128,6 +129,7 @@ UI = {
 
         "nav_home":         "Home",
         "nav_about":        "About",
+        "nav_lawyers":      "Lawyers",
 
         "hero_title":       "Your Rights, In Your Hands",
         "hero_sub":         "Describe your situation. AI will help you understand your legal rights for free.",
@@ -271,6 +273,25 @@ def home(request):
 def about(request):
     lang = _get_lang(request)
     return _render_with_lang(request, "about.html", {}, lang)
+
+
+@require_http_methods(["GET"])
+def lawyers_landing(request):
+    """
+    GET /lawyers/
+    Public landing page explaining the platform to lawyers,
+    with a clear call-to-action to register.
+    """
+    from cases.models import Lawyer
+
+    lang = _get_lang(request)
+    verified_count = Lawyer.objects.filter(
+        kyc_status=Lawyer.KYC_VERIFIED, is_active=True
+    ).count()
+    return _render_with_lang(
+        request, "lawyers/landing.html",
+        {"verified_count": verified_count}, lang
+    )
 
 
 @csrf_protect

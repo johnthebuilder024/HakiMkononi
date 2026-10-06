@@ -123,6 +123,10 @@
           <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}"
              href="{% url 'about' %}">{{ ui.nav_about }}</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'lawyers_landing' %}active{% endif %}"
+             href="{% url 'lawyers_landing' %}">⚖️ {{ ui.nav_lawyers }}</a>
+        </li>
       </ul>
       <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0"
            role="navigation" aria-label="Language selector">
