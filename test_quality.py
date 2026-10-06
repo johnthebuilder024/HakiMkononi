@@ -281,7 +281,7 @@ def run_tests():
 
     print(f"\n{BOLD}HakiMkononi Quality Test Suite{RESET}")
     print(f"Target: {BASE_URL}")
-    print(f"Running {len(TESTS)} test cases...\n")
+    print(f"Running {len(TESTS)} test cases sequentially (one at a time)...\n")
     print("─" * 70)
 
     for tc in TESTS:
@@ -303,7 +303,7 @@ def run_tests():
             failed_names.append(name)
             continue
 
-        print(f"  Job #{job_id} submitted — waiting for result...")
+        print(f"  Job #{job_id} submitted — polling...")
 
         # Poll
         result = poll_result(job_id)
@@ -323,6 +323,9 @@ def run_tests():
             failed_names.append(name)
             continue
 
+        elapsed = result.get("elapsed_seconds", 0)
+        print(f"  Done in {elapsed}s")
+
         # Run checks
         case_passed = True
         for c in checks:
@@ -338,6 +341,9 @@ def run_tests():
 
         if not case_passed:
             failed_names.append(name)
+
+        # Small pause between tests to avoid hammering the server
+        time.sleep(2)
 
     # Summary
     print(f"\n{'═' * 70}")
