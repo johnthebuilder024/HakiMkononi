@@ -6,123 +6,187 @@ AI-powered legal information for every Kenyan. Type your situation in Swahili or
 
 ---
 
-## What's Built So Far
+## What's Built
 
-### ✅ Core AI Engine (Chunk 1 — Complete)
+### ✅ Core AI Engine
 - Django project with `cases` app
-- `Law` model — 2,602 sections across 31 Kenyan Acts, all with embeddings
-- RAG search using `all-MiniLM-L6-v2` with query expansion for Swahili
-- Groq AI (free tier) for fast answers (~3-5s)
+- `Law` model — 4,231 sections across 31+ Kenyan Acts, all with Gemini embeddings
+- RAG search with query expansion for Swahili/Sheng, topic-aware boosting, tenant/landlord fix
+- Groq AI (free tier) for fast answers
 - 4-box answer: Law citation, Plain explanation, Your rights, Demand letter
-- Admin panel with law management and feedback tools
+- Conversation memory — multi-turn history, correction detection, follow-up threading
+- Section parser handles both `## headers` and `**bold**` AI response formats
 
-### ✅ Web Interface (Chunk 2 — Complete)
-- Homepage with question form, county selector, example chips
-- 4-box answer page with markdown rendering
+### ✅ Web Interface (chat.html)
+- Full AI chat interface — ChatGPT-style layout
+- Left sidebar with conversation history (localStorage, 20 conversations)
+- New Chat button in navbar
+- Bot avatar on every message
+- County selector above input
 - Editable demand letter with clickable placeholder chips
-- PDF download (letter + full answer via reportlab)
-- Persist answers on page refresh (localStorage + server fallback)
-- Print CSS for clean printing
+- PDF download (letter + full answer)
+- Voice input via browser mic → Groq Whisper transcription
+- Greeting/thanks/serious-case detection (no wasted AI calls)
+- 5-minute timeout with 30s reassurance message
 - 2-language support: Kiswahili and English
 - Mobile responsive
 
-### ✅ Channels (Chunk 3 — Partially Complete)
-- **Telegram bot** — fully working, polling, no server needed
+### ✅ Telegram Bot
+- Full conversational bot with language picker
+- Voice messages — Groq Whisper transcription
+- Conversation memory — multi-turn history, correction detection
+- Letter personalisation flow — name → phone → fills letter
+- Name validation with distress/sentence detection
+- Typing indicator + bilingual reassurance after 8s
+- Persistent keyboard with voice button
+- Greeting/thank-you/serious-case detection
+- /start, /language, /help, /stop, /clear, /skip commands
+- Runs as background thread inside gunicorn (no separate server)
+
+### ✅ Other Channels
 - **Meta WhatsApp** — webhook live, number approval pending
 - **Twilio WhatsApp** — webhook built, blocked by trial restrictions
 - **Africa's Talking SMS** — webhook built, needs AT account setup
-- ❌ Voice input — not yet built
-- ❌ Court audio upload — not yet built
-- ❌ Letter PDF via M-Pesa (99 KES) — not yet built
 
-### ✅ Quality & Slang (Extra — Complete)
-- Slang keyword DB — admin-managed, 106+ Swahili/Sheng keywords
-- Query expansion for Swahili → improves RAG accuracy
-- 14/15 quality test pass rate across all topics and languages
-- RAG topic-aware boosting + off-topic post-filter
+### ✅ Lawyer System (KYC)
+- Full `Lawyer` model with 6-state KYC: pending → level1_pass → docs_submitted → verified → rejected → suspended
+- LSK number validation (format: P.XXX/XXXX/YYYY)
+- Document uploads: practicing cert, national ID, selfie, KRA PIN, optional video
+- Lawyer registration at `/lawyers/register/`
+- Document upload at `/lawyers/documents/<id>/`
+- KYC status check at `/lawyers/status/<id>/`
+- Lawyer matching — county-first, then specialty, shows to users after each answer
+- `Lead` model tracks user→lawyer connections
+- WhatsApp + Telegram contact links per lawyer
 
----
-
-## Laws Loaded (31 Acts, 2,602 Sections)
-
-| Act | Sections |
-|---|---|
-| Constitution of Kenya 2010 | 41 |
-| Employment Act 2007 | 104 |
-| Criminal Procedure Code (Cap 75) | 357 |
-| Children Act 2022 | 307 |
-| Land Act 2012 | 190 |
-| Law of Succession Act | 254 |
-| Traffic Act (Cap 403) | 166 |
-| Marriage Act 2014 | 112 |
-| Consumer Protection Act 2012 | 105 |
-| Land Registration Act 2012 | 123 |
-| Data Protection Act 2019 | 84 |
-| Data Protection (General) Regulations | 84 + 84 |
-| Data Protection (Civil Registration) Regs | 62 |
-| Data Protection (Registration) Regs | 19 |
-| Sexual Offences Act 2006 | 54 |
-| Community Land Act 2016 | 63 |
-| Protection Against Domestic Violence Act | 38 |
-| Rent Restriction Act | 38 |
-| Land Control Act | 39 |
-| Matrimonial Property Act 2013 | 24 |
-| Fair Administrative Action Act 2015 | 18 |
-| Landlord & Tenant (Shops, Hotels) Act | 17 |
-| Landlord and Tenant Act | 17 |
-| Distress for Rent Act | 29 |
-| Widows and Children's Pensions Act | 35 |
-| Marriage Rules (5 sets) | 138 |
-
----
-
-## What's Next
-
-### 🔜 Chunk 4 — Admin Dashboard (1-2 hours)
-Track what Wanjiku is asking. Charts showing:
-- Questions per day/week
-- Most cited laws
-- 👎 feedback answers that need fixing
+### ✅ Admin Dashboard (`/dashboard/`)
+- Queries per day/week/month
+- Satisfaction rate (👍/👎)
+- 👎 answers for review with correction tool
 - Top counties asking questions
+- Most cited laws
+- Bot user breakdown (Telegram, WhatsApp, Meta, SMS)
 
-### 🔜 Chunk 5 — USSD (3-4 hours)
-Reaches Kenyans with NO internet, NO smartphone — just dial `*384*88#`.
-Africa's Talking USSD sandbox is 100% free.
-Works on any phone with a GSM signal.
+### ✅ Quality & Accuracy
+- Automated test suite: `python test_quality.py` — 10 cases, 36 checks
+- Slang keyword DB — admin-managed Swahili/Sheng mappings
+- Context-aware letter deadline (immediately for arrest, 14 days for employment)
+- Lowercase `[date]` placeholder fix
 
-### 🔜 Chunk 6 — Deploy to Server (1-2 hours)
-Currently runs only when your laptop is on.
-Deploy to Railway or Render (free tier) so it runs 24/7.
-Switch from `runserver` to `gunicorn`.
+---
 
-### 🔜 Chunk 7 — Lawyer Side + KYC (1-2 weeks)
-Verified lawyers can list themselves.
-Users can connect to them after every answer.
-M-Pesa subscription billing: 2,500 / 5,000 / 15,000 KES/month.
+## Laws Loaded (4,231 Sections)
 
-### 🔜 Chunk 8 — Voice Input
-Wanjiku speaks instead of types.
-OpenAI Whisper transcribes Swahili + English.
-Same RAG pipeline runs on the transcript.
+Constitution of Kenya 2010, Employment Act 2007, Criminal Procedure Code (Cap 75),
+Children Act 2022, Land Act 2012, Law of Succession Act, Traffic Act (Cap 403),
+Marriage Act 2014, Consumer Protection Act 2012, Land Registration Act 2012,
+Data Protection Act 2019, Data Protection Regulations (3 sets),
+Sexual Offences Act 2006, Community Land Act 2016,
+Protection Against Domestic Violence Act, Rent Restriction Act,
+Land Control Act, Matrimonial Property Act 2013,
+Fair Administrative Action Act 2015, Landlord & Tenant Acts (3),
+Distress for Rent Act, Widows and Children's Pensions Act, Marriage Rules (5 sets)
 
-### 🔜 Chunk 9 — Growth & Learning
-Auto-scraper pulls new Kenya Law judgments nightly.
-Learning loop — 👎 answers reviewed weekly, AI improved.
-Uganda and Tanzania expansion (ULII + TanzLII).
+---
+
+## What's Next — Lawyer Side (Current Focus)
+
+### 🔜 Lawyer Landing Page
+A proper `/lawyers/` page explaining:
+- How the platform works for lawyers
+- KYC requirements and what gets verified
+- Subscription pricing (2,500 / 5,000 / 15,000 KES/month)
+- Clear CTA: "Join as a Lawyer"
+
+Currently the registration flow exists at `/lawyers/register/` but there is no entry point — lawyers have to know the URL. This needs to be visible.
+
+### 🔜 Lawyer Subscription Billing (M-Pesa)
+- Safaricom Daraja STK Push — lawyer pays monthly subscription
+- Subscription tiers: Basic / Pro / Premium
+- After payment confirmed → activate lawyer profile visibility to users
+- Currently verified lawyers show for free — billing not yet implemented
+
+### 🔜 Lawyer Admin Review Flow
+- Admin gets notified when a lawyer submits documents
+- Admin reviews KYC documents in Django admin
+- One-click approve/reject with rejection reason sent to lawyer
+- Currently works manually through `/admin/` but no notification system
+
+### 🔜 Lawyer Profile Page (Public)
+- A public `/lawyers/<id>/` profile page users can share
+- Shows: name, firm, county, specialties, years experience, bio
+- Contact buttons: WhatsApp, Telegram
+- Currently lawyers only appear in the post-answer card — no standalone profile
+
+### 🔜 Lawyer Dashboard (Private)
+- Lawyers log in to see their leads
+- How many users contacted them this month
+- Which questions triggered their profile
+- Update their profile/bio/photo
+- Currently no login system for lawyers
+
+---
+
+## Future Features (Parked — Build After Lawyer Side Is Done)
+
+### 💡 Premium Self-Representation Pack (KES 99/case)
+For Kenyans who want to represent themselves in court — Employment & Labour Court,
+Magistrate Court, Rent Tribunal, Business Premises Tribunal.
+
+**What it gives:**
+- Which court/tribunal to go to and how to file
+- Statement of Claim / Memorandum of Appearance templates (pre-filled)
+- Evidence checklist specific to their case
+- Step-by-step timeline: what to do on Day 1, Day 7, Day 14 before hearing
+- Counter-argument anticipator: "the other side will likely argue X, respond with Y"
+- Unlimited follow-up questions on the same case
+- Full case file downloadable as PDF
+
+**How it works technically:**
+- M-Pesa Daraja STK Push — user pays KES 99 per case or KES 299/month
+- Payment confirmation → unlock premium section (no account needed, phone = identity)
+- Extended system prompt in `ai_engine.py` for court documents
+- New answer boxes: Court Document, Evidence Checklist, Procedure Timeline
+- Works on both website and Telegram bot
+- `WhatsAppUser` model gets `premium_expires_at` + `premium_phone` fields
+- Wanjiku free tier stays exactly as is — premium is a separate door, not a gate
+
+### 💡 User Accounts (Required for Premium)
+- Lightweight: phone number + OTP (no email/password needed)
+- Unlocks: conversation history across devices, premium access, saved letters
+- M-Pesa number IS the identity — no separate signup needed
+
+### 💡 USSD — Feature Phones (*384*88#)
+- Reaches Kenyans with NO internet, NO smartphone
+- Africa's Talking USSD sandbox (100% free)
+- Simplified 3-step flow: choose topic → describe → get summary + demand letter via SMS
+- Works on any phone with a GSM signal
+
+### 💡 Auto-Learning from Court Judgments
+- Nightly scraper pulls new Kenya Law judgments from kenyalaw.org
+- Extracts cited sections → adds to law DB
+- Learning loop: 👎 answers reviewed weekly, system prompt refined
+- Law is constantly being interpreted — judgments are the real teacher
+
+### 💡 Uganda & Tanzania Expansion
+- Uganda: ULII (Uganda Legal Information Institute)
+- Tanzania: TanzLII
+- Same RAG architecture, different law DB
+- Switch prompts to reference correct jurisdiction
 
 ---
 
 ## Running the App
 
 ```bash
-# Start the web server
+# Start the web server (bot starts automatically as background thread)
 python manage.py runserver --noreload
 
-# Start the Telegram bot (separate terminal)
-python telegram_bot.py
+# Run quality tests against live site
+python test_quality.py
 
-# Start ngrok (for WhatsApp/SMS webhooks)
-.\ngrok.exe http 8000
+# Run quality tests against local server
+TEST_BASE_URL=http://localhost:8000 python test_quality.py
 ```
 
 ---
@@ -133,13 +197,20 @@ python telegram_bot.py
 |---|---|---|
 | POST | `/api/submit/` | Start AI job (async) |
 | GET | `/api/status/<id>/` | Poll for answer |
+| POST | `/api/transcribe/` | Voice → text (Groq Whisper) |
 | GET | `/api/letter-pdf/<id>/` | Download letter as PDF |
 | GET | `/api/answer-pdf/<id>/` | Download full answer as PDF |
+| POST | `/api/feedback/` | Save 👍/👎 feedback |
+| GET | `/api/health/` | Check server + law data status |
 | POST | `/api/whatsapp/` | Twilio WhatsApp webhook |
 | POST | `/api/meta-whatsapp/` | Meta WhatsApp webhook |
 | POST | `/api/sms/` | Africa's Talking SMS webhook |
-| GET | `/api/health/` | Check laws loaded |
-| GET | `/admin/` | Admin panel |
+| GET | `/dashboard/` | Admin dashboard (staff only) |
+| GET | `/lawyers/register/` | Lawyer registration form |
+| GET | `/lawyers/documents/<id>/` | Document upload |
+| GET | `/lawyers/status/<id>/` | KYC status check |
+| POST | `/lawyers/connect/` | User → lawyer connection (creates Lead) |
+| GET | `/lawyers/for-query/<id>/` | Matched lawyers for a query |
 
 ---
 
@@ -147,21 +218,24 @@ python telegram_bot.py
 
 ```
 GROQ_API_KEY=...              # Free at console.groq.com
+GEMINI_API_KEY=...            # For embeddings — free at ai.google.dev
 TELEGRAM_BOT_TOKEN=...        # From @BotFather on Telegram
 META_WHATSAPP_TOKEN=...       # From Meta developer console
 META_PHONE_NUMBER_ID=...      # From Meta developer console
 META_VERIFY_TOKEN=hakimkononi2026
-TWILIO_ACCOUNT_SID=...        # From console.twilio.com
+TWILIO_ACCOUNT_SID=...
 TWILIO_AUTH_TOKEN=...
 AT_USERNAME=sandbox           # Africa's Talking
 AT_API_KEY=...
+SECRET_KEY=...                # Django secret key
+DATABASE_URL=...              # Supabase PostgreSQL
 ```
 
 ---
 
 ## What We Are NOT Building
-- Court pleadings or document submission
-- Advice on murder, defilement, terrorism (info + lawyer referral only)
+- Court pleadings or document submission (premium self-rep pack handles guidance only)
+- Advice on murder, defilement, terrorism (NLAS referral only)
 - Percentage of case outcomes (LSK rules)
 - Fake M-Pesa statements, court orders, or LSK certificates
 - Representing anyone in court
