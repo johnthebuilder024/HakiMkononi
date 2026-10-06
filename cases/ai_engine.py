@@ -358,9 +358,16 @@ def parse_answer_sections(raw: str, lang: str = "sw") -> dict:
     """Split the model response into the 4 named boxes."""
     sections = {"law": "", "simple": "", "loophole": "", "letter": ""}
     marker_sets = [
+        # Standard markdown headers (## prefix)
         ["## SHERIA INASEMA",      "## TAFSIRI RAHISI",              "## HAKI YAKO NA LOOPHOLE",          "## ANDIKA HIVI"],
         ["## WHAT THE LAW SAYS",   "## PLAIN EXPLANATION",           "## YOUR RIGHTS & WHAT WENT WRONG",  "## WRITE THIS"],
         ["## SHERIA INASEMA NINI", "## STORY Yake KWA MANENO RAHISI","## HAKI ZAKO NA WAPI WALIMESS",      "## ANDIKA HIVI (BARUA YA KUDAI)"],
+        # Bold markdown (**text**) — AI sometimes uses this instead of ##
+        ["**SHERIA INASEMA**",     "**TAFSIRI RAHISI**",             "**HAKI YAKO NA LOOPHOLE**",         "**ANDIKA HIVI**"],
+        ["**WHAT THE LAW SAYS**",  "**PLAIN EXPLANATION**",          "**YOUR RIGHTS & WHAT WENT WRONG**", "**WRITE THIS**"],
+        # Bold without asterisks — plain text headers AI occasionally uses
+        ["SHERIA INASEMA\n",       "TAFSIRI RAHISI\n",               "HAKI YAKO NA LOOPHOLE\n",           "ANDIKA HIVI\n"],
+        ["WHAT THE LAW SAYS\n",    "PLAIN EXPLANATION\n",            "YOUR RIGHTS & WHAT WENT WRONG\n",   "WRITE THIS\n"],
     ]
     order = ["law", "simple", "loophole", "letter"]
     # Use uppercase for case-insensitive matching

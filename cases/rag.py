@@ -296,13 +296,24 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         'niliachishwa', 'nilifutwa', 'nilifukuzwa', 'kunifukuza', 'alinifuta',
     ]
     _land_en = [
-        'land', 'title deed', 'plot', 'property', 'eviction', 'landlord',
-        'tenant', 'rent', 'lease', 'allotment', 'locked out',
+        'land', 'title deed', 'plot', 'allotment', 'eviction',
+        'landlord', 'tenant', 'rent', 'lease', 'locked out',
     ]
     _land_sw = [
         'ardhi', 'hati', 'kiwanja', 'nyumba', 'mpangaji', 'pango', 'mmiliki',
         'mwenye nyumba', 'kodi', 'kupigwa lock', 'lock out',
         'amenifunga', 'alinifunga', 'kunifukuza nyumba',
+    ]
+    # Tenant-specific keywords — rental disputes, not land ownership
+    _tenant_en = [
+        'landlord', 'tenant', 'rent', 'rental', 'locked out', 'lock out',
+        'evicted', 'eviction notice', 'deposit', 'rent arrears', 'notice to vacate',
+        'monthly rent', 'tenancy', 'house rent',
+    ]
+    _tenant_sw = [
+        'mpangaji', 'pango', 'kodi', 'mwenye nyumba', 'kupigwa lock',
+        'amenifunga', 'alinifunga', 'kunifukuza nyumba', 'amari ya kuondoka',
+        'malipo ya nyumba', 'amana', 'kukaa kwa kukodisha',
     ]
     _criminal_en = [
         'arrested', 'police', 'warrant', 'bail', 'charge', 'crime', 'offence',
@@ -364,6 +375,7 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
 
     is_employment = any(k in story_lower for k in _emp_en + _emp_sw + db_slang.get('employment', []))
     is_land       = any(k in story_lower for k in _land_en + _land_sw + db_slang.get('land', []))
+    is_tenant     = any(k in story_lower for k in _tenant_en + _tenant_sw)  # rental disputes specifically
     is_criminal   = any(k in story_lower for k in _criminal_en + _criminal_sw + db_slang.get('criminal', []))
     is_family     = any(k in story_lower for k in _family_en + _family_sw + db_slang.get('family', []))
     is_data       = any(k in story_lower for k in _data_en + _data_sw + db_slang.get('other', []))
@@ -377,13 +389,14 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     on_topic_cats = {'constitution'}
     if is_employment: on_topic_cats.add('employment')
     if is_land:       on_topic_cats.update({'land', 'landlord_tenant'})
+    if is_tenant:     on_topic_cats.update({'landlord_tenant'})  # tenant cases — landlord_tenant is primary
     if is_criminal:   on_topic_cats.add('criminal_procedure')
     if is_family:     on_topic_cats.add('other')
     if is_data:       on_topic_cats.add('other')
     if is_consumer:   on_topic_cats.add('consumer')
     if is_county:     on_topic_cats.add('other')   # county acts sit under 'other'
 
-    topic_detected = is_employment or is_land or is_criminal or is_family or is_data or is_consumer or is_county
+    topic_detected = is_employment or is_land or is_tenant or is_criminal or is_family or is_data or is_consumer or is_county
     OFF_TOPIC_MIN_SCORE = 0.48
 
     # ── Use in-memory cache — zero DB hits ────────────────────────────────────
@@ -412,6 +425,11 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
             score += 0.14
         if is_land and entry['category'] == 'landlord_tenant':
             score += 0.10
+        # Tenant disputes: boost landlord_tenant strongly, suppress bare land sections
+        if is_tenant and entry['category'] == 'landlord_tenant':
+            score += 0.20   # strong boost — Landlord & Tenant Act should win
+        if is_tenant and not is_land and entry['category'] == 'land':
+            score -= 0.08   # suppress Land Act when it's a pure rental dispute
         if is_criminal and entry['category'] == 'criminal_procedure':
             score += 0.14
         # Always boost Constitution for criminal cases — Article 49 must appear
