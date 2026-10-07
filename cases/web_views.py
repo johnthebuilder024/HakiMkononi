@@ -730,8 +730,8 @@ def lawyers_connect(request):
 def lawyers_for_query(request, query_id):
     """
     GET /lawyers/for-query/<query_id>/
+    Optional: ?county=Nairobi  — override county filter
     Returns matched lawyers for a given query.
-    Used by the answer page to show the connect card.
     """
     from cases.models import Lawyer, Query
     from django.http import JsonResponse
@@ -741,7 +741,11 @@ def lawyers_for_query(request, query_id):
     except Query.DoesNotExist:
         return JsonResponse({'lawyers': []})
 
-    # Detect topic from laws used
+    # County: explicit override from JS picker, then query county, then all
+    county_override = request.GET.get('county', '').strip()
+    effective_county = county_override or query.county or ''
+
+    # Detect topic from laws used — for specialty matching
     cats = set(query.laws_used.values_list('category', flat=True))
     topic_to_spec = {
         'employment':        ['employment'],
@@ -761,12 +765,18 @@ def lawyers_for_query(request, query_id):
         is_active=True,
     )
 
-    # Try county match first
-    county_match = verified.filter(county__iexact=query.county) if query.county else verified.none()
+    # Try county match first — use effective_county (explicit picker > query county > none)
+    county_match = verified.filter(
+        county__iexact=effective_county
+    ) if effective_county else verified.none()
 
-    # Fallback: any verified lawyer with matching specialty
+    # Also check secondary county
+    if county_match.count() == 0 and effective_county:
+        county_match = verified.filter(county_secondary__iexact=effective_county)
+
+    # Fallback: all verified lawyers if no county match
     if county_match.count() < 2:
-        all_lawyers = verified
+        all_lawyers = verified if not effective_county else county_match or verified
     else:
         all_lawyers = county_match
 
@@ -798,7 +808,7 @@ def lawyers_for_query(request, query_id):
             'wa_num':           l.display_phone.replace('+', '').replace(' ', ''),
         })
 
-    return JsonResponse({'lawyers': data, 'query_county': query.county or ''})
+    return JsonResponse({'lawyers': data, 'query_county': effective_county or query.county or ''})
 
 
 # ═══════════════════════════════════════════════════════════════════════════
