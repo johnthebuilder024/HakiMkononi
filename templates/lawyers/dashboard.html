@@ -82,6 +82,52 @@
         </div>
       </div>
 
+      <!-- ── Lead status breakdown + top counties ── -->
+      <div class="col-12">
+        <div class="row g-3">
+          <div class="col-12 col-md-7">
+            <div class="card card-haki h-100 p-3">
+              <small class="text-muted fw-semibold mb-2 d-block">
+                {% if lang == 'en' %}Lead Status{% else %}Hali ya Wateja{% endif %}
+              </small>
+              <div class="d-flex gap-3 flex-wrap">
+                <div class="text-center">
+                  <div class="h5 fw-bold mb-0" style="color:#e07c00;">{{ new_count }}</div>
+                  <small class="text-muted">{% if lang == 'en' %}New{% else %}Mpya{% endif %}</small>
+                </div>
+                <div class="text-center">
+                  <div class="h5 fw-bold mb-0" style="color:var(--haki-green);">{{ contacted_count }}</div>
+                  <small class="text-muted">{% if lang == 'en' %}Contacted{% else %}Wameongea{% endif %}</small>
+                </div>
+                <div class="text-center">
+                  <div class="h5 fw-bold mb-0" style="color:#6c757d;">{{ closed_count }}</div>
+                  <small class="text-muted">{% if lang == 'en' %}Closed{% else %}Imefungwa{% endif %}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-5">
+            <div class="card card-haki h-100 p-3">
+              <small class="text-muted fw-semibold mb-2 d-block">
+                {% if lang == 'en' %}Top Counties Reaching You{% else %}Kaunti Zinazowasiliana Nawe{% endif %}
+              </small>
+              {% if top_counties %}
+                {% for tc in top_counties %}
+                <div class="d-flex justify-content-between" style="font-size:.84rem;">
+                  <span>{{ tc.county }}</span>
+                  <span class="text-muted">{{ tc.count }}</span>
+                </div>
+                {% endfor %}
+              {% else %}
+                <small class="text-muted">
+                  {% if lang == 'en' %}No data yet.{% else %}Hakuna data bado.{% endif %}
+                </small>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── Recent leads ── -->
       <div class="col-12 col-lg-6">
         <div class="card card-haki h-100">
@@ -100,13 +146,23 @@
                     <span class="text-muted">{{ lead.created_at|date:"d M" }}</span>
                     &nbsp;
                     <span>{{ lead.query.story|truncatechars:70 }}</span>
+                    {% if lead.query.county %}
+                      <br><small class="text-muted">📍 {{ lead.query.county }}</small>
+                    {% endif %}
                   </div>
-                  <span class="badge"
-                    style="background:{% if lead.status == 'contacted' %}var(--haki-green){% elif lead.status == 'closed' %}#6c757d{% else %}#ffc107{% endif %};
-                           color:{% if lead.status == 'new' %}#000{% else %}#fff{% endif %};
-                           font-size:.7rem;white-space:nowrap;">
-                    {{ lead.status }}
-                  </span>
+                  <form method="POST" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_lead_status">
+                    <input type="hidden" name="lead_id" value="{{ lead.pk }}">
+                    <select name="status" class="form-select form-select-sm py-0"
+                            style="font-size:.7rem;width:auto;background:{% if lead.status == 'contacted' %}var(--haki-green){% elif lead.status == 'closed' %}#6c757d{% else %}#ffc107{% endif %};
+                                   color:{% if lead.status == 'new' %}#000{% else %}#fff{% endif %};"
+                            onchange="this.form.submit()">
+                      <option value="new" {% if lead.status == 'new' %}selected{% endif %}>{% if lang == 'en' %}New{% else %}Mpya{% endif %}</option>
+                      <option value="contacted" {% if lead.status == 'contacted' %}selected{% endif %}>{% if lang == 'en' %}Contacted{% else %}Wameongea{% endif %}</option>
+                      <option value="closed" {% if lead.status == 'closed' %}selected{% endif %}>{% if lang == 'en' %}Closed{% else %}Imefungwa{% endif %}</option>
+                    </select>
+                  </form>
                 </div>
               </li>
               {% endfor %}

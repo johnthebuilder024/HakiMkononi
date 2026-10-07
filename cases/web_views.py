@@ -1179,6 +1179,13 @@ def lawyer_dashboard(request, lawyer=None):
                 update_fields.append('profile_photo_url')
             lawyer.save(update_fields=update_fields)
             save_msg = "Profile updated." if lang == 'en' else "Wasifu umesasishwa."
+        elif action == 'update_lead_status':
+            lead_id = request.POST.get('lead_id', '')
+            new_status = request.POST.get('status', '')
+            valid_statuses = dict(Lead.STATUS_CHOICES)
+            if lead_id and new_status in valid_statuses:
+                Lead.objects.filter(pk=lead_id, lawyer=lawyer).update(status=new_status)
+                save_msg = "Lead updated." if lang == 'en' else "Mteja amesasishwa."
 
     # Stats
     now   = timezone.now()
@@ -1188,22 +1195,40 @@ def lawyer_dashboard(request, lawyer=None):
     all_leads   = Lead.objects.filter(lawyer=lawyer).order_by('-created_at')
     leads_30d   = all_leads.filter(created_at__gte=day30)
     leads_7d    = all_leads.filter(created_at__gte=day7)
-    recent_leads = all_leads[:10]
+    recent_leads = all_leads.select_related('query')[:10]
+
+    # Lead status breakdown — how many are still unactioned vs contacted vs closed
+    new_count       = all_leads.filter(status=Lead.STATUS_NEW).count()
+    contacted_count = all_leads.filter(status=Lead.STATUS_CONTACTED).count()
+    closed_count    = all_leads.filter(status=Lead.STATUS_CLOSED).count()
+
+    # Top counties driving leads (which county the user's question came from)
+    county_counts = (
+        all_leads.exclude(query__county='')
+        .values('query__county')
+        .annotate(n=Count('id'))
+        .order_by('-n')[:5]
+    )
+    top_counties = [{'county': c['query__county'], 'count': c['n']} for c in county_counts]
 
     # Build password setup link (show if no password set yet)
     import base64
     setup_token = base64.urlsafe_b64encode(lawyer.email.encode()).decode()
 
     return _render_with_lang(request, 'lawyers/dashboard.html', {
-        'lawyer':       lawyer,
-        'all_leads':    all_leads.count(),
-        'leads_30d':    leads_30d.count(),
-        'leads_7d':     leads_7d.count(),
-        'recent_leads': recent_leads,
-        'save_msg':     save_msg,
-        'setup_token':  setup_token,
-        'has_password': bool(lawyer.password_hash),
-        'counties':     COUNTIES,
+        'lawyer':          lawyer,
+        'all_leads':       all_leads.count(),
+        'leads_30d':       leads_30d.count(),
+        'leads_7d':        leads_7d.count(),
+        'recent_leads':    recent_leads,
+        'new_count':       new_count,
+        'contacted_count': contacted_count,
+        'closed_count':    closed_count,
+        'top_counties':    top_counties,
+        'save_msg':        save_msg,
+        'setup_token':     setup_token,
+        'has_password':    bool(lawyer.password_hash),
+        'counties':        COUNTIES,
     }, lang)
 
 
