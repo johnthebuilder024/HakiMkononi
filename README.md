@@ -77,7 +77,9 @@ AI-powered legal information for every Kenyan. Type your situation in Swahili or
 
 ### ✅ Lawyer Dashboard (`/lawyers/dashboard/`)
 - Login with email + password (`/lawyers/login/`), password set via emailed link (`/lawyers/set-password/`)
-- View leads (users who connected with them)
+- View leads (users who connected with them), mark each lead as new/contacted/closed
+- Lead stats: total, last 30 days, last 7 days, breakdown by status
+- Top counties reaching them (which county the matched questions came from)
 - Edit profile: firm, bio, specialties, counties, photo URL
 
 ### ✅ Admin Dashboard (`/dashboard/`)
@@ -117,11 +119,6 @@ Distress for Rent Act, Widows and Children's Pensions Act, Marriage Rules (5 set
 - Subscription tiers: Basic / Pro / Premium
 - After payment confirmed → activate lawyer profile visibility to users
 - Currently verified lawyers show for free — billing not yet implemented
-
-### 🔜 Lead Analytics on Dashboard
-- How many users contacted them this month
-- Which questions triggered their profile
-- Currently the dashboard shows the lead list but not aggregated stats
 
 ---
 
