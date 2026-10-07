@@ -804,6 +804,7 @@ def lawyers_for_query(request, query_id):
             'years':            l.years_experience,
             'bio':              l.bio[:150] + ('…' if len(l.bio) > 150 else ''),
             'has_photo':        bool(l.profile_photo),
+            'photo_url':        l.profile_photo_url if hasattr(l, 'profile_photo_url') and l.profile_photo_url else '',
             'telegram':         l.telegram_username.lstrip('@') if l.telegram_username else '',
             'wa_num':           l.display_phone.replace('+', '').replace(' ', ''),
         })
@@ -1059,6 +1060,43 @@ def lawyer_set_password(request):
     }, lang)
 
 
+def _send_rejection_notification(lawyer):
+    """
+    Notify a lawyer when their KYC application is rejected.
+    Always logs to console, sends email if configured.
+    """
+    import os, threading
+    from django.core.mail import send_mail
+
+    rejection_reason = lawyer.kyc_rejection_reason or "Your application did not meet our verification requirements."
+    reapply_url = f"https://hakimkononi.onrender.com/lawyers/register/"
+
+    subject = "HakiMkononi — Update on your lawyer application"
+    body = (
+        f"Dear {lawyer.full_name},\n\n"
+        f"Thank you for applying to join HakiMkononi.\n\n"
+        f"After reviewing your application, we were unable to verify your credentials at this time.\n\n"
+        f"Reason: {rejection_reason}\n\n"
+        f"You are welcome to reapply once you have addressed the above:\n"
+        f"{reapply_url}\n\n"
+        f"If you believe this decision is incorrect or have questions, "
+        f"please contact us at admin@hakimkononi.co.ke\n\n"
+        f"HakiMkononi Team\n"
+    )
+
+    print(f"[LAWYER KYC] ❌ Rejected: {lawyer.full_name} ({lawyer.email})")
+
+    def _send():
+        try:
+            from_email = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@hakimkononi.co.ke')
+            send_mail(subject, body, from_email, [lawyer.email], fail_silently=True)
+            print(f"[LAWYER KYC] Rejection email sent to {lawyer.email}")
+        except Exception as e:
+            print(f"[LAWYER KYC] Rejection email error: {e}")
+
+    threading.Thread(target=_send, daemon=True).start()
+
+
 def _send_password_setup_link(lawyer):
     """
     Send a password setup link to a newly verified lawyer.
@@ -1125,6 +1163,7 @@ def lawyer_dashboard(request, lawyer=None):
             wa    = request.POST.get('whatsapp', '').strip()
             tg    = request.POST.get('telegram_username', '').strip().lstrip('@')
             county2 = request.POST.get('county_secondary', '').strip()
+            photo_url = request.POST.get('profile_photo_url', '').strip()
             if bio:
                 lawyer.bio = bio
             if wa:
@@ -1132,8 +1171,13 @@ def lawyer_dashboard(request, lawyer=None):
             if tg is not None:
                 lawyer.telegram_username = tg
             lawyer.county_secondary = county2
-            lawyer.save(update_fields=['bio', 'whatsapp', 'telegram_username',
-                                       'county_secondary', 'updated_at'])
+            if hasattr(lawyer, 'profile_photo_url'):
+                lawyer.profile_photo_url = photo_url
+            update_fields = ['bio', 'whatsapp', 'telegram_username',
+                             'county_secondary', 'updated_at']
+            if hasattr(lawyer, 'profile_photo_url'):
+                update_fields.append('profile_photo_url')
+            lawyer.save(update_fields=update_fields)
             save_msg = "Profile updated." if lang == 'en' else "Wasifu umesasishwa."
 
     # Stats
@@ -1160,4 +1204,44 @@ def lawyer_dashboard(request, lawyer=None):
         'setup_token':  setup_token,
         'has_password': bool(lawyer.password_hash),
         'counties':     COUNTIES,
+    }, lang)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── LAWYER STATUS CHECK (by email) ──────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+@require_http_methods(["GET", "POST"])
+def lawyer_check_status(request):
+    """
+    GET  /lawyers/check-status/
+    POST /lawyers/check-status/  — enter email → see KYC status
+
+    Lets a lawyer look up their application by email without logging in.
+    """
+    from cases.models import Lawyer
+
+    lang = _get_lang(request)
+    lawyer = None
+    error = None
+
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip().lower()
+        if not email:
+            error = "Please enter your email." if lang == 'en' else "Tafadhali ingiza barua pepe yako."
+        else:
+            try:
+                lawyer = Lawyer.objects.get(email=email)
+            except Lawyer.DoesNotExist:
+                error = (
+                    "No application found with that email address. "
+                    "Please check the email you used to register."
+                    if lang == 'en' else
+                    "Hakuna maombi yaliyopatikana kwa barua pepe hiyo. "
+                    "Tafadhali angalia barua pepe uliyotumia kusajili."
+                )
+
+    return _render_with_lang(request, 'lawyers/check_status.html', {
+        'lawyer': lawyer,
+        'error':  error,
     }, lang)

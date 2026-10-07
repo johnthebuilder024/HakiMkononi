@@ -137,6 +137,32 @@
               {% csrf_token %}
               <input type="hidden" name="action" value="update_profile">
 
+              <!-- Profile photo URL -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold small">
+                  {% if lang == 'en' %}Profile Photo URL{% else %}URL ya Picha ya Wasifu{% endif %}
+                  <span class="text-muted fw-normal">({% if lang == 'en' %}optional{% else %}si lazima{% endif %})</span>
+                </label>
+                {% if lawyer.profile_photo_url %}
+                <div class="mb-2 d-flex align-items-center gap-2">
+                  <img src="{{ lawyer.profile_photo_url }}" alt="Current photo"
+                       style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--haki-light);"
+                       onerror="this.style.display='none'">
+                  <small class="text-muted">{% if lang == 'en' %}Current photo{% else %}Picha ya sasa{% endif %}</small>
+                </div>
+                {% endif %}
+                <input type="url" name="profile_photo_url" class="form-control"
+                       value="{{ lawyer.profile_photo_url|default:'' }}"
+                       placeholder="https://example.com/your-photo.jpg">
+                <small class="text-muted">
+                  {% if lang == 'en' %}
+                    Paste a direct link to your photo (LinkedIn, professional website, etc.)
+                  {% else %}
+                    Weka kiungo cha moja kwa moja kwa picha yako (LinkedIn, tovuti ya kitaalamu, n.k.)
+                  {% endif %}
+                </small>
+              </div>
+
               <div class="mb-3">
                 <label class="form-label fw-semibold small">
                   {% if lang == 'en' %}Bio{% else %}Maelezo{% endif %}

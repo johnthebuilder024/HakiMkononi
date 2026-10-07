@@ -305,6 +305,12 @@ class Lawyer(models.Model):
     is_active           = models.BooleanField(default=True,
                               help_text="Uncheck to hide from platform without deleting")
 
+    # ── Profile Photo (URL-based — works on Render without file storage) ──────
+    # Lawyer pastes a URL to their photo (LinkedIn, personal site, etc.)
+    # This avoids the need for S3/Cloudinary on the free tier.
+    profile_photo_url   = models.URLField(max_length=500, blank=True,
+                              help_text="Direct URL to profile photo (e.g. LinkedIn photo). Optional.")
+
     # ── Dashboard Login ───────────────────────────────────────────────────────
     # Lawyers are not Django Users — they log in with email + a password they
     # set themselves after verification. We store a hash, never plain text.

@@ -305,8 +305,18 @@ class LawyerAdmin(admin.ModelAdmin):
     verify_lawyers.short_description = "✅ Mark selected as VERIFIED"
 
     def reject_lawyers(self, request, queryset):
-        count = queryset.exclude(kyc_status='verified').update(kyc_status='rejected')
-        self.message_user(request, f"❌ Rejected {count} lawyers.")
+        count = 0
+        for lawyer in queryset.exclude(kyc_status='verified'):
+            lawyer.kyc_status = 'rejected'
+            lawyer.save(update_fields=['kyc_status'])
+            # Notify the lawyer of rejection
+            try:
+                from cases.web_views import _send_rejection_notification
+                _send_rejection_notification(lawyer)
+            except Exception as e:
+                print(f"[LAWYER] Could not send rejection email: {e}")
+            count += 1
+        self.message_user(request, f"❌ Rejected {count} lawyers. Notification emails sent.")
     reject_lawyers.short_description = "❌ Mark selected as REJECTED"
 
     def suspend_lawyers(self, request, queryset):

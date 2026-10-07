@@ -54,10 +54,31 @@ AI-powered legal information for every Kenyan. Type your situation in Swahili or
 - Document uploads: practicing cert, national ID, selfie, KRA PIN, optional video
 - Lawyer registration at `/lawyers/register/`
 - Document upload at `/lawyers/documents/<id>/`
-- KYC status check at `/lawyers/status/<id>/`
-- Lawyer matching — county-first, then specialty, shows to users after each answer
+- KYC status check at `/lawyers/status/<id>/` and self-service lookup by email at `/lawyers/check-status/`
+- Lawyer matching — county-first, then specialty, shows to users after each answer, with inline county picker on the answer card
 - `Lead` model tracks user→lawyer connections
-- WhatsApp + Telegram contact links per lawyer
+- WhatsApp + Telegram contact links per lawyer, plus a link to their public profile
+- Profile photo via direct image URL (`profile_photo_url`) — shown on the public profile, the dashboard, and the lawyer card on the answer
+
+### ✅ Lawyer Landing Page (`/lawyers/`)
+- Explains how the platform works for lawyers, KYC requirements, and pricing tiers
+- "Join as a Lawyer" CTA → registration
+- "Already applied? Check your application status" → `/lawyers/check-status/`
+
+### ✅ Lawyer Admin Review Flow
+- Admin gets notified by email when a lawyer submits documents (`_notify_admin_new_submission`)
+- Admin approves/rejects in Django admin (`verify_lawyers` / `reject_lawyers` actions)
+- Approval sends a password-setup email so the lawyer can access their dashboard
+- Rejection sends an email with the rejection reason (or a generic message if none was given)
+
+### ✅ Lawyer Public Profile (`/lawyers/<id>/`)
+- Shareable page: name, firm, county, specialties, years of experience, bio, photo
+- WhatsApp + Telegram contact buttons
+
+### ✅ Lawyer Dashboard (`/lawyers/dashboard/`)
+- Login with email + password (`/lawyers/login/`), password set via emailed link (`/lawyers/set-password/`)
+- View leads (users who connected with them)
+- Edit profile: firm, bio, specialties, counties, photo URL
 
 ### ✅ Admin Dashboard (`/dashboard/`)
 - Queries per day/week/month
@@ -91,39 +112,16 @@ Distress for Rent Act, Widows and Children's Pensions Act, Marriage Rules (5 set
 
 ## What's Next — Lawyer Side (Current Focus)
 
-### 🔜 Lawyer Landing Page
-A proper `/lawyers/` page explaining:
-- How the platform works for lawyers
-- KYC requirements and what gets verified
-- Subscription pricing (2,500 / 5,000 / 15,000 KES/month)
-- Clear CTA: "Join as a Lawyer"
-
-Currently the registration flow exists at `/lawyers/register/` but there is no entry point — lawyers have to know the URL. This needs to be visible.
-
 ### 🔜 Lawyer Subscription Billing (M-Pesa)
 - Safaricom Daraja STK Push — lawyer pays monthly subscription
 - Subscription tiers: Basic / Pro / Premium
 - After payment confirmed → activate lawyer profile visibility to users
 - Currently verified lawyers show for free — billing not yet implemented
 
-### 🔜 Lawyer Admin Review Flow
-- Admin gets notified when a lawyer submits documents
-- Admin reviews KYC documents in Django admin
-- One-click approve/reject with rejection reason sent to lawyer
-- Currently works manually through `/admin/` but no notification system
-
-### 🔜 Lawyer Profile Page (Public)
-- A public `/lawyers/<id>/` profile page users can share
-- Shows: name, firm, county, specialties, years experience, bio
-- Contact buttons: WhatsApp, Telegram
-- Currently lawyers only appear in the post-answer card — no standalone profile
-
-### 🔜 Lawyer Dashboard (Private)
-- Lawyers log in to see their leads
+### 🔜 Lead Analytics on Dashboard
 - How many users contacted them this month
 - Which questions triggered their profile
-- Update their profile/bio/photo
-- Currently no login system for lawyers
+- Currently the dashboard shows the lead list but not aggregated stats
 
 ---
 
@@ -206,11 +204,18 @@ TEST_BASE_URL=http://localhost:8000 python test_quality.py
 | POST | `/api/meta-whatsapp/` | Meta WhatsApp webhook |
 | POST | `/api/sms/` | Africa's Talking SMS webhook |
 | GET | `/dashboard/` | Admin dashboard (staff only) |
+| GET | `/lawyers/` | Lawyer landing page |
 | GET | `/lawyers/register/` | Lawyer registration form |
 | GET | `/lawyers/documents/<id>/` | Document upload |
-| GET | `/lawyers/status/<id>/` | KYC status check |
+| GET | `/lawyers/status/<id>/` | KYC status check (by registration id) |
+| GET/POST | `/lawyers/check-status/` | KYC status check (by email, no login) |
 | POST | `/lawyers/connect/` | User → lawyer connection (creates Lead) |
-| GET | `/lawyers/for-query/<id>/` | Matched lawyers for a query |
+| GET | `/lawyers/for-query/<id>/` | Matched lawyers for a query (supports `?county=`) |
+| GET | `/lawyers/<id>/` | Public lawyer profile |
+| GET/POST | `/lawyers/login/` | Lawyer dashboard login |
+| GET | `/lawyers/logout/` | Lawyer logout |
+| GET/POST | `/lawyers/set-password/` | Set password from emailed setup link |
+| GET/POST | `/lawyers/dashboard/` | Lawyer dashboard (leads + profile editing) |
 
 ---
 

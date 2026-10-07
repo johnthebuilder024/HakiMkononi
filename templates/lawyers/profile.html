@@ -27,6 +27,13 @@
                 {% if lawyer.profile_photo %}
                   <img src="{{ lawyer.profile_photo.url }}" alt="{{ lawyer.full_name }}"
                        style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--haki-light);">
+                {% elif lawyer.profile_photo_url %}
+                  <img src="{{ lawyer.profile_photo_url }}" alt="{{ lawyer.full_name }}"
+                       style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--haki-light);"
+                       onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                  <div style="display:none;width:90px;height:90px;border-radius:50%;background:var(--haki-light);
+                              align-items:center;justify-content:center;font-size:2.2rem;
+                              border:3px solid var(--haki-light);">⚖️</div>
                 {% else %}
                   <div style="width:90px;height:90px;border-radius:50%;background:var(--haki-light);
                               display:flex;align-items:center;justify-content:center;font-size:2.2rem;

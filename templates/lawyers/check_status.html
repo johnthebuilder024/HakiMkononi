@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}{% if lang == 'en' %}Check Application Status{% else %}Angalia Hali ya Maombi{% endif %} | HakiMkononi{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-sm-9 col-md-6 col-lg-5">
+
+        <div class="text-center mb-4">
+          <div style="font-size:2.5rem;">🔍</div>
+          <h1 class="h4 fw-bold" style="color:var(--haki-dark);">
+            {% if lang == 'en' %}Check Application Status{% else %}Angalia Hali ya Maombi{% endif %}
+          </h1>
+          <p class="text-muted small">
+            <a href="{% url 'lawyers_landing' %}">← {% if lang == 'en' %}Back{% else %}Rudi{% endif %}</a>
+          </p>
+        </div>
+
+        {% if lawyer %}
+        <!-- ── Status result ── -->
+        <div class="card card-haki">
+          <div class="card-body p-4 text-center">
+            {% if lawyer.kyc_status == 'pending' or lawyer.kyc_status == 'level1_pass' %}
+              <div style="font-size:3rem;">📋</div>
+              <h3 class="fw-bold mt-2">
+                {% if lang == 'en' %}Upload Your Documents{% else %}Pakia Hati Zako{% endif %}
+              </h3>
+              <p class="text-muted">
+                {% if lang == 'en' %}
+                  Your basic information is submitted. Please upload your verification documents to continue.
+                {% else %}
+                  Maelezo yako ya msingi yamewasilishwa. Tafadhali pakia hati zako za uthibitisho kuendelea.
+                {% endif %}
+              </p>
+              <a href="{% url 'lawyer_documents' lawyer.pk %}" class="btn btn-haki mt-2">
+                {% if lang == 'en' %}Upload Documents →{% else %}Pakia Hati →{% endif %}
+              </a>
+
+            {% elif lawyer.kyc_status == 'docs_submitted' %}
+              <div style="font-size:3rem;">🔍</div>
+              <h3 class="fw-bold mt-2">
+                {% if lang == 'en' %}Under Review{% else %}Inakaguliwa{% endif %}
+              </h3>
+              <p class="text-muted">
+                {% if lang == 'en' %}
+                  Your documents are being reviewed. We'll notify you at <strong>{{ lawyer.email }}</strong> when done. Usually 24–48 hours.
+                {% else %}
+                  Hati zako zinakaguliwa. Tutakujulisha kwa <strong>{{ lawyer.email }}</strong> ikiwa imekamilika. Kawaida masaa 24–48.
+                {% endif %}
+              </p>
+
+            {% elif lawyer.kyc_status == 'verified' %}
+              <div style="font-size:3rem;">✅</div>
+              <h3 class="fw-bold mt-2" style="color:var(--haki-green);">
+                {% if lang == 'en' %}Verified!{% else %}Imethibitishwa!{% endif %}
+              </h3>
+              <p class="text-muted">
+                {% if lang == 'en' %}
+                  Your profile is live on HakiMkononi. Log in to your dashboard to see your leads.
+                {% else %}
+                  Wasifu wako uko kwenye HakiMkononi. Ingia kwenye dashibodi yako kuona wateja wako.
+                {% endif %}
+              </p>
+              <a href="{% url 'lawyer_login' %}" class="btn btn-haki mt-2">
+                {% if lang == 'en' %}Go to Dashboard →{% else %}Nenda Dashibodini →{% endif %}
+              </a>
+
+            {% elif lawyer.kyc_status == 'rejected' %}
+              <div style="font-size:3rem;">❌</div>
+              <h3 class="fw-bold mt-2 text-danger">
+                {% if lang == 'en' %}Application Rejected{% else %}Maombi Yalikataliwa{% endif %}
+              </h3>
+              {% if lawyer.kyc_rejection_reason %}
+              <div class="alert alert-danger text-start mt-3" style="font-size:.88rem;">
+                <strong>{% if lang == 'en' %}Reason:{% else %}Sababu:{% endif %}</strong>
+                {{ lawyer.kyc_rejection_reason }}
+              </div>
+              {% endif %}
+              <p class="text-muted">
+                {% if lang == 'en' %}
+                  You may reapply once you've addressed the above. Questions? Email
+                  <a href="mailto:admin@hakimkononi.co.ke">admin@hakimkononi.co.ke</a>
+                {% else %}
+                  Unaweza kuomba tena baada ya kushughulikia hilo hapo juu. Maswali? Barua pepe
+                  <a href="mailto:admin@hakimkononi.co.ke">admin@hakimkononi.co.ke</a>
+                {% endif %}
+              </p>
+              <a href="{% url 'lawyer_register' %}" class="btn btn-outline-secondary btn-sm mt-2">
+                {% if lang == 'en' %}Re-apply{% else %}Omba Tena{% endif %}
+              </a>
+
+            {% elif lawyer.kyc_status == 'suspended' %}
+              <div style="font-size:3rem;">⚠️</div>
+              <h3 class="fw-bold mt-2 text-warning">
+                {% if lang == 'en' %}Account Suspended{% else %}Akaunti Imesimamishwa{% endif %}
+              </h3>
+              <p class="text-muted">
+                {% if lang == 'en' %}Contact us at{% else %}Wasiliana nasi kwa{% endif %}
+                <a href="mailto:admin@hakimkononi.co.ke">admin@hakimkononi.co.ke</a>
+              </p>
+            {% endif %}
+
+          </div>
+        </div>
+
+        {% else %}
+        <!-- ── Email input form ── -->
+        <div class="card card-haki">
+          <div class="card-body p-4">
+            {% if error %}
+            <div class="alert alert-danger py-2 px-3" style="font-size:.88rem;">{{ error }}</div>
+            {% endif %}
+
+            <p class="text-muted mb-3" style="font-size:.9rem;">
+              {% if lang == 'en' %}
+                Enter the email address you used when you applied.
+              {% else %}
+                Ingiza barua pepe uliyotumia ulipowasilisha maombi yako.
+              {% endif %}
+            </p>
+
+            <form method="POST" novalidate>
+              {% csrf_token %}
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  {% if lang == 'en' %}Email Address{% else %}Barua Pepe{% endif %}
+                </label>
+                <input type="email" name="email" class="form-control" required autofocus
+                       placeholder="you@lawfirm.co.ke">
+              </div>
+              <div class="d-grid">
+                <button type="submit" class="btn btn-haki">
+                  {% if lang == 'en' %}Check Status{% else %}Angalia Hali{% endif %}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

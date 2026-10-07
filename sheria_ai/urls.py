@@ -7,7 +7,7 @@ from cases.web_views import home, about, ask_web, dashboard
 from cases.web_views import lawyer_register, lawyer_documents, lawyer_status
 from cases.web_views import lawyers_connect, lawyers_for_query, lawyers_landing
 from cases.web_views import lawyer_profile, lawyer_login, lawyer_logout
-from cases.web_views import lawyer_set_password, lawyer_dashboard
+from cases.web_views import lawyer_set_password, lawyer_dashboard, lawyer_check_status
 
 admin.site.site_header = "HakiMkononi Admin"
 admin.site.site_title  = "HakiMkononi"
@@ -44,6 +44,7 @@ urlpatterns = [
     path("lawyers/logout/",                         lawyer_logout,      name="lawyer_logout"),
     path("lawyers/set-password/",                   lawyer_set_password,name="lawyer_set_password"),
     path("lawyers/dashboard/",                      lawyer_dashboard,   name="lawyer_dashboard"),
+    path("lawyers/check-status/",                   lawyer_check_status,name="lawyer_check_status"),
     path("admin/",     admin.site.urls),
     path("api/",   include("cases.urls")),
 ]

@@ -213,9 +213,11 @@
           </a>
           <p class="text-muted small mt-3 mb-0">
             {% if lang == "en" %}
-              Already applied? <a href="{% url 'lawyer_register' %}">Check your status here</a>
+              Already applied?
+              <a href="{% url 'lawyer_check_status' %}">Check your application status →</a>
             {% else %}
-              Umeomba tayari? <a href="{% url 'lawyer_register' %}">Angalia hali yako hapa</a>
+              Umeomba tayari?
+              <a href="{% url 'lawyer_check_status' %}">Angalia hali ya maombi yako →</a>
             {% endif %}
           </p>
         </div>

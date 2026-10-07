@@ -133,6 +133,7 @@ def _get_matched_lawyers(query_id: int, county: str = '', top_laws=None) -> list
                 'years':       l.years_experience,
                 'wa_link':     l.get_whatsapp_link(wa_msg),
                 'tg_link':     l.get_telegram_link(),
+                'profile_url': f"https://hakimkononi.onrender.com/lawyers/{l.pk}/",
             })
         return result
     except Exception:
@@ -916,6 +917,8 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 contacts = f"[💬 WhatsApp]({l['wa_link']})"
                 if l.get('tg_link'):
                     contacts += f"  |  [✈️ Telegram]({l['tg_link']})"
+                if l.get('profile_url'):
+                    contacts += f"  |  [👤 Profile]({l['profile_url']})"
                 card = (
                     f"👤 *{l['name']}*{firm}\n"
                     f"📍 {l['county']}\n"
@@ -1122,6 +1125,8 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 contacts = f"[💬 WhatsApp]({l['wa_link']})"
                 if l.get('tg_link'):
                     contacts += f"  |  [✈️ Telegram]({l['tg_link']})"
+                if l.get('profile_url'):
+                    contacts += f"  |  [👤 Profile]({l['profile_url']})"
                 card = (
                     f"👤 *{l['name']}*{firm}\n"
                     f"📍 {l['county']}{years}\n"
