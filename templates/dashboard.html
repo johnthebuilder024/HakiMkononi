@@ -182,6 +182,48 @@
     </div>
   </div>
 
+  <!-- Lawyer KYC review alert -->
+  {% if lawyers_pending_review > 0 %}
+  <div class="alert d-flex align-items-center gap-3 mb-4"
+       style="background:#fff3cd;border:1px solid #ffc107;border-radius:10px;">
+    <span style="font-size:1.6rem;">📋</span>
+    <div>
+      <strong>{{ lawyers_pending_review }} lawyer{{ lawyers_pending_review|pluralize }} pending KYC review</strong><br>
+      <small class="text-muted">
+        Documents submitted and waiting for your approval.
+        <a href="/admin/cases/lawyer/?kyc_status__exact=docs_submitted" class="fw-semibold">
+          Review now →
+        </a>
+      </small>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Lawyer stats row -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-4">
+      <div class="stat-card" style="border-left:4px solid var(--haki-green);">
+        <div class="num" style="color:var(--haki-green);">{{ lawyers_verified }}</div>
+        <div class="label">Verified Lawyers</div>
+        <div class="sub">Live on platform</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4">
+      <div class="stat-card" style="border-left:4px solid #ffc107;">
+        <div class="num" style="color:#b8860b;">{{ lawyers_pending_review }}</div>
+        <div class="label">Pending Review</div>
+        <div class="sub"><a href="/admin/cases/lawyer/?kyc_status__exact=docs_submitted">Review →</a></div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4">
+      <div class="stat-card">
+        <div class="num">{{ lawyers_total }}</div>
+        <div class="label">Total Applications</div>
+        <div class="sub"><a href="/admin/cases/lawyer/">All →</a></div>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-4">
 
     <!-- Left column -->

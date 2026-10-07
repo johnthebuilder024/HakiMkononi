@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard — {{ lawyer.full_name }} | HakiMkononi{% endblock %}
+
+{% block content %}
+<section class="py-3" style="background:linear-gradient(135deg,var(--haki-green),var(--haki-dark));">
+  <div class="container text-white d-flex align-items-center justify-content-between flex-wrap gap-2 py-1">
+    <div>
+      <h1 class="h5 fw-bold mb-0">⚖️ {{ lawyer.full_name }}</h1>
+      <small style="color:rgba(255,255,255,.7);">
+        {{ lawyer.lsk_number }} &nbsp;·&nbsp; {{ lawyer.county }}
+        {% if lawyer.kyc_status == 'verified' %}
+          &nbsp;·&nbsp; <span style="color:#86efac;">✅ Verified</span>
+        {% endif %}
+      </small>
+    </div>
+    <a href="{% url 'lawyer_logout' %}" class="btn btn-sm"
+       style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);">
+      {% if lang == 'en' %}Log Out{% else %}Toka{% endif %}
+    </a>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+
+    {% if save_msg %}
+    <div class="alert alert-success py-2 mb-3" style="font-size:.88rem;">{{ save_msg }}</div>
+    {% endif %}
+
+    {% if not has_password %}
+    <div class="alert alert-warning d-flex gap-2 align-items-start mb-3">
+      <span style="font-size:1.2rem;">🔐</span>
+      <div>
+        <strong>{% if lang == 'en' %}Set your password{% else %}Weka nenosiri yako{% endif %}</strong><br>
+        <small>
+          {% if lang == 'en' %}
+            You logged in via a setup link. Set a permanent password to log in directly next time.
+          {% else %}
+            Uliingia kupitia kiungo cha usanidi. Weka nenosiri ya kudumu ili uingie moja kwa moja wakati ujao.
+          {% endif %}
+          <a href="{% url 'lawyer_set_password' %}?token={{ setup_token }}">
+            {% if lang == 'en' %}Set password →{% else %}Weka nenosiri →{% endif %}
+          </a>
+        </small>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+
+      <!-- ── Stats ── -->
+      <div class="col-12">
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <div class="card card-haki text-center p-3">
+              <div class="h2 fw-bold mb-0" style="color:var(--haki-green);">{{ all_leads }}</div>
+              <small class="text-muted">{% if lang == 'en' %}Total Leads{% else %}Jumla ya Wateja{% endif %}</small>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card card-haki text-center p-3">
+              <div class="h2 fw-bold mb-0" style="color:#0077b6;">{{ leads_30d }}</div>
+              <small class="text-muted">{% if lang == 'en' %}Last 30 days{% else %}Siku 30 zilizopita{% endif %}</small>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card card-haki text-center p-3">
+              <div class="h2 fw-bold mb-0" style="color:#e07c00;">{{ leads_7d }}</div>
+              <small class="text-muted">{% if lang == 'en' %}Last 7 days{% else %}Siku 7 zilizopita{% endif %}</small>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card card-haki text-center p-3">
+              <div class="h2 fw-bold mb-0" style="color:var(--haki-dark);">
+                {{ lawyer.years_experience }}
+              </div>
+              <small class="text-muted">{% if lang == 'en' %}Years exp.{% else %}Miaka uzoefu{% endif %}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Recent leads ── -->
+      <div class="col-12 col-lg-6">
+        <div class="card card-haki h-100">
+          <div class="card-header py-3" style="background:var(--haki-light);">
+            <h2 class="h6 fw-bold mb-0" style="color:var(--haki-green);">
+              {% if lang == 'en' %}Recent Client Leads{% else %}Wateja wa Hivi Karibuni{% endif %}
+            </h2>
+          </div>
+          <div class="card-body p-0">
+            {% if recent_leads %}
+            <ul class="list-unstyled mb-0">
+              {% for lead in recent_leads %}
+              <li class="px-3 py-2 border-bottom" style="font-size:.84rem;">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <div>
+                    <span class="text-muted">{{ lead.created_at|date:"d M" }}</span>
+                    &nbsp;
+                    <span>{{ lead.query.story|truncatechars:70 }}</span>
+                  </div>
+                  <span class="badge"
+                    style="background:{% if lead.status == 'contacted' %}var(--haki-green){% elif lead.status == 'closed' %}#6c757d{% else %}#ffc107{% endif %};
+                           color:{% if lead.status == 'new' %}#000{% else %}#fff{% endif %};
+                           font-size:.7rem;white-space:nowrap;">
+                    {{ lead.status }}
+                  </span>
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted text-center p-4 mb-0" style="font-size:.88rem;">
+              {% if lang == 'en' %}
+                No leads yet. Your profile is live — clients who match your county and specialties will see you.
+              {% else %}
+                Hakuna wateja bado. Wasifu wako uko wazi — wateja wanaolingana na kaunti na utaalamu wako watakuona.
+              {% endif %}
+            </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Edit profile ── -->
+      <div class="col-12 col-lg-6">
+        <div class="card card-haki">
+          <div class="card-header py-3" style="background:var(--haki-light);">
+            <h2 class="h6 fw-bold mb-0" style="color:var(--haki-green);">
+              {% if lang == 'en' %}Update Profile{% else %}Sasisha Wasifu{% endif %}
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <form method="POST" novalidate>
+              {% csrf_token %}
+              <input type="hidden" name="action" value="update_profile">
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold small">
+                  {% if lang == 'en' %}Bio{% else %}Maelezo{% endif %}
+                  <span class="text-muted fw-normal">(max 500 chars)</span>
+                </label>
+                <textarea name="bio" class="form-control" rows="3"
+                          maxlength="500">{{ lawyer.bio }}</textarea>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold small">WhatsApp</label>
+                <input type="tel" name="whatsapp" class="form-control"
+                       value="{{ lawyer.whatsapp }}" placeholder="+254712345678">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold small">Telegram</label>
+                <div class="input-group">
+                  <span class="input-group-text text-muted">@</span>
+                  <input type="text" name="telegram_username" class="form-control"
+                         value="{{ lawyer.telegram_username }}" placeholder="YourUsername">
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-semibold small">
+                  {% if lang == 'en' %}Second County{% else %}Kaunti ya Pili{% endif %}
+                  <span class="text-muted fw-normal">({% if lang == 'en' %}optional{% else %}si lazima{% endif %})</span>
+                </label>
+                <select name="county_secondary" class="form-select">
+                  <option value="">-- {% if lang == 'en' %}None{% else %}Hakuna{% endif %} --</option>
+                  {% for c in counties %}
+                  <option value="{{ c }}" {% if lawyer.county_secondary == c %}selected{% endif %}>{{ c }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="d-grid">
+                <button type="submit" class="btn btn-haki">
+                  {% if lang == 'en' %}Save Changes{% else %}Hifadhi Mabadiliko{% endif %}
+                </button>
+              </div>
+            </form>
+
+            <hr class="mt-3 mb-2">
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
+              <a href="{% url 'lawyer_profile' lawyer.pk %}" target="_blank"
+                 class="btn btn-sm btn-outline-secondary">
+                👁️ {% if lang == 'en' %}View Public Profile{% else %}Ona Wasifu wa Umma{% endif %}
+              </a>
+              <a href="{% url 'lawyer_set_password' %}?token={{ setup_token }}"
+                 class="btn btn-sm btn-outline-secondary">
+                🔐 {% if lang == 'en' %}Change Password{% else %}Badilisha Nenosiri{% endif %}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}

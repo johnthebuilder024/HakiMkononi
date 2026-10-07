@@ -305,6 +305,13 @@ class Lawyer(models.Model):
     is_active           = models.BooleanField(default=True,
                               help_text="Uncheck to hide from platform without deleting")
 
+    # ── Dashboard Login ───────────────────────────────────────────────────────
+    # Lawyers are not Django Users — they log in with email + a password they
+    # set themselves after verification. We store a hash, never plain text.
+    password_hash       = models.CharField(max_length=255, blank=True,
+                              help_text="Set by the lawyer via /lawyers/set-password/. Never shown in admin.")
+    last_login_at        = models.DateTimeField(null=True, blank=True)
+
     # ── Timestamps ────────────────────────────────────────────────────────────
     created_at          = models.DateTimeField(auto_now_add=True)
     updated_at          = models.DateTimeField(auto_now=True)
@@ -316,6 +323,18 @@ class Lawyer(models.Model):
 
     def __str__(self):
         return f"{self.full_name} ({self.lsk_number}) [{self.kyc_status}]"
+
+    def set_password(self, raw_password: str):
+        """Hash and store a password for dashboard login."""
+        from django.contrib.auth.hashers import make_password
+        self.password_hash = make_password(raw_password)
+
+    def check_password(self, raw_password: str) -> bool:
+        """Verify a password against the stored hash."""
+        from django.contrib.auth.hashers import check_password
+        if not self.password_hash:
+            return False
+        return check_password(raw_password, self.password_hash)
 
     @property
     def is_verified(self):

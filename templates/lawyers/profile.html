@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ lawyer.full_name }} | HakiMkononi Lawyers{% endblock %}
+
+{% block content %}
+<section class="py-4" style="background:linear-gradient(135deg,var(--haki-green),var(--haki-dark));">
+  <div class="container text-white py-2">
+    <a href="{% url 'lawyers_landing' %}" style="color:rgba(255,255,255,.7);font-size:.85rem;text-decoration:none;">
+      ← {% if lang == 'en' %}Back to Lawyers{% else %}Rudi kwa Mawakili{% endif %}
+    </a>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-8">
+
+        <!-- Profile card -->
+        <div class="card card-haki mb-4">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-start gap-4 flex-wrap">
+
+              <!-- Avatar -->
+              <div style="flex-shrink:0;">
+                {% if lawyer.profile_photo %}
+                  <img src="{{ lawyer.profile_photo.url }}" alt="{{ lawyer.full_name }}"
+                       style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--haki-light);">
+                {% else %}
+                  <div style="width:90px;height:90px;border-radius:50%;background:var(--haki-light);
+                              display:flex;align-items:center;justify-content:center;font-size:2.2rem;
+                              border:3px solid var(--haki-light);">
+                    ⚖️
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Info -->
+              <div style="flex:1;min-width:0;">
+                <h1 class="h3 fw-bold mb-1" style="color:var(--haki-dark);">
+                  {{ lawyer.full_name }}
+                  <span style="background:var(--haki-green);color:#fff;font-size:.6rem;
+                               padding:.2em .6em;border-radius:20px;vertical-align:middle;
+                               font-weight:600;letter-spacing:.04em;">✅ VERIFIED</span>
+                </h1>
+                {% if lawyer.firm_name %}
+                  <p class="text-muted mb-1" style="font-size:.95rem;">{{ lawyer.firm_name }}</p>
+                {% endif %}
+                <p class="mb-2" style="font-size:.88rem;">
+                  📍 {{ lawyer.county }}{% if lawyer.county_secondary %} · {{ lawyer.county_secondary }}{% endif %}
+                  {% if lawyer.years_experience %}
+                    &nbsp;·&nbsp; {{ lawyer.years_experience }} yr{{ lawyer.years_experience|pluralize }} exp
+                  {% endif %}
+                </p>
+                <!-- Specialties -->
+                <div class="d-flex flex-wrap gap-1 mb-3">
+                  {% for label in lawyer.specialty_labels %}
+                  <span style="background:var(--haki-light);color:var(--haki-dark);
+                               padding:.2em .7em;border-radius:20px;font-size:.78rem;font-weight:600;">
+                    {{ label }}
+                  </span>
+                  {% endfor %}
+                </div>
+                <!-- Contact buttons -->
+                <div class="d-flex gap-2 flex-wrap">
+                  <a href="{{ wa_link }}" target="_blank" rel="noopener"
+                     class="btn btn-haki btn-sm px-3">
+                    💬 WhatsApp
+                  </a>
+                  {% if tg_link %}
+                  <a href="{{ tg_link }}" target="_blank" rel="noopener"
+                     class="btn btn-sm px-3"
+                     style="background:#2AABEE;color:#fff;border:none;">
+                    ✈️ Telegram
+                  </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bio -->
+        {% if lawyer.bio %}
+        <div class="card card-haki mb-4">
+          <div class="card-header py-3" style="background:var(--haki-light);">
+            <h2 class="h6 fw-bold mb-0" style="color:var(--haki-green);">
+              {% if lang == 'en' %}About{% else %}Kuhusu{% endif %}
+            </h2>
+          </div>
+          <div class="card-body p-4" style="font-size:.95rem;line-height:1.7;">
+            {{ lawyer.bio }}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Disclaimer -->
+        <p class="text-muted text-center small mt-3">
+          {% if lang == 'en' %}
+            All lawyers on HakiMkononi are verified by LSK number and practicing certificate.
+            This is a referral — HakiMkononi does not guarantee outcomes or endorse specific legal advice.
+          {% else %}
+            Mawakili wote kwenye HakiMkononi wamethibitishwa kwa nambari ya LSK na cheti cha utendaji.
+            Hii ni rufaa tu — HakiMkononi haihakikishii matokeo wala haipendekezi ushauri wa kisheria maalum.
+          {% endif %}
+        </p>
+
+        <div class="text-center mt-2">
+          <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm">
+            {% if lang == 'en' %}← Ask a Legal Question{% else %}← Uliza Swali la Kisheria{% endif %}
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

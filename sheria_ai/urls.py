@@ -6,6 +6,8 @@ from django.http import JsonResponse
 from cases.web_views import home, about, ask_web, dashboard
 from cases.web_views import lawyer_register, lawyer_documents, lawyer_status
 from cases.web_views import lawyers_connect, lawyers_for_query, lawyers_landing
+from cases.web_views import lawyer_profile, lawyer_login, lawyer_logout
+from cases.web_views import lawyer_set_password, lawyer_dashboard
 
 admin.site.site_header = "HakiMkononi Admin"
 admin.site.site_title  = "HakiMkononi"
@@ -29,13 +31,19 @@ urlpatterns = [
     path("ask/",                       ask_web,            name="ask_web"),
     path("about/",                     about,              name="about"),
     path("dashboard/",                 dashboard,          name="dashboard"),
-    # Lawyers
+    # Lawyers — public
     path("lawyers/",                                lawyers_landing,    name="lawyers_landing"),
+    path("lawyers/<int:lawyer_id>/",                lawyer_profile,     name="lawyer_profile"),
     path("lawyers/register/",                       lawyer_register,    name="lawyer_register"),
     path("lawyers/documents/<int:lawyer_id>/",      lawyer_documents,   name="lawyer_documents"),
     path("lawyers/status/<int:lawyer_id>/",         lawyer_status,      name="lawyer_status"),
     path("lawyers/connect/",                        lawyers_connect,    name="lawyers_connect"),
     path("lawyers/for-query/<int:query_id>/",       lawyers_for_query,  name="lawyers_for_query"),
+    # Lawyers — authenticated dashboard
+    path("lawyers/login/",                          lawyer_login,       name="lawyer_login"),
+    path("lawyers/logout/",                         lawyer_logout,      name="lawyer_logout"),
+    path("lawyers/set-password/",                   lawyer_set_password,name="lawyer_set_password"),
+    path("lawyers/dashboard/",                      lawyer_dashboard,   name="lawyer_dashboard"),
     path("admin/",     admin.site.urls),
     path("api/",   include("cases.urls")),
 ]

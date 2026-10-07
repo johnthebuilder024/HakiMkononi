@@ -430,6 +430,12 @@ def dashboard(request):
     total_law_sections = Law.objects.count()
     total_acts = Law.objects.values('title').distinct().count()
 
+    # ── Lawyer KYC pipeline ───────────────────────────────────────────────────
+    from cases.models import Lawyer
+    lawyers_pending_review = Lawyer.objects.filter(kyc_status='docs_submitted').count()
+    lawyers_verified       = Lawyer.objects.filter(kyc_status='verified', is_active=True).count()
+    lawyers_total          = Lawyer.objects.count()
+
     # ── Handle POST — save correction ────────────────────────────────────────
     fix_message = None
     if request.method == 'POST':
@@ -469,6 +475,10 @@ def dashboard(request):
         # Laws
         'total_law_sections': total_law_sections,
         'total_acts':         total_acts,
+        # Lawyers
+        'lawyers_pending_review': lawyers_pending_review,
+        'lawyers_verified':       lawyers_verified,
+        'lawyers_total':          lawyers_total,
         # Misc
         'fix_message': fix_message,
     }
@@ -637,6 +647,9 @@ def lawyer_documents(request, lawyer_id):
             lawyer.save()
             success = True
 
+            # ── Notify admin of new documents submission ───────────────
+            _notify_admin_new_submission(lawyer)
+
     context = {'lawyer': lawyer, 'errors': errors, 'success': success}
     return render(request, 'lawyers/documents.html', context)
 
@@ -782,6 +795,359 @@ def lawyers_for_query(request, query_id):
             'bio':              l.bio[:150] + ('…' if len(l.bio) > 150 else ''),
             'has_photo':        bool(l.profile_photo),
             'telegram':         l.telegram_username.lstrip('@') if l.telegram_username else '',
+            'wa_num':           l.display_phone.replace('+', '').replace(' ', ''),
         })
 
     return JsonResponse({'lawyers': data, 'query_county': query.county or ''})
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── ADMIN NOTIFICATION ──────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _notify_admin_new_submission(lawyer):
+    """
+    Send an email to all staff when a lawyer submits documents.
+    Uses Django's send_mail — falls back gracefully if email not configured.
+    Always logs to console (visible in Render logs).
+    """
+    import os, threading
+    from django.contrib.auth import get_user_model
+    from django.core.mail import send_mail
+
+    review_url = f"https://hakimkononi.onrender.com/admin/cases/lawyer/{lawyer.pk}/change/"
+    subject = f"[HakiMkononi] New lawyer submission: {lawyer.full_name}"
+    body = (
+        f"A new lawyer has submitted documents for KYC review.\n\n"
+        f"Name:       {lawyer.full_name}\n"
+        f"LSK Number: {lawyer.lsk_number}\n"
+        f"County:     {lawyer.county}\n"
+        f"Email:      {lawyer.email}\n"
+        f"Phone:      {lawyer.phone}\n"
+        f"Submitted:  {lawyer.updated_at.strftime('%d %b %Y %H:%M') if lawyer.updated_at else 'now'}\n\n"
+        f"Review at: {review_url}\n\n"
+        "Use the admin panel to Verify or Reject this application.\n"
+    )
+
+    # Always log — visible in Render logs even without email configured
+    print(f"\n[LAWYER KYC] 📋 New submission: {lawyer.full_name} ({lawyer.lsk_number})")
+    print(f"[LAWYER KYC] Review at: {review_url}\n")
+
+    # Send email in background thread — don't block the HTTP response
+    def _send():
+        try:
+            User = get_user_model()
+            staff_emails = list(
+                User.objects.filter(is_staff=True, is_active=True)
+                .exclude(email='')
+                .values_list('email', flat=True)
+            )
+            admin_email = os.getenv('ADMIN_EMAIL', '').strip()
+            if admin_email and admin_email not in staff_emails:
+                staff_emails.append(admin_email)
+
+            if not staff_emails:
+                print("[LAWYER KYC] No staff emails found — email not sent.")
+                return
+
+            from_email = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@hakimkononi.co.ke')
+            send_mail(subject, body, from_email, staff_emails, fail_silently=True)
+            print(f"[LAWYER KYC] Email notification sent to: {', '.join(staff_emails)}")
+        except Exception as e:
+            print(f"[LAWYER KYC] Email error (non-fatal): {e}")
+
+    threading.Thread(target=_send, daemon=True).start()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── PUBLIC LAWYER PROFILE PAGE ─────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+@require_http_methods(["GET"])
+def lawyer_profile(request, lawyer_id):
+    """
+    GET /lawyers/<id>/
+    Public profile page for a verified lawyer.
+    Only shows verified, active lawyers.
+    """
+    from cases.models import Lawyer, Lead
+    from django.http import Http404
+
+    try:
+        lawyer = Lawyer.objects.get(pk=lawyer_id, kyc_status=Lawyer.KYC_VERIFIED, is_active=True)
+    except Lawyer.DoesNotExist:
+        raise Http404("Lawyer profile not found.")
+
+    lang = _get_lang(request)
+
+    # Build a pre-filled WhatsApp message
+    wa_msg = (
+        f"Habari {lawyer.full_name}, ninahitaji msaada wa kisheria. "
+        f"Nilikupata kwenye HakiMkononi."
+        if lang == 'sw' else
+        f"Hello {lawyer.full_name}, I need legal help. I found you on HakiMkononi."
+    )
+    wa_link = lawyer.get_whatsapp_link(wa_msg)
+    tg_link = lawyer.get_telegram_link()
+
+    # Count leads as a rough popularity indicator (no sensitive data exposed)
+    lead_count = Lead.objects.filter(lawyer=lawyer).count()
+
+    return _render_with_lang(request, 'lawyers/profile.html', {
+        'lawyer':     lawyer,
+        'wa_link':    wa_link,
+        'tg_link':    tg_link,
+        'lead_count': lead_count,
+    }, lang)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── LAWYER DASHBOARD — AUTH HELPERS ─────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _get_logged_in_lawyer(request):
+    """Return the Lawyer object from session, or None if not logged in."""
+    from cases.models import Lawyer
+    lawyer_id = request.session.get('lawyer_id')
+    if not lawyer_id:
+        return None
+    try:
+        return Lawyer.objects.get(pk=lawyer_id, is_active=True)
+    except Lawyer.DoesNotExist:
+        del request.session['lawyer_id']
+        return None
+
+
+def _lawyer_login_required(fn):
+    """Decorator — redirects to lawyer login page if not authenticated."""
+    from functools import wraps
+    from django.shortcuts import redirect
+
+    @wraps(fn)
+    def wrapper(request, *args, **kwargs):
+        lawyer = _get_logged_in_lawyer(request)
+        if not lawyer:
+            return redirect(f'/lawyers/login/?next={request.path}')
+        return fn(request, *args, lawyer=lawyer, **kwargs)
+    return wrapper
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── LAWYER LOGIN / LOGOUT ───────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+@require_http_methods(["GET", "POST"])
+def lawyer_login(request):
+    """GET /lawyers/login/   POST /lawyers/login/"""
+    from django.utils import timezone
+
+    # Already logged in?
+    if _get_logged_in_lawyer(request):
+        return _redirect_dashboard()
+
+    lang = _get_lang(request)
+    error = None
+
+    if request.method == 'POST':
+        from cases.models import Lawyer
+        email    = request.POST.get('email', '').strip().lower()
+        password = request.POST.get('password', '')
+
+        try:
+            lawyer = Lawyer.objects.get(email=email, is_active=True)
+        except Lawyer.DoesNotExist:
+            lawyer = None
+
+        if lawyer and lawyer.check_password(password):
+            # Successful login
+            request.session['lawyer_id'] = lawyer.pk
+            request.session.set_expiry(60 * 60 * 24 * 30)  # 30 days
+            lawyer.last_login_at = timezone.now()
+            lawyer.save(update_fields=['last_login_at'])
+            next_url = request.GET.get('next', '/lawyers/dashboard/')
+            from django.shortcuts import redirect
+            return redirect(next_url)
+        elif lawyer and not lawyer.password_hash:
+            error = (
+                "Your account is verified but you haven't set a password yet. "
+                "Check your email for a setup link, or contact admin@hakimkononi.co.ke"
+                if lang == 'en' else
+                "Akaunti yako imethibitishwa lakini bado hujaweka nenosiri. "
+                "Angalia barua pepe yako kwa kiungo cha usanidi."
+            )
+        else:
+            error = (
+                "Email or password is incorrect." if lang == 'en'
+                else "Barua pepe au nenosiri si sahihi."
+            )
+
+    return _render_with_lang(request, 'lawyers/login.html', {'error': error}, lang)
+
+
+def lawyer_logout(request):
+    """GET /lawyers/logout/"""
+    if 'lawyer_id' in request.session:
+        del request.session['lawyer_id']
+    from django.shortcuts import redirect
+    return redirect('/lawyers/')
+
+
+def _redirect_dashboard():
+    from django.shortcuts import redirect
+    return redirect('/lawyers/dashboard/')
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── LAWYER SET PASSWORD ─────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+@require_http_methods(["GET", "POST"])
+def lawyer_set_password(request):
+    """
+    GET  /lawyers/set-password/?token=<email_b64>
+    POST /lawyers/set-password/?token=<email_b64>
+
+    Lets a lawyer set their dashboard password for the first time
+    (or reset it). Token = base64(email) — simple, no DB needed.
+    Admin can also manually trigger this by sending the link.
+    """
+    import base64
+    from cases.models import Lawyer
+
+    lang = _get_lang(request)
+    token = request.GET.get('token', '').strip()
+    error = None
+    success = False
+    lawyer = None
+
+    if token:
+        try:
+            email = base64.urlsafe_b64decode(token.encode()).decode('utf-8')
+            lawyer = Lawyer.objects.get(email=email, is_active=True)
+        except Exception:
+            error = "Invalid or expired link." if lang == 'en' else "Kiungo si sahihi au kimeisha muda."
+
+    if request.method == 'POST' and lawyer:
+        pw1 = request.POST.get('password', '')
+        pw2 = request.POST.get('confirm', '')
+        if len(pw1) < 8:
+            error = "Password must be at least 8 characters." if lang == 'en' else "Nenosiri lazima liwe na herufi angalau 8."
+        elif pw1 != pw2:
+            error = "Passwords do not match." if lang == 'en' else "Manenosiri hayafanani."
+        else:
+            lawyer.set_password(pw1)
+            lawyer.save(update_fields=['password_hash'])
+            success = True
+            # Auto-login
+            request.session['lawyer_id'] = lawyer.pk
+
+    return _render_with_lang(request, 'lawyers/set_password.html', {
+        'token':   token,
+        'lawyer':  lawyer,
+        'error':   error,
+        'success': success,
+    }, lang)
+
+
+def _send_password_setup_link(lawyer):
+    """
+    Send a password setup link to a newly verified lawyer.
+    Called from the Django admin `verify_lawyers` action.
+    """
+    import os, base64, threading
+    from django.core.mail import send_mail
+
+    token = base64.urlsafe_b64encode(lawyer.email.encode()).decode()
+    setup_url = f"https://hakimkononi.onrender.com/lawyers/set-password/?token={token}"
+
+    subject = "Welcome to HakiMkononi — Set your dashboard password"
+    body = (
+        f"Congratulations {lawyer.full_name}!\n\n"
+        f"Your application to join HakiMkononi has been verified.\n\n"
+        f"Your profile is now live on the platform. Clients matching your county "
+        f"and specialties will see you after their legal questions.\n\n"
+        f"To access your lawyer dashboard, set your password here:\n"
+        f"{setup_url}\n\n"
+        f"This link is tied to your email address ({lawyer.email}).\n\n"
+        f"Your dashboard lets you:\n"
+        f"  • See how many clients viewed your profile\n"
+        f"  • Track leads (clients who connected with you)\n"
+        f"  • Update your bio and contact details\n\n"
+        f"Welcome to the team!\n"
+        f"HakiMkononi\n"
+    )
+
+    print(f"[LAWYER] Setup link for {lawyer.full_name}: {setup_url}")
+
+    def _send():
+        try:
+            from_email = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@hakimkononi.co.ke')
+            send_mail(subject, body, from_email, [lawyer.email], fail_silently=True)
+            print(f"[LAWYER] Password setup email sent to {lawyer.email}")
+        except Exception as e:
+            print(f"[LAWYER] Email error: {e}")
+
+    threading.Thread(target=_send, daemon=True).start()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── LAWYER DASHBOARD ────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+@_lawyer_login_required
+def lawyer_dashboard(request, lawyer=None):
+    """
+    GET  /lawyers/dashboard/
+    POST /lawyers/dashboard/   — update bio/contact details
+    """
+    from cases.models import Lead
+    from django.utils import timezone
+    from datetime import timedelta
+
+    lang = _get_lang(request)
+    save_msg = None
+
+    # Handle profile update
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+        if action == 'update_profile':
+            bio   = request.POST.get('bio', '').strip()[:500]
+            wa    = request.POST.get('whatsapp', '').strip()
+            tg    = request.POST.get('telegram_username', '').strip().lstrip('@')
+            county2 = request.POST.get('county_secondary', '').strip()
+            if bio:
+                lawyer.bio = bio
+            if wa:
+                lawyer.whatsapp = wa
+            if tg is not None:
+                lawyer.telegram_username = tg
+            lawyer.county_secondary = county2
+            lawyer.save(update_fields=['bio', 'whatsapp', 'telegram_username',
+                                       'county_secondary', 'updated_at'])
+            save_msg = "Profile updated." if lang == 'en' else "Wasifu umesasishwa."
+
+    # Stats
+    now   = timezone.now()
+    day30 = now - timedelta(days=30)
+    day7  = now - timedelta(days=7)
+
+    all_leads   = Lead.objects.filter(lawyer=lawyer).order_by('-created_at')
+    leads_30d   = all_leads.filter(created_at__gte=day30)
+    leads_7d    = all_leads.filter(created_at__gte=day7)
+    recent_leads = all_leads[:10]
+
+    # Build password setup link (show if no password set yet)
+    import base64
+    setup_token = base64.urlsafe_b64encode(lawyer.email.encode()).decode()
+
+    return _render_with_lang(request, 'lawyers/dashboard.html', {
+        'lawyer':       lawyer,
+        'all_leads':    all_leads.count(),
+        'leads_30d':    leads_30d.count(),
+        'leads_7d':     leads_7d.count(),
+        'recent_leads': recent_leads,
+        'save_msg':     save_msg,
+        'setup_token':  setup_token,
+        'has_password': bool(lawyer.password_hash),
+        'counties':     COUNTIES,
+    }, lang)

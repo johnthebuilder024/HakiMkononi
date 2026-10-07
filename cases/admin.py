@@ -288,12 +288,20 @@ class LawyerAdmin(admin.ModelAdmin):
     actions = ['verify_lawyers', 'reject_lawyers', 'suspend_lawyers', 'activate_lawyers']
 
     def verify_lawyers(self, request, queryset):
-        count = queryset.filter(kyc_status='docs_submitted').update(
-            kyc_status='verified',
-            verified_by=request.user,
-            verified_at=timezone.now(),
-        )
-        self.message_user(request, f"✅ Verified {count} lawyers.")
+        count = 0
+        for lawyer in queryset.filter(kyc_status='docs_submitted'):
+            lawyer.kyc_status  = 'verified'
+            lawyer.verified_by = request.user
+            lawyer.verified_at = timezone.now()
+            lawyer.save(update_fields=['kyc_status', 'verified_by', 'verified_at'])
+            # Send password setup email so lawyer can access their dashboard
+            try:
+                from cases.web_views import _send_password_setup_link
+                _send_password_setup_link(lawyer)
+            except Exception as e:
+                print(f"[LAWYER] Could not send setup email: {e}")
+            count += 1
+        self.message_user(request, f"✅ Verified {count} lawyers. Password setup emails sent.")
     verify_lawyers.short_description = "✅ Mark selected as VERIFIED"
 
     def reject_lawyers(self, request, queryset):
