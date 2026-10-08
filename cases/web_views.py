@@ -774,9 +774,11 @@ def lawyers_for_query(request, query_id):
     if county_match.count() == 0 and effective_county:
         county_match = verified.filter(county_secondary__iexact=effective_county)
 
-    # Fallback: all verified lawyers if no county match
-    if county_match.count() < 2:
-        all_lawyers = verified if not effective_county else county_match or verified
+    # Fallback: if there's no county to match on at all, show any verified lawyer.
+    # If the user (or the query) specified a county with no coverage, do NOT silently
+    # show lawyers from other counties — that would misleadingly suggest local coverage.
+    if not effective_county:
+        all_lawyers = verified
     else:
         all_lawyers = county_match
 
