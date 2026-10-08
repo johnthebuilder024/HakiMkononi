@@ -503,6 +503,21 @@ def parse_answer_sections(raw: str, lang: str = "sw") -> dict:
         # Fallback: put the whole response in the law box so something shows
         sections["law"] = raw.strip()
 
+    # Trim the letter at the first self-rep section header so it doesn't bleed into them
+    self_rep_boundaries = [
+        "## COURT DOCUMENT", "## HATI YA MAHAKAMA",
+        "## EVIDENCE CHECKLIST", "## ORODHA YA USHAHIDI",
+        "## PROCEDURE TIMELINE", "## RATIBA YA HATUA",
+    ]
+    if sections["letter"]:
+        letter_upper = sections["letter"].upper()
+        earliest = len(sections["letter"])
+        for boundary in self_rep_boundaries:
+            pos = letter_upper.find(boundary.upper())
+            if pos != -1 and pos < earliest:
+                earliest = pos
+        sections["letter"] = sections["letter"][:earliest].strip()
+
     # ── Self-rep sections (optional — only present in self-rep mode) ──────────
     self_rep_marker_sets = [
         # English
