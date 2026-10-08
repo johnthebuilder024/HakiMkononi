@@ -124,27 +124,19 @@ Distress for Rent Act, Widows and Children's Pensions Act, Marriage Rules (5 set
 
 ## Future Features (Parked — Build After Lawyer Side Is Done)
 
-### 💡 Premium Self-Representation Pack (KES 99/case)
-For Kenyans who want to represent themselves in court — Employment & Labour Court,
-Magistrate Court, Rent Tribunal, Business Premises Tribunal.
+### ✅ Self-Representation Pack
+For Wanjiku who wants to fight her own case in court after the other side ignores her demand letter.
 
-**What it gives:**
-- Which court/tribunal to go to and how to file
-- Statement of Claim / Memorandum of Appearance templates (pre-filled)
-- Evidence checklist specific to their case
-- Step-by-step timeline: what to do on Day 1, Day 7, Day 14 before hearing
-- Counter-argument anticipator: "the other side will likely argue X, respond with Y"
-- Unlimited follow-up questions on the same case
-- Full case file downloadable as PDF
+**What it gives (3 extra boxes on top of the free answer):**
+- **Court Document** — a pre-filled Statement of Claim or Memorandum of Appearance for the right Kenyan court/tribunal, with proper formatting and all required fields
+- **Evidence Checklist** — every document and piece of evidence she needs to win, in priority order (what she has, what she needs to get, who can testify)
+- **Procedure Timeline** — exact step-by-step guide: before filing, filing day, after filing, at the hearing, counter-arguments, what happens if she wins or loses
 
-**How it works technically:**
-- M-Pesa Daraja STK Push — user pays KES 99 per case or KES 299/month
-- Payment confirmation → unlock premium section (no account needed, phone = identity)
-- Extended system prompt in `ai_engine.py` for court documents
-- New answer boxes: Court Document, Evidence Checklist, Procedure Timeline
-- Works on both website and Telegram bot
-- `WhatsAppUser` model gets `premium_expires_at` + `premium_phone` fields
-- Wanjiku free tier stays exactly as is — premium is a separate door, not a gate
+**How to use:** tick the 🏛️ "Self-represent in court" checkbox in the chat input bar before sending a question. The same checkbox sends `self_rep: true` to the API.
+
+**Works on:** website chat and Telegram bot (via the same AI engine). All 3 extra boxes included in the full PDF download.
+
+**Free:** no payment required — this is part of the free tier. Billing remains parked.
 
 ### 💡 User Accounts (Required for Premium)
 - Lightweight: phone number + OTP (no email/password needed)
