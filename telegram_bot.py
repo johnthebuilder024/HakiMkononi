@@ -264,11 +264,14 @@ def _repair_letter(letter: str, lang: str = "en") -> str:
 
 
 def _format_answer(answer: dict, top_laws: list, lang: str) -> str:
-    """Build a clean Telegram message from the 4-box answer."""
+    """Build a clean Telegram message from the 4-box answer (+ 3 self-rep boxes when present)."""
     L = {
-        'sw':    {'law': '📜 *Sheria Inasema*',    'simple': '💬 *Tafsiri Rahisi*',  'rights': '💪 *Haki Yako*',     'letter': '✉️ *Andika Hivi*'},
-        'en':    {'law': '📜 *What The Law Says*', 'simple': '💬 *Plain Explanation*','rights': '💪 *Your Rights*',   'letter': '✉️ *Write This*'},
-    }.get(lang, {'law': '📜 *Law*', 'simple': '💬 *Explanation*', 'rights': '💪 *Rights*', 'letter': '✉️ *Letter*'})
+        'sw':    {'law': '📜 *Sheria Inasema*',    'simple': '💬 *Tafsiri Rahisi*',  'rights': '💪 *Haki Yako*',     'letter': '✉️ *Andika Hivi*',
+                  'court': '🏛️ *Hati ya Mahakama*', 'evidence': '📋 *Orodha ya Ushahidi*', 'procedure': '📅 *Ratiba ya Hatua*'},
+        'en':    {'law': '📜 *What The Law Says*', 'simple': '💬 *Plain Explanation*','rights': '💪 *Your Rights*',   'letter': '✉️ *Write This*',
+                  'court': '🏛️ *Court Document*',  'evidence': '📋 *Evidence Checklist*', 'procedure': '📅 *Procedure Timeline*'},
+    }.get(lang, {'law': '📜 *Law*', 'simple': '💬 *Explanation*', 'rights': '💪 *Rights*', 'letter': '✉️ *Letter*',
+                 'court': '🏛️ *Court Document*', 'evidence': '📋 *Evidence*', 'procedure': '📅 *Procedure*'})
 
     DIV = '─────────────────────'
 
@@ -291,6 +294,13 @@ def _format_answer(answer: dict, top_laws: list, lang: str) -> str:
         # Plain text — not code block — easier to read and copy on mobile
         letter = clean(answer['letter'])[:1500]
         parts.append(f"{DIV}\n{L['letter']}\n{letter}")
+    # Self-representation boxes — only present when self_rep mode was used
+    if answer.get('court_doc'):
+        parts.append(f"{DIV}\n{L['court']}\n{clean(answer['court_doc'])[:1500]}")
+    if answer.get('evidence'):
+        parts.append(f"{DIV}\n{L['evidence']}\n{clean(answer['evidence'])[:800]}")
+    if answer.get('procedure'):
+        parts.append(f"{DIV}\n{L['procedure']}\n{clean(answer['procedure'])[:800]}")
     if top_laws:
         src = '\n'.join(f"  {i+1}. {l.title} — {l.section}" for i, l in enumerate(top_laws[:4]))
         parts.append(f"{DIV}\n📚 *Sources*\n{src}")

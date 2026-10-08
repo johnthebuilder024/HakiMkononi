@@ -69,6 +69,9 @@ class Query(models.Model):
     answer_simple = models.TextField(blank=True)   # Box 2: Tafsiri Rahisi
     answer_loophole = models.TextField(blank=True) # Box 3: Haki Yako / Loophole
     answer_letter = models.TextField(blank=True)   # Box 4: Andika Hivi
+    answer_court_doc = models.TextField(blank=True) # Box 5: Court Document (self-rep)
+    answer_evidence = models.TextField(blank=True)  # Box 6: Evidence Checklist (self-rep)
+    answer_procedure = models.TextField(blank=True) # Box 7: Procedure Timeline (self-rep)
     raw_answer = models.TextField(blank=True)      # full GPT response (for debugging)
 
     # Which law sections were used
@@ -185,12 +188,17 @@ class AnswerJob(models.Model):
     county  = models.CharField(max_length=100, blank=True)
     lang    = models.CharField(max_length=10, default="sw")
     status  = models.CharField(max_length=10, default=STATUS_PENDING)
+    self_rep = models.BooleanField(default=False)  # self-representation mode
 
     # Filled in when status = done
     answer_law      = models.TextField(blank=True)
     answer_simple   = models.TextField(blank=True)
     answer_loophole = models.TextField(blank=True)
     answer_letter   = models.TextField(blank=True)
+    # Self-rep extra boxes (empty unless self_rep=True)
+    answer_court_doc = models.TextField(blank=True)  # Box 5: Court Document
+    answer_evidence  = models.TextField(blank=True)  # Box 6: Evidence Checklist
+    answer_procedure = models.TextField(blank=True)  # Box 7: Procedure Timeline
     is_serious      = models.BooleanField(default=False)
     sources_json    = models.TextField(blank=True)   # JSON list
 

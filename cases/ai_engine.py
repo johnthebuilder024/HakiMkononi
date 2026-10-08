@@ -300,6 +300,118 @@ _USER_MESSAGES = {
     "sheng": "Hali yangu: {story}\n\nNiambie haki zangu uniandike barua ya kudai rights zangu.",
 }
 
+# ─── Self-representation extra sections ──────────────────────────────────────
+# Appended to the base system prompt when self_rep=True.
+# These sections guide the model to add 3 practical self-rep boxes.
+SELF_REP_EXTRA = {
+    "en": """
+
+ADDITIONAL SECTIONS — include these ONLY when the user wants to self-represent:
+
+## COURT DOCUMENT
+Write the appropriate court document for this case. Choose ONE from:
+- Statement of Claim (Employment & Labour Court or Magistrate Court)
+- Notice of Motion (for urgent injunctions)
+- Memorandum of Appearance (if responding to a claim)
+
+Format it as a real Kenyan court document — include:
+- The correct court name and location (e.g. "Employment and Labour Relations Court at Nairobi")
+- Case number placeholder: [CASE NO.]
+- Plaintiff/Claimant: [YOUR NAME], ID: [YOUR ID]
+- Defendant/Respondent: [Name of Other Party]
+- Date filed: [DATE]
+- The specific relief/orders sought — numbered, one per line
+- A brief statement of facts (3-5 sentences)
+- Signed: [YOUR NAME], [PHONE NUMBER]
+
+NO asterisks (**). Plain text. Real Kenyan legal language.
+
+## EVIDENCE CHECKLIST
+List every document and piece of evidence Wanjiku needs to WIN this case. For each item:
+- [Document name] — why it's important / what it proves
+
+Organise in order of importance. Include:
+- Documents she already has (payslips, contracts, messages, photos, etc.)
+- Documents she must request or obtain (medical reports, bank statements, etc.)
+- Witness considerations (who can testify and what they would say)
+
+## PROCEDURE TIMELINE
+Exact step-by-step guide for filing and arguing this case. Be specific to Kenya:
+
+**Before Filing (Day 1–3):**
+- [specific action — where to go, what to bring, what to say]
+
+**Filing Day:**
+- [where to go, which court, which registry, what forms, what fees]
+- [what to expect at the counter]
+
+**After Filing (Day 7–14):**
+- [what happens next, service of process, hearing date]
+
+**At the Hearing:**
+- [how to present yourself, what to say, how to respond to the other side]
+- Counter-argument: the other side will likely argue "[X]" — respond with "[Y based on the law]"
+
+**If You Win / If You Lose:**
+- [next steps in either scenario]""",
+
+    "sw": """
+
+SEHEMU ZA ZIADA — jumuisha hizi TU wakati mtumiaji anataka kujitetea mahakamani:
+
+## HATI YA MAHAKAMA
+Andika hati sahihi ya mahakama kwa kesi hii. Chagua MOJA kati ya:
+- Madai ya Kudai (Mahakama ya Kazi au Mahakama ya Wilaya)
+- Notisi ya Hukumu ya Haraka (kwa amri za dharura)
+- Kumbukumbu ya Kuonekana (kama unajibu madai)
+
+Fomati kama hati halisi ya mahakama ya Kenya — jumuisha:
+- Jina sahihi la mahakama na mahali (mfano: "Mahakama ya Kazi na Mahusiano ya Wafanyakazi Nairobi")
+- Nambari ya kesi: [NAMBARI YA KESI]
+- Mdai: [JINA LAKO], Kitambulisho: [NAMBARI YA ID]
+- Mshitakiwa: [Jina la Upande Mwingine]
+- Tarehe ya kuwasilisha: [DATE]
+- Msaada/Amri zinazoombwa — kila moja mstari wake
+- Muhtasari mfupi wa ukweli (sentensi 3-5)
+- Imesainiwa: [JINA LAKO], [NAMBARI YA SIMU]
+
+USITUMIE ** (asterisks). Maneno ya kawaida. Lugha halisi ya mahakama ya Kenya.
+
+## ORODHA YA USHAHIDI
+Orodhesha kila hati na ushahidi ambao Wanjiku anahitaji ili KUSHINDA kesi hii. Kwa kila kitu:
+- [Jina la hati] — kwa nini ni muhimu / inathibitisha nini
+
+Panga kwa mpangilio wa umuhimu. Jumuisha:
+- Hati anazokwisha nazo (vipande vya mshahara, mikataba, ujumbe, picha, n.k.)
+- Hati anazohitaji kuomba au kupata (ripoti za daktari, maelezo ya benki, n.k.)
+- Mashahidi (ni nani anaweza kushuhudia na wangesema nini)
+
+## RATIBA YA HATUA
+Mwongozo wa hatua kwa hatua wa kufungua na kupigana kesi hii. Kuwa mahususi kwa Kenya:
+
+**Kabla ya Kufungua Kesi (Siku 1-3):**
+- [hatua mahususi — kwenda wapi, kuleta nini, kusema nini]
+
+**Siku ya Kufungua Kesi:**
+- [kwenda wapi, mahakama gani, ofisi gani, fomu gani, ada ngapi]
+- [unatarajia nini pale]
+
+**Baada ya Kufungua Kesi (Siku 7-14):**
+- [kinachofuata, kuwasilisha hati, tarehe ya kusikilizwa]
+
+**Wakati wa Kusikilizwa:**
+- [jinsi ya kujionyesha, kusema nini, kujibu upande mwingine vipi]
+- Hoja ya upande mwingine: watadai "[X]" — jibu kwa "[Y kulingana na sheria]"
+
+**Ukishinda / Ukipoteza:**
+- [hatua za mwisho katika hali zote mbili]""",
+}
+
+_SELF_REP_USER_MESSAGES = {
+    "sw": "Hali yangu: {story}\n\nNiambie haki zangu, niandikia barua ya kudai haki zangu, NA nionyeshe jinsi ya kujitetea mahakamani ikiwa hawataitikia.",
+    "en": "My situation: {story}\n\nTell me my rights, write me a demand letter, AND show me how to represent myself in court if they don't comply.",
+}
+
 SERIOUS_CRIMINAL_KEYWORDS = [
     "murder", "mauaji", "rape", "ubakaji", "defilement", "udhalilishaji",
     "terrorism", "ugaidi", "robbery with violence", "wizi wa kutumia nguvu",
@@ -355,8 +467,9 @@ def format_law_context(laws) -> str:
 
 
 def parse_answer_sections(raw: str, lang: str = "sw") -> dict:
-    """Split the model response into the 4 named boxes."""
-    sections = {"law": "", "simple": "", "loophole": "", "letter": ""}
+    """Split the model response into the 4 standard boxes + 3 optional self-rep boxes."""
+    sections = {"law": "", "simple": "", "loophole": "", "letter": "",
+                "court_doc": "", "evidence": "", "procedure": ""}
     marker_sets = [
         # Standard markdown headers (## prefix)
         ["## SHERIA INASEMA",      "## TAFSIRI RAHISI",              "## HAKI YAKO NA LOOPHOLE",          "## ANDIKA HIVI"],
@@ -386,9 +499,37 @@ def parse_answer_sections(raw: str, lang: str = "sw") -> dict:
                 end = len(raw)
             sections[key] = raw[start:end].strip()
         break
-    if not any(sections.values()):
+    if not any(v for k, v in sections.items() if k in ("law", "simple", "loophole", "letter")):
         # Fallback: put the whole response in the law box so something shows
         sections["law"] = raw.strip()
+
+    # ── Self-rep sections (optional — only present in self-rep mode) ──────────
+    self_rep_marker_sets = [
+        # English
+        {"court_doc": "## COURT DOCUMENT",     "evidence": "## EVIDENCE CHECKLIST",  "procedure": "## PROCEDURE TIMELINE"},
+        # Swahili
+        {"court_doc": "## HATI YA MAHAKAMA",   "evidence": "## ORODHA YA USHAHIDI",  "procedure": "## RATIBA YA HATUA"},
+    ]
+    for sr_markers in self_rep_marker_sets:
+        sr_upper = {k: v.upper() for k, v in sr_markers.items()}
+        if not any(m in raw_upper for m in sr_upper.values()):
+            continue
+        sr_order = ["court_doc", "evidence", "procedure"]
+        for i, key in enumerate(sr_order):
+            start = raw_upper.find(sr_upper[key])
+            if start == -1:
+                continue
+            start += len(sr_upper[key])
+            # End at the next self-rep marker, or end of string
+            next_markers = [sr_upper[sr_order[j]] for j in range(i+1, len(sr_order))]
+            end = len(raw)
+            for nm in next_markers:
+                pos = raw_upper.find(nm, start)
+                if pos != -1 and pos < end:
+                    end = pos
+            sections[key] = raw[start:end].strip()
+        break
+
     return sections
 
 
@@ -661,14 +802,14 @@ def stream_answer(user_story: str, laws: list, lang: str = "sw"):
 # ─── Public synchronous entry point ──────────────────────────────────────────
 
 def get_answer(user_story: str, laws: list, lang: str = "sw",
-               history: list = None) -> dict:
+               history: list = None, self_rep: bool = False) -> dict:
     """
     Main entry point for the background job thread.
-    Returns a dict with the 4-box answer.
+    Returns a dict with the 4-box answer (+ 3 self-rep boxes when self_rep=True).
 
-    history — optional list of prior {role, content} turns from the web chat.
-              When provided, passed to the AI so it has conversation memory.
-              Same format used by the Telegram bot.
+    history  — optional list of prior {role, content} turns from the web chat.
+    self_rep — when True, extends the prompt with court document, evidence
+               checklist, and procedure timeline sections.
     """
     lang = lang if lang in SYSTEM_PROMPTS else "sw"
     # Sheng is understood as input but we reply in Kiswahili
@@ -678,11 +819,33 @@ def get_answer(user_story: str, laws: list, lang: str = "sw",
     if is_serious_criminal(user_story):
         msg = _SERIOUS_MESSAGES[lang]
         return {"law": msg, "simple": "", "loophole": "", "letter": "",
+                "court_doc": "", "evidence": "", "procedure": "",
                 "raw": msg, "is_serious": True}
 
-    context  = format_law_context(laws)
-    system   = SYSTEM_PROMPTS[lang].format(context=context)
-    user_msg = _USER_MESSAGES[lang].format(story=user_story)
+    context = format_law_context(laws)
+
+    # Build system prompt — extend with self-rep sections when requested
+    base_system = SYSTEM_PROMPTS[lang].format(context=context)
+    if self_rep:
+        sr_extra = SELF_REP_EXTRA.get(lang, SELF_REP_EXTRA["en"])
+        system = base_system.replace(
+            "LAW SECTIONS TO USE (only these):\n{context}".format(context=context),
+            sr_extra + "\n\nLAW SECTIONS TO USE (only these):\n" + context
+        ).replace(
+            "VIFUNGU VYA SHERIA (tumia hivi tu):\n{context}".format(context=context),
+            sr_extra + "\n\nVIFUNGU VYA SHERIA (tumia hivi tu):\n" + context
+        )
+        # Fallback: if the replace didn't match (prompt wording varies), just append
+        if system == base_system:
+            system = base_system.rstrip() + "\n\n" + sr_extra.strip() + "\n"
+    else:
+        system = base_system
+
+    # Use richer user message for self-rep mode
+    if self_rep:
+        user_msg = _SELF_REP_USER_MESSAGES.get(lang, _SELF_REP_USER_MESSAGES["en"]).format(story=user_story)
+    else:
+        user_msg = _USER_MESSAGES[lang].format(story=user_story)
 
     # Build multi-turn message array — same logic as the Telegram bot
     messages = [{"role": "system", "content": system}]
@@ -697,6 +860,7 @@ def get_answer(user_story: str, laws: list, lang: str = "sw",
     except RuntimeError as exc:
         # Return the user-facing error in the law box so it shows on screen
         return {"law": str(exc), "simple": "", "loophole": "", "letter": "",
+                "court_doc": "", "evidence": "", "procedure": "",
                 "raw": str(exc), "is_serious": False, "api_error": True}
 
     sections = parse_answer_sections(raw, lang=lang)

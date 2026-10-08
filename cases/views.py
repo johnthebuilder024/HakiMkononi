@@ -131,6 +131,7 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
             laws=top_laws,
             lang=job.lang,
             history=history or [],
+            self_rep=job.self_rep,
         )
 
         query = Query.objects.create(
@@ -141,6 +142,9 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
             answer_simple=answer.get("simple", ""),
             answer_loophole=answer.get("loophole", ""),
             answer_letter=answer.get("letter", ""),
+            answer_court_doc=answer.get("court_doc", ""),
+            answer_evidence=answer.get("evidence", ""),
+            answer_procedure=answer.get("procedure", ""),
             raw_answer=answer.get("raw", ""),
         )
         query.laws_used.set(top_laws)
@@ -154,6 +158,9 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
             answer_simple=answer.get("simple", ""),
             answer_loophole=answer.get("loophole", ""),
             answer_letter=answer.get("letter", ""),
+            answer_court_doc=answer.get("court_doc", ""),
+            answer_evidence=answer.get("evidence", ""),
+            answer_procedure=answer.get("procedure", ""),
             is_serious=answer.get("is_serious", False),
             sources_json=json.dumps([
                 {"title": l.title, "section": l.section, "url": l.source_url}
@@ -212,6 +219,7 @@ def submit_job(request):
         history       = body.get("history", [])
         is_correction = bool(body.get("is_correction", False))
         is_followup   = bool(body.get("is_followup", False))
+        self_rep      = bool(body.get("self_rep", False))
     except (json.JSONDecodeError, TypeError):
         return JsonResponse({"error": "Invalid JSON."}, status=400)
 
@@ -237,7 +245,7 @@ def submit_job(request):
     # Build enriched RAG query for follow-ups and corrections
     rag_query = _build_rag_query(story, history, is_correction) if (is_correction or is_followup) else story
 
-    job = AnswerJob.objects.create(story=story, county=county, lang=lang)
+    job = AnswerJob.objects.create(story=story, county=county, lang=lang, self_rep=self_rep)
 
     # Fire and forget — Django response returns while thread works
     t = threading.Thread(
@@ -299,11 +307,15 @@ def job_status(request, job_id):
         "status":    "done",
         "query_id":  job.query_id,
         "is_serious": job.is_serious,
+        "self_rep":  job.self_rep,
         "answer": {
             "sheria_inasema": job.answer_law,
             "tafsiri_rahisi": job.answer_simple,
             "haki_yako":      job.answer_loophole,
             "andika_hivi":    job.answer_letter,
+            "hati_mahakama":  job.answer_court_doc,
+            "ushahidi":       job.answer_evidence,
+            "ratiba":         job.answer_procedure,
         },
         "sources":    sources,
         "elapsed_seconds": elapsed,
@@ -559,9 +571,13 @@ def answer_pdf(request, job_id):
     # Section labels per language
     labels = {
         "en":    {"law": "What The Law Says", "simple": "Plain Explanation",
-                  "rights": "Your Rights & Next Steps", "letter": "Demand Letter"},
+                  "rights": "Your Rights & Next Steps", "letter": "Demand Letter",
+                  "court_doc": "Court Document", "evidence": "Evidence Checklist",
+                  "procedure": "Procedure Timeline"},
         "sw":    {"law": "Sheria Inasema", "simple": "Tafsiri Rahisi",
-                  "rights": "Haki Yako", "letter": "Andika Hivi"},
+                  "rights": "Haki Yako", "letter": "Andika Hivi",
+                  "court_doc": "Hati ya Mahakama", "evidence": "Orodha ya Ushahidi",
+                  "procedure": "Ratiba ya Hatua"},
     }
     L = labels.get(lang, labels["sw"])
 
@@ -655,6 +671,10 @@ def answer_pdf(request, job_id):
     add_section(story, "2.", L["simple"], job.answer_simple,   body_style)
     add_section(story, "3.", L["rights"], job.answer_loophole, body_style)
     add_section(story, "4.", L["letter"], job.answer_letter,   letter_style)
+    # Self-representation boxes (only present if job.self_rep=True)
+    add_section(story, "5.", L["court_doc"], job.answer_court_doc, letter_style)
+    add_section(story, "6.", L["evidence"],  job.answer_evidence,  body_style)
+    add_section(story, "7.", L["procedure"], job.answer_procedure, body_style)
 
     # Sources
     if sources:
