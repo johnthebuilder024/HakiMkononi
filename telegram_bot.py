@@ -189,13 +189,13 @@ def _main_keyboard(lang: str):
     if lang == 'sw':
         return ReplyKeyboardMarkup(
             [["🎤 Tuma Sauti", "❓ Swali Jipya"],
-             ["📞 Pata Wakili", "⚖️ /help"]],
+             ["📞 Pata Wakili", "/help"]],
             resize_keyboard=True,
             one_time_keyboard=False,
         )
     return ReplyKeyboardMarkup(
         [["🎤 Send Voice", "❓ New Question"],
-         ["📞 Find a Lawyer", "⚖️ /help"]],
+         ["📞 Find a Lawyer", "/help"]],
         resize_keyboard=True,
         one_time_keyboard=False,
     )
