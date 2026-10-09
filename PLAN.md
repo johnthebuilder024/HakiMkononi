@@ -47,7 +47,7 @@ We use **RAG — Retrieval-Augmented Generation**. This is what separates a trus
 
 ```
 User story → Convert to embedding → Search law database 
-→ Find top 3–5 real sections → Feed only those to GPT-4o-mini 
+→ Find top 3–5 real sections → Feed only those to Groq AI 
 → Answer with real citations from kenyalaw.org
 ```
 
