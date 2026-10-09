@@ -987,7 +987,9 @@
               var avatarImg = l.photo_url
                 ? '<img src="'+l.photo_url+'" alt="'+l.name+'" style="width:34px;height:34px;border-radius:50%;object-fit:cover;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div style="display:none;width:34px;height:34px;border-radius:50%;background:var(--haki-light);align-items:center;justify-content:center;flex-shrink:0;">⚖️</div>'
                 : '<div style="width:34px;height:34px;border-radius:50%;background:var(--haki-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;">⚖️</div>';
-              sec.innerHTML='<div style="display:flex;gap:.6rem;align-items:flex-start;"><div style="width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;">'+avatarImg+'</div><div style="flex:1;font-size:.82rem;"><div style="font-weight:600;"><a href="/lawyers/'+l.id+'/" target="_blank" rel="noopener" style="color:var(--haki-dark);text-decoration:none;">'+l.name+'</a>'+(l.firm?' <span style="color:#888;font-weight:400;">— '+l.firm+'</span>':'')+'</div><div style="color:#777;font-size:.78rem;">📍 '+l.county+(specs?' · '+specs:'')+'</div><div style="display:flex;gap:.4rem;margin-top:.35rem;flex-wrap:wrap;"><a href="https://wa.me/'+l.wa_num+'?text='+encodeURIComponent(waMsg)+'" target="_blank" rel="noopener" style="background:var(--haki-green);color:#fff;padding:.2em .75em;border-radius:20px;font-size:.74rem;text-decoration:none;">💬 WhatsApp</a>'+(l.telegram?'<a href="https://t.me/'+l.telegram+'" target="_blank" rel="noopener" style="background:#2AABEE;color:#fff;padding:.2em .75em;border-radius:20px;font-size:.74rem;text-decoration:none;">✈️ Telegram</a>':'')+'<a href="/lawyers/'+l.id+'/" target="_blank" rel="noopener" style="background:#f5f5f5;color:#444;padding:.2em .75em;border-radius:20px;font-size:.74rem;text-decoration:none;border:1px solid #ddd;">👤 Profile</a></div></div></div>';
+              var waLink = 'https://wa.me/'+l.wa_num+'?text='+encodeURIComponent(waMsg);
+              var tgLink = l.telegram ? 'https://t.me/'+l.telegram : '';
+              sec.innerHTML='<div style="display:flex;gap:.6rem;align-items:flex-start;"><div style="width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;">'+avatarImg+'</div><div style="flex:1;font-size:.82rem;"><div style="font-weight:600;"><a href="/lawyers/'+l.id+'/" target="_blank" rel="noopener" style="color:var(--haki-dark);text-decoration:none;">'+l.name+'</a>'+(l.firm?' <span style="color:#888;font-weight:400;">— '+l.firm+'</span>':'')+'</div><div style="color:#777;font-size:.78rem;">📍 '+l.county+(specs?' · '+specs:'')+'</div><div style="display:flex;gap:.4rem;margin-top:.35rem;flex-wrap:wrap;"><button onclick="openLawyerBriefing('+l.id+',\''+encodeURIComponent(waLink)+'\',null,'+(queryId||0)+')" style="background:var(--haki-green);color:#fff;padding:.2em .75em;border-radius:20px;font-size:.74rem;border:none;cursor:pointer;">💬 WhatsApp</button>'+(tgLink?'<button onclick="openLawyerBriefing('+l.id+',null,\''+encodeURIComponent(tgLink)+'\','+(queryId||0)+')" style="background:#2AABEE;color:#fff;padding:.2em .75em;border-radius:20px;font-size:.74rem;border:none;cursor:pointer;">✈️ Telegram</button>':'')+'<a href="/lawyers/'+l.id+'/" target="_blank" rel="noopener" style="background:#f5f5f5;color:#444;padding:.2em .75em;border-radius:20px;font-size:.74rem;text-decoration:none;border:1px solid #ddd;">👤 Profile</a><a href="/lawyers/'+l.id+'/report/" target="_blank" rel="noopener" style="color:#dc3545;padding:.2em .5em;border-radius:20px;font-size:.7rem;text-decoration:none;border:1px solid #f5c6cb;">🚩</a></div></div></div>';
               lawyerSlot.appendChild(sec);
             });
           }).catch(function(){});
@@ -1296,5 +1298,171 @@
   })();
 
 })();
+</script>
+
+<!-- ── Lawyer pre-contact briefing modal ─────────────────────────────── -->
+<div id="lawyerBriefingModal"
+     style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center;">
+  <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:1.5rem 1.5rem 2rem;
+              box-shadow:0 -4px 30px rgba(0,0,0,.18);max-height:85vh;overflow-y:auto;position:relative;">
+    <button onclick="closeLawyerBriefing()"
+            style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999;">✕</button>
+
+    <div id="briefingSpinner" style="text-align:center;padding:2rem 0;display:none;">
+      <div style="width:28px;height:28px;border:3px solid var(--haki-light);border-top-color:var(--haki-green);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto;"></div>
+    </div>
+
+    <div id="briefingContent" style="display:none;">
+      <h3 style="color:var(--haki-dark);font-size:1rem;font-weight:700;margin:0 0 .25rem;">
+        <span id="briefLawyerName"></span>
+      </h3>
+
+      <!-- Fee range -->
+      <div id="briefFeeBlock" style="background:#fffbf0;border:1px solid #f0c040;border-radius:8px;padding:.75rem;margin:.75rem 0;display:none;">
+        <div style="font-size:.78rem;color:#7a4200;font-weight:700;margin-bottom:.2rem;">
+          💰 <span id="briefFeeLabel"></span>
+        </div>
+        <div style="font-size:1rem;font-weight:700;color:#92400e;" id="briefFeeRange"></div>
+        <div style="font-size:.76rem;color:#666;margin-top:.25rem;line-height:1.5;" id="briefFeeNote"></div>
+      </div>
+
+      <!-- Pro bono badge -->
+      <div id="briefProBono" style="display:none;background:#e0f2fe;border-radius:8px;padding:.5rem .75rem;margin:.5rem 0;font-size:.82rem;color:#0369a1;">
+        🤝 <span id="briefProBonoText"></span>
+      </div>
+
+      <!-- Rating -->
+      <div id="briefRatingBlock" style="font-size:.82rem;color:#555;margin:.5rem 0;display:none;">
+        <span id="briefRatingText"></span>
+      </div>
+
+      <!-- Tips -->
+      <div style="background:var(--haki-light);border-radius:8px;padding:.75rem;margin:.75rem 0;font-size:.82rem;line-height:1.6;">
+        <div style="font-weight:700;color:var(--haki-dark);margin-bottom:.3rem;">💡 <span id="briefTipsLabel"></span></div>
+        <ul style="margin:0;padding-left:1.2rem;" id="briefTipsList"></ul>
+      </div>
+
+      <!-- Report link -->
+      <div style="text-align:center;margin:.5rem 0;font-size:.78rem;">
+        <a id="briefReportLink" href="#" style="color:#dc3545;text-decoration:none;" target="_blank">
+          🚩 <span id="briefReportLabel"></span>
+        </a>
+      </div>
+
+      <!-- Action buttons -->
+      <div style="display:flex;gap:.6rem;margin-top:1rem;">
+        <a id="briefWaBtn" href="#" target="_blank" rel="noopener"
+           style="flex:1;background:var(--haki-green);color:#fff;padding:.6em;border-radius:20px;text-align:center;text-decoration:none;font-size:.85rem;font-weight:600;display:none;">
+          💬 WhatsApp
+        </a>
+        <a id="briefTgBtn" href="#" target="_blank" rel="noopener"
+           style="flex:1;background:#2AABEE;color:#fff;padding:.6em;border-radius:20px;text-align:center;text-decoration:none;font-size:.85rem;font-weight:600;display:none;">
+          ✈️ Telegram
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+
+<script>
+var _briefWaUrl = '', _briefTgUrl = '';
+
+function openLawyerBriefing(lawyerId, waUrlEnc, tgUrlEnc, queryId) {
+  var modal = document.getElementById('lawyerBriefingModal');
+  modal.style.display = 'flex';
+  document.getElementById('briefingSpinner').style.display = 'block';
+  document.getElementById('briefingContent').style.display = 'none';
+
+  _briefWaUrl = waUrlEnc ? decodeURIComponent(waUrlEnc) : '';
+  _briefTgUrl = tgUrlEnc ? decodeURIComponent(tgUrlEnc) : '';
+
+  var url = '/lawyers/' + lawyerId + '/briefing/?query_id=' + (queryId||'') + '&lang=' + (window.LANG||'sw');
+  fetch(url, {cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ renderBriefing(d, lawyerId); })
+    .catch(function(){ renderBriefing({}, lawyerId); });
+}
+
+function renderBriefing(d, lawyerId) {
+  var lang = window.LANG || 'sw';
+  var isSw = lang === 'sw';
+
+  document.getElementById('briefLawyerName').textContent = d.lawyer_name || '';
+  document.getElementById('briefFeeLabel').textContent = isSw ? 'Ada ya kawaida kwa kesi hii' : 'Typical fee for this case';
+
+  if (d.fee_range) {
+    document.getElementById('briefFeeRange').textContent = d.fee_range;
+    document.getElementById('briefFeeNote').textContent  = d.fee_note || '';
+    document.getElementById('briefFeeBlock').style.display = 'block';
+  }
+
+  if (d.pro_bono) {
+    document.getElementById('briefProBono').style.display = 'block';
+    document.getElementById('briefProBonoText').textContent = isSw
+      ? 'Wakili huyu anachukua kesi za pro bono (bure au bei nafuu)'
+      : 'This lawyer takes pro bono cases (free or reduced fee)';
+  }
+
+  if (d.avg_rating && d.rated_count > 0) {
+    var stars = '⭐'.repeat(Math.round(d.avg_rating));
+    document.getElementById('briefRatingText').textContent =
+      stars + ' ' + d.avg_rating + '/5 (' + d.rated_count + (isSw ? ' tathmini' : ' ratings') + ')';
+    document.getElementById('briefRatingBlock').style.display = 'block';
+  }
+
+  var tips = isSw ? [
+    'Omba ada yake kwa maandishi kabla ya kumkubali',
+    'Usimlipe pesa kabla ya kupata makubaliano ya maandishi',
+    'Kama ada ni tofauti na ulivyoambiwa — ripoti hapa chini',
+  ] : [
+    'Ask them to confirm their fees in writing before agreeing to anything',
+    'Do not pay any money before you have a written fee agreement',
+    'If the fee differs from what was discussed — use the report link below',
+  ];
+  var ul = document.getElementById('briefTipsList');
+  ul.innerHTML = '';
+  tips.forEach(function(t){ var li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+
+  document.getElementById('briefTipsLabel').textContent = isSw ? 'Kabla hujawasiliana' : 'Before you contact them';
+  document.getElementById('briefReportLabel').textContent = isSw
+    ? 'Ripoti wakili huyu kama kuna tatizo'
+    : 'Report this lawyer if something goes wrong';
+  document.getElementById('briefReportLink').href = '/lawyers/' + lawyerId + '/report/';
+
+  if (_briefWaUrl) {
+    var waBtn = document.getElementById('briefWaBtn');
+    waBtn.href = _briefWaUrl;
+    waBtn.style.display = 'block';
+    waBtn.textContent = isSw ? '💬 Nenda WhatsApp' : '💬 Open WhatsApp';
+  }
+  if (_briefTgUrl) {
+    var tgBtn = document.getElementById('briefTgBtn');
+    tgBtn.href = _briefTgUrl;
+    tgBtn.style.display = 'block';
+    tgBtn.textContent = isSw ? '✈️ Nenda Telegram' : '✈️ Open Telegram';
+  }
+
+  document.getElementById('briefingSpinner').style.display = 'none';
+  document.getElementById('briefingContent').style.display = 'block';
+}
+
+function closeLawyerBriefing() {
+  document.getElementById('lawyerBriefingModal').style.display = 'none';
+  _briefWaUrl = ''; _briefTgUrl = '';
+  // Reset buttons
+  ['briefWaBtn','briefTgBtn','briefFeeBlock','briefProBono','briefRatingBlock'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+}
+
+// Close on backdrop click
+document.getElementById('lawyerBriefingModal').addEventListener('click', function(e){
+  if(e.target === this) closeLawyerBriefing();
+});
 </script>
 {% endblock %}

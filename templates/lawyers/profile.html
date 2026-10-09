@@ -71,17 +71,22 @@
                 </div>
                 <!-- Contact buttons -->
                 <div class="d-flex gap-2 flex-wrap">
-                  <a href="{{ wa_link }}" target="_blank" rel="noopener"
-                     class="btn btn-haki btn-sm px-3">
+                  <button onclick="openProfileBriefing('{{ wa_link|escapejs }}', null)"
+                          class="btn btn-haki btn-sm px-3">
                     💬 WhatsApp
-                  </a>
+                  </button>
                   {% if tg_link %}
-                  <a href="{{ tg_link }}" target="_blank" rel="noopener"
-                     class="btn btn-sm px-3"
-                     style="background:#2AABEE;color:#fff;border:none;">
+                  <button onclick="openProfileBriefing(null, '{{ tg_link|escapejs }}')"
+                          class="btn btn-sm px-3"
+                          style="background:#2AABEE;color:#fff;border:none;">
                     ✈️ Telegram
-                  </a>
+                  </button>
                   {% endif %}
+                  <a href="{% url 'lawyer_report' lawyer.pk %}"
+                     class="btn btn-sm px-3"
+                     style="background:#fff0f0;color:#dc3545;border:1px solid #f5c6cb;">
+                    🚩 {% if lang == 'en' %}Report{% else %}Ripoti{% endif %}
+                  </a>
                 </div>
               </div>
             </div>
@@ -145,4 +150,104 @@
     </div>
   </div>
 </section>
+
+<!-- Lawyer briefing modal (same as in chat) -->
+<div id="lawyerBriefingModal"
+     style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center;">
+  <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:1.5rem 1.5rem 2rem;
+              box-shadow:0 -4px 30px rgba(0,0,0,.18);max-height:85vh;overflow-y:auto;position:relative;">
+    <button onclick="closeLawyerBriefing()"
+            style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999;">✕</button>
+    <div id="briefingSpinner" style="text-align:center;padding:2rem 0;">
+      <div style="width:28px;height:28px;border:3px solid var(--haki-light);border-top-color:var(--haki-green);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto;"></div>
+    </div>
+    <div id="briefingContent" style="display:none;">
+      <h3 style="color:var(--haki-dark);font-size:1rem;font-weight:700;margin:0 0 .25rem;">{{ lawyer.full_name }}</h3>
+      <div id="briefFeeBlock" style="background:#fffbf0;border:1px solid #f0c040;border-radius:8px;padding:.75rem;margin:.75rem 0;display:none;">
+        <div style="font-size:.78rem;color:#7a4200;font-weight:700;margin-bottom:.2rem;">💰 {% if lang == 'en' %}Typical fee for this case type{% else %}Ada ya kawaida kwa aina hii ya kesi{% endif %}</div>
+        <div style="font-size:1rem;font-weight:700;color:#92400e;" id="briefFeeRange"></div>
+        <div style="font-size:.76rem;color:#666;margin-top:.25rem;line-height:1.5;" id="briefFeeNote"></div>
+      </div>
+      {% if lawyer.pro_bono %}
+      <div style="background:#e0f2fe;border-radius:8px;padding:.5rem .75rem;margin:.5rem 0;font-size:.82rem;color:#0369a1;">
+        🤝 {% if lang == 'en' %}This lawyer takes pro bono cases (free or reduced fee){% else %}Wakili huyu anachukua kesi za pro bono (bure au bei nafuu){% endif %}
+      </div>
+      {% endif %}
+      <div id="briefRatingBlock" style="font-size:.82rem;color:#555;margin:.5rem 0;display:none;"><span id="briefRatingText"></span></div>
+      <div style="background:var(--haki-light);border-radius:8px;padding:.75rem;margin:.75rem 0;font-size:.82rem;line-height:1.6;">
+        <div style="font-weight:700;color:var(--haki-dark);margin-bottom:.3rem;">💡 {% if lang == 'en' %}Before you contact them{% else %}Kabla hujawasiliana{% endif %}</div>
+        <ul style="margin:0;padding-left:1.2rem;">
+          {% if lang == 'en' %}
+          <li>Ask them to confirm their fees in writing before agreeing to anything</li>
+          <li>Do not pay any money before you have a written fee agreement</li>
+          <li>If the fee differs from what was discussed — use the report link below</li>
+          {% else %}
+          <li>Omba ada yake kwa maandishi kabla ya kumkubali</li>
+          <li>Usimlipe pesa kabla ya kupata makubaliano ya maandishi</li>
+          <li>Kama ada ni tofauti na ulivyoambiwa — ripoti hapa chini</li>
+          {% endif %}
+        </ul>
+      </div>
+      <div style="text-align:center;margin:.5rem 0;font-size:.78rem;">
+        <a href="{% url 'lawyer_report' lawyer.pk %}" style="color:#dc3545;text-decoration:none;">
+          🚩 {% if lang == 'en' %}Report this lawyer if something goes wrong{% else %}Ripoti wakili huyu kama kuna tatizo{% endif %}
+        </a>
+      </div>
+      <div style="display:flex;gap:.6rem;margin-top:1rem;">
+        <a id="briefWaBtn" href="#" target="_blank" rel="noopener"
+           style="flex:1;background:var(--haki-green);color:#fff;padding:.6em;border-radius:20px;text-align:center;text-decoration:none;font-size:.85rem;font-weight:600;display:none;">
+          💬 {% if lang == 'en' %}Open WhatsApp{% else %}Nenda WhatsApp{% endif %}
+        </a>
+        <a id="briefTgBtn" href="#" target="_blank" rel="noopener"
+           style="flex:1;background:#2AABEE;color:#fff;padding:.6em;border-radius:20px;text-align:center;text-decoration:none;font-size:.85rem;font-weight:600;display:none;">
+          ✈️ {% if lang == 'en' %}Open Telegram{% else %}Nenda Telegram{% endif %}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+<style>@keyframes spin { to { transform:rotate(360deg); } }</style>
+
+<script>
+var _waUrl = '', _tgUrl = '';
+function openProfileBriefing(waUrl, tgUrl) {
+  _waUrl = waUrl || '';
+  _tgUrl = tgUrl || '';
+  document.getElementById('lawyerBriefingModal').style.display = 'flex';
+  document.getElementById('briefingSpinner').style.display = 'block';
+  document.getElementById('briefingContent').style.display = 'none';
+
+  fetch('/lawyers/{{ lawyer.pk }}/briefing/?lang={{ lang }}', {cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.fee_range){
+        document.getElementById('briefFeeRange').textContent = d.fee_range;
+        document.getElementById('briefFeeNote').textContent  = d.fee_note || '';
+        document.getElementById('briefFeeBlock').style.display = 'block';
+      }
+      if(d.avg_rating && d.rated_count > 0){
+        var stars = '⭐'.repeat(Math.round(d.avg_rating));
+        document.getElementById('briefRatingText').textContent = stars + ' ' + d.avg_rating + '/5 (' + d.rated_count + ' ratings)';
+        document.getElementById('briefRatingBlock').style.display = 'block';
+      }
+      if(_waUrl){ document.getElementById('briefWaBtn').href = _waUrl; document.getElementById('briefWaBtn').style.display = 'block'; }
+      if(_tgUrl){ document.getElementById('briefTgBtn').href = _tgUrl; document.getElementById('briefTgBtn').style.display = 'block'; }
+      document.getElementById('briefingSpinner').style.display = 'none';
+      document.getElementById('briefingContent').style.display = 'block';
+    })
+    .catch(function(){
+      if(_waUrl){ document.getElementById('briefWaBtn').href = _waUrl; document.getElementById('briefWaBtn').style.display = 'block'; }
+      if(_tgUrl){ document.getElementById('briefTgBtn').href = _tgUrl; document.getElementById('briefTgBtn').style.display = 'block'; }
+      document.getElementById('briefingSpinner').style.display = 'none';
+      document.getElementById('briefingContent').style.display = 'block';
+    });
+}
+function closeLawyerBriefing(){
+  document.getElementById('lawyerBriefingModal').style.display = 'none';
+  ['briefWaBtn','briefTgBtn','briefFeeBlock','briefRatingBlock'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.style.display='none';
+  });
+}
+document.getElementById('lawyerBriefingModal').addEventListener('click',function(e){ if(e.target===this) closeLawyerBriefing(); });
+</script>
 {% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if lang == 'en' %}Report a Lawyer | HakiMkononi{% else %}Ripoti Wakili | HakiMkononi{% endif %}{% endblock %}
+
+{% block content %}
+<section class="py-3" style="background:linear-gradient(135deg,#9b2226,#6b0000);">
+  <div class="container text-white py-1">
+    <h1 class="h5 fw-bold mb-0">🚩 {% if lang == 'en' %}Report a Lawyer{% else %}Ripoti Wakili{% endif %}</h1>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-7">
+
+        {% if success %}
+        <div class="card card-haki text-center p-5">
+          <div style="font-size:3rem;">✅</div>
+          <h2 class="h4 fw-bold mt-3" style="color:var(--haki-dark);">
+            {% if lang == 'en' %}Report received{% else %}Ripoti imepokelewa{% endif %}
+          </h2>
+          <p class="text-muted">
+            {% if lang == 'en' %}
+              Thank you for helping keep HakiMkononi safe. Our team will review this report and take action if needed.
+            {% else %}
+              Asante kwa kusaidia HakiMkononi kuwa salama. Timu yetu itaangalia ripoti hii na kuchukua hatua ikiwa itahitajika.
+            {% endif %}
+          </p>
+          <a href="{% url 'home' %}" class="btn btn-haki mt-3">{% if lang == 'en' %}Back to HakiMkononi{% else %}Rudi HakiMkononi{% endif %}</a>
+        </div>
+
+        {% else %}
+
+        <div class="card card-haki mb-3" style="border-left:4px solid #ffc107;">
+          <div class="card-body p-3 d-flex gap-3 align-items-start" style="font-size:.85rem;">
+            <span style="font-size:1.3rem;flex-shrink:0;">ℹ️</span>
+            <div>
+              {% if lang == 'en' %}
+                You are reporting <strong>{{ lawyer.full_name }}</strong>. This report goes directly to the HakiMkononi team.
+                We will investigate and can suspend or remove the lawyer if the report is substantiated.
+                Your report is confidential.
+              {% else %}
+                Unaripoti <strong>{{ lawyer.full_name }}</strong>. Ripoti hii inaenda moja kwa moja kwa timu ya HakiMkononi.
+                Tutachunguza na tunaweza kusimamisha au kuondoa wakili ikiwa ripoti itathibitishwa.
+                Ripoti yako ni ya siri.
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        {% if error %}<div class="alert alert-warning mb-3 py-2" style="font-size:.85rem;">{{ error }}</div>{% endif %}
+
+        <div class="card card-haki">
+          <div class="card-header py-3" style="background:var(--haki-light);">
+            <h2 class="h6 fw-bold mb-0" style="color:#9b2226;">
+              🚩 {% if lang == 'en' %}Report: {{ lawyer.full_name }}{% else %}Ripoti: {{ lawyer.full_name }}{% endif %}
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <form method="POST">
+              {% csrf_token %}
+              <div class="mb-3">
+                <label class="form-label fw-semibold small">
+                  {% if lang == 'en' %}What happened? *{% else %}Nini kilitokea? *{% endif %}
+                </label>
+                <textarea name="reason" class="form-control" rows="5" required maxlength="2000"
+                          placeholder="{% if lang == 'en' %}e.g. The lawyer quoted KES 5,000 on the platform but charged me KES 80,000 without a written agreement. When I complained, they stopped responding.{% else %}mfano: Wakili alitaja KES 5,000 kwenye jukwaa lakini aliniomba KES 80,000 bila makubaliano ya maandishi. Nilipomlalamikia, alisimama kujibu.{% endif %}"></textarea>
+              </div>
+              <div class="mb-4">
+                <label class="form-label fw-semibold small">
+                  {% if lang == 'en' %}Your contact info (optional — for follow-up){% else %}Maelezo yako ya kuwasiliana (si lazima — kwa maswali zaidi){% endif %}
+                </label>
+                <input type="text" name="contact_info" class="form-control"
+                       placeholder="{% if lang == 'en' %}Phone or email{% else %}Simu au barua pepe{% endif %}">
+                <small class="text-muted">{% if lang == 'en' %}We will only use this to contact you about this report.{% else %}Tutatumia hii tu kukuwasiliana kuhusu ripoti hii.{% endif %}</small>
+              </div>
+              <button type="submit" class="btn w-100 fw-bold" style="background:#9b2226;color:#fff;border:none;">
+                🚩 {% if lang == 'en' %}Submit Report{% else %}Tuma Ripoti{% endif %}
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -493,10 +493,25 @@ class Lead(models.Model):
     user_phone   = models.CharField(max_length=20, blank=True,
                        help_text="Wanjiku's phone — only stored if she consented")
     user_consented = models.BooleanField(default=False)
-    status       = models.CharField(max_length=15, choices=STATUS_CHOICES, default=STATUS_NEW)
-    notes        = models.TextField(blank=True)
-    created_at   = models.DateTimeField(auto_now_add=True)
-    updated_at   = models.DateTimeField(auto_now=True)
+    status         = models.CharField(max_length=15, choices=STATUS_CHOICES, default=STATUS_NEW)
+    notes          = models.TextField(blank=True)
+
+    # Post-contact rating — filled in by Wanjiku after speaking with the lawyer
+    rating         = models.PositiveSmallIntegerField(
+                         null=True, blank=True,
+                         help_text="1–5 star rating from Wanjiku after contacting the lawyer")
+    rating_text    = models.TextField(blank=True,
+                         help_text="Optional comment from Wanjiku about the lawyer")
+    rating_at      = models.DateTimeField(null=True, blank=True)
+
+    # Report flag — set if Wanjiku reports a problem with this lawyer
+    reported       = models.BooleanField(default=False)
+    report_reason  = models.TextField(blank=True,
+                         help_text="What Wanjiku reported about this lawyer")
+    report_at      = models.DateTimeField(null=True, blank=True)
+
+    created_at     = models.DateTimeField(auto_now_add=True)
+    updated_at     = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -505,33 +520,30 @@ class Lead(models.Model):
 
     def __str__(self):
         return f"Lead #{self.pk} → {self.lawyer.full_name} | {self.status}"
-    """
-    Records when Wanjiku clicks "Connect" to reach a lawyer.
-    Links a Query (the legal question) to a Lawyer.
-    """
-    STATUS_NEW       = 'new'
-    STATUS_CONTACTED = 'contacted'
-    STATUS_CLOSED    = 'closed'
-    STATUS_CHOICES = [
-        ('new',       'New — not yet contacted'),
-        ('contacted', 'Lawyer contacted client'),
-        ('closed',    'Closed'),
-    ]
 
-    query        = models.ForeignKey(Query,  on_delete=models.CASCADE, related_name='leads')
-    lawyer       = models.ForeignKey(Lawyer, on_delete=models.CASCADE, related_name='leads')
-    user_phone   = models.CharField(max_length=20, blank=True,
-                       help_text="Wanjiku's phone — only stored if she consented")
-    user_consented = models.BooleanField(default=False)
-    status       = models.CharField(max_length=15, choices=STATUS_CHOICES, default=STATUS_NEW)
-    notes        = models.TextField(blank=True)
+
+class LawyerReport(models.Model):
+    """
+    A report submitted by any user (Wanjiku) about a lawyer's behaviour.
+    Can be linked to a Lead or submitted independently from a profile page.
+    Reviewed by admin.
+    """
+    lawyer       = models.ForeignKey(Lawyer, on_delete=models.CASCADE, related_name='reports')
+    lead         = models.ForeignKey(Lead, null=True, blank=True, on_delete=models.SET_NULL,
+                       help_text="The lead this report is about, if any")
+    reason       = models.TextField(help_text="What happened — in Wanjiku's own words")
+    contact_info = models.CharField(max_length=100, blank=True,
+                       help_text="Phone or email if they want us to follow up (optional)")
+    reviewed     = models.BooleanField(default=False)
+    action_taken = models.TextField(blank=True,
+                       help_text="What admin did in response (internal)")
     created_at   = models.DateTimeField(auto_now_add=True)
-    updated_at   = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = 'Lead'
-        verbose_name_plural = 'Leads'
+        verbose_name = 'Lawyer Report'
+        verbose_name_plural = 'Lawyer Reports'
 
     def __str__(self):
-        return f"Lead #{self.pk} → {self.lawyer.full_name} | {self.status}"
+        return f"Report #{self.pk} — {self.lawyer.full_name} — {'✅ Reviewed' if self.reviewed else '⏳ Pending'}"
+

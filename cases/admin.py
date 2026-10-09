@@ -384,3 +384,48 @@ class LawyerPublicAnswerAdmin(admin.ModelAdmin):
     def question_preview(self, obj):
         return obj.question[:70] + ('...' if len(obj.question) > 70 else '')
     question_preview.short_description = 'Question'
+
+
+from cases.models import LawyerReport
+
+
+@admin.register(LawyerReport)
+class LawyerReportAdmin(admin.ModelAdmin):
+    list_display  = ['pk', 'lawyer_name', 'reason_preview', 'reviewed', 'created_at']
+    list_filter   = ['reviewed', 'created_at']
+    search_fields = ['lawyer__full_name', 'reason']
+    list_editable = ['reviewed']
+    readonly_fields = ['lawyer', 'lead', 'reason', 'contact_info', 'created_at']
+    list_per_page = 30
+
+    def lawyer_name(self, obj):
+        return format_html(
+            '<a href="/admin/cases/lawyer/{}/change/">{}</a>',
+            obj.lawyer.pk, obj.lawyer.full_name
+        )
+    lawyer_name.short_description = 'Lawyer'
+
+    def reason_preview(self, obj):
+        return obj.reason[:80] + ('…' if len(obj.reason) > 80 else '')
+    reason_preview.short_description = 'Reason'
+
+
+# Extend the existing LeadAdmin to show rating and report info
+# (Re-register with extra fields)
+admin.site.unregister(Lead)
+
+@admin.register(Lead)
+class LeadAdminV2(admin.ModelAdmin):
+    list_display  = ['pk', 'lawyer_name', 'query_preview', 'status', 'rating', 'reported', 'user_consented', 'created_at']
+    list_filter   = ['status', 'user_consented', 'reported', 'created_at']
+    search_fields = ['lawyer__full_name', 'query__story', 'user_phone']
+    readonly_fields = ['query', 'lawyer', 'user_phone', 'user_consented', 'rating', 'rating_text', 'rating_at', 'reported', 'report_reason', 'report_at', 'created_at']
+    list_per_page = 30
+
+    def lawyer_name(self, obj):
+        return obj.lawyer.full_name
+    lawyer_name.short_description = 'Lawyer'
+
+    def query_preview(self, obj):
+        return obj.query.story[:60] + '...' if len(obj.query.story) > 60 else obj.query.story
+    query_preview.short_description = 'Question'

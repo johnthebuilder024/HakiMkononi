@@ -1495,3 +1495,198 @@ def fee_schedule(request):
     return _render_with_lang(request, 'fees.html', {
         'fees': fees,
     }, lang)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── LAWYER RATING (post-contact feedback) ───────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+@require_http_methods(["GET", "POST"])
+def lawyer_rate(request, lead_id):
+    """
+    GET  /lawyers/rate/<lead_id>/  — show rating form
+    POST /lawyers/rate/<lead_id>/  — save rating
+
+    Uses a token-in-URL approach so Wanjiku doesn't need an account.
+    The token is base64(lead_id + salt) — not cryptographically strong but
+    sufficient to prevent casual manipulation of other people's ratings.
+    """
+    import base64, hmac, hashlib, os
+    from cases.models import Lead
+    from django.utils import timezone
+
+    lang  = _get_lang(request)
+    token = request.GET.get('t', request.POST.get('t', ''))
+
+    # Validate token
+    secret = os.getenv('SECRET_KEY', 'insecure')
+    expected = hmac.new(secret.encode(), str(lead_id).encode(), hashlib.sha256).hexdigest()[:16]
+    if token != expected:
+        return _render_with_lang(request, 'lawyers/rate.html', {
+            'error': True,
+        }, lang)
+
+    try:
+        lead = Lead.objects.select_related('lawyer').get(pk=lead_id)
+    except Lead.DoesNotExist:
+        return _render_with_lang(request, 'lawyers/rate.html', {
+            'error': True,
+        }, lang)
+
+    success = False
+    error_msg = None
+
+    if request.method == 'POST':
+        try:
+            rating_val = int(request.POST.get('rating', '0'))
+            rating_text = request.POST.get('rating_text', '').strip()[:1000]
+        except (ValueError, TypeError):
+            rating_val = 0
+
+        if rating_val < 1 or rating_val > 5:
+            error_msg = "Please choose a rating between 1 and 5." if lang == 'en' else "Tafadhali chagua alama kati ya 1 na 5."
+        elif lead.rating is not None:
+            error_msg = "You have already rated this lawyer." if lang == 'en' else "Tayari umempa alama wakili huyu."
+        else:
+            lead.rating     = rating_val
+            lead.rating_text = rating_text
+            lead.rating_at   = timezone.now()
+            lead.save(update_fields=['rating', 'rating_text', 'rating_at'])
+            success = True
+
+    return _render_with_lang(request, 'lawyers/rate.html', {
+        'lead':    lead,
+        'lawyer':  lead.lawyer,
+        'success': success,
+        'error_msg': error_msg,
+        'token':   token,
+        'already_rated': lead.rating is not None,
+    }, lang)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── LAWYER REPORT ───────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+@require_http_methods(["GET", "POST"])
+def lawyer_report(request, lawyer_id):
+    """
+    GET  /lawyers/<id>/report/  — show report form
+    POST /lawyers/<id>/report/  — save report
+
+    Any user can report a lawyer. No account needed.
+    """
+    from cases.models import Lawyer, LawyerReport
+    from django.http import Http404
+
+    try:
+        lawyer = Lawyer.objects.get(pk=lawyer_id, kyc_status=Lawyer.KYC_VERIFIED, is_active=True)
+    except Lawyer.DoesNotExist:
+        raise Http404("Lawyer not found.")
+
+    lang    = _get_lang(request)
+    success = False
+    error   = None
+
+    if request.method == 'POST':
+        reason       = request.POST.get('reason', '').strip()
+        contact_info = request.POST.get('contact_info', '').strip()[:100]
+
+        if not reason or len(reason) < 20:
+            error = (
+                "Please describe what happened (at least 20 characters)."
+                if lang == 'en' else
+                "Tafadhali eleza kilichotokea (angalau herufi 20)."
+            )
+        else:
+            LawyerReport.objects.create(
+                lawyer=lawyer,
+                reason=reason[:2000],
+                contact_info=contact_info,
+            )
+            # Notify admin by email/log
+            print(f"[LAWYER REPORT] Lawyer #{lawyer.pk} ({lawyer.full_name}) reported. "
+                  f"Reason: {reason[:100]}")
+            success = True
+
+    return _render_with_lang(request, 'lawyers/report.html', {
+        'lawyer':  lawyer,
+        'success': success,
+        'error':   error,
+    }, lang)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── PRE-CONTACT BRIEFING (JSON endpoint) ────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+@require_http_methods(["GET"])
+def lawyer_briefing(request, lawyer_id):
+    """
+    GET /lawyers/<id>/briefing/?query_id=N
+    Returns the fee guide and tips for this lawyer/query combination.
+    Used by the modal that shows before Wanjiku contacts the lawyer.
+    """
+    from cases.models import Lawyer, Query, Lead
+    from cases.ai_engine import LSK_FEE_GUIDE
+    from django.http import JsonResponse
+
+    lang = _get_lang(request)
+
+    try:
+        lawyer = Lawyer.objects.get(pk=lawyer_id, kyc_status=Lawyer.KYC_VERIFIED, is_active=True)
+    except Lawyer.DoesNotExist:
+        return JsonResponse({'error': 'Not found'}, status=404)
+
+    # Try to get fee context from the query's laws
+    query_id = request.GET.get('query_id', '').strip()
+    fee_range = ''
+    fee_note  = ''
+    if query_id and query_id.isdigit():
+        try:
+            query = Query.objects.get(pk=int(query_id))
+            cats  = list({l.category for l in query.laws_used.all() if l.category})
+            from cases.ai_engine import get_fee_guide
+            fg = get_fee_guide(cats, lang=lang)
+            if fg:
+                fee_range = fg['range']
+                fee_note  = fg['note']
+        except Query.DoesNotExist:
+            pass
+
+    # Fallback: pick based on lawyer's primary specialty
+    if not fee_range and lawyer.specialties:
+        spec_to_cat = {
+            'employment': 'employment',
+            'criminal':   'criminal_procedure',
+            'land':       'land',
+            'family':     'children',
+            'consumer':   'consumer',
+            'data':       'other',
+            'commercial': 'other',
+        }
+        cat = spec_to_cat.get(lawyer.specialties[0], 'other')
+        entry = LSK_FEE_GUIDE.get(cat, LSK_FEE_GUIDE['other'])
+        d = entry.get(lang, entry.get('sw', {}))
+        fee_range = d.get('range', '')
+        fee_note  = d.get('note', '')
+
+    # Lead count for social proof (how many people contacted this lawyer)
+    lead_count = Lead.objects.filter(lawyer=lawyer).count()
+
+    # Average rating
+    rated_leads = Lead.objects.filter(lawyer=lawyer, rating__isnull=False)
+    avg_rating  = None
+    if rated_leads.exists():
+        total = sum(l.rating for l in rated_leads)
+        avg_rating = round(total / rated_leads.count(), 1)
+
+    return JsonResponse({
+        'lawyer_name': lawyer.full_name,
+        'fee_range':   fee_range,
+        'fee_note':    fee_note,
+        'lead_count':  lead_count,
+        'avg_rating':  avg_rating,
+        'rated_count': rated_leads.count(),
+        'pro_bono':    lawyer.pro_bono,
+    })
