@@ -5,7 +5,7 @@
 <section class="py-4" style="background:linear-gradient(135deg,var(--haki-green),var(--haki-dark));">
   <div class="container text-white text-center py-2">
     <h1 class="h3 fw-bold">Step 2: Upload KYC Documents</h1>
-    <p style="color:rgba(255,255,255,.8);">Hi {{ lawyer.full_name }} — upload your verification documents below.</p>
+    <p style="color:rgba(255,255,255,.8);">Hi {{ lawyer.full_name }}, upload your verification documents below.</p>
   </div>
 </section>
 
@@ -31,7 +31,7 @@
         <div class="card card-haki mb-4">
           <div class="card-header bg-white border-bottom py-3">
             <h2 class="h5 mb-0 fw-bold" style="color:var(--haki-green);">
-              KYC Document Upload — {{ lawyer.full_name }}
+              KYC Document Upload: {{ lawyer.full_name }}
             </h2>
           </div>
           <div class="card-body p-4">
@@ -41,7 +41,7 @@
               <ul class="mb-0 mt-1">
                 <li>Your practicing certificate must be for <strong>2026</strong> with the LSK stamp.</li>
                 <li>The name on all documents must match: <strong>{{ lawyer.lsk_number }}</strong></li>
-                <li>Files must be clear and readable (PDF, JPG, PNG — max 10MB each).</li>
+                <li>Files must be clear and readable (PDF, JPG, PNG, max 10MB each).</li>
                 <li>Fake documents will result in permanent blacklisting.</li>
               </ul>
             </div>
@@ -83,7 +83,7 @@
                        class="form-control {% if errors.doc_selfie_with_id %}is-invalid{% endif %}"
                        accept=".jpg,.jpeg,.png">
                 {% if errors.doc_selfie_with_id %}<div class="invalid-feedback">{{ errors.doc_selfie_with_id }}</div>{% endif %}
-                <small class="text-muted">Take a photo of yourself holding your National ID — both must be clearly visible.</small>
+                <small class="text-muted">Take a photo of yourself holding your National ID. Both must be clearly visible.</small>
               </div>
 
               <!-- KRA PIN -->

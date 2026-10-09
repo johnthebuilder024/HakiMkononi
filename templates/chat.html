@@ -831,7 +831,7 @@
       if(isSentence){
         var hasDistress=/\b(beat|beaten|beating|hit|kill|angry|hurt|violence|abuse)\b/i.test(text);
         addBotBubble(hasDistress
-          ?(LANG==='sw'?'💙 Naelewa unahisi hasira. Andika <strong>jina lako halisi</strong> tu — mfano: <em>John Kamau</em>':'💙 I understand. Please type just your <strong>real name</strong> — example: <em>John Kamau</em>')
+          ?(LANG==='sw'?'💙 Naelewa unahisi hasira. Andika <strong>jina lako halisi</strong> tu, mfano: <em>John Kamau</em>':'💙 I understand. Please type just your <strong>real name</strong>, example: <em>John Kamau</em>')
           :(LANG==='sw'?'⚠️ Hiyo inaonekana kama sentensi. Andika <strong>jina lako</strong> tu.':'⚠️ That looks like a sentence. Type just your <strong>full name</strong>.'));
         return true;
       }
@@ -857,7 +857,7 @@
     var today=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
     var filled=letter.replace(/\[YOUR NAME\]/g,name||'[YOUR NAME]').replace(/\[JINA LAKO\]/g,name||'[JINA LAKO]')
       .replace(/\[DATE\]/g,today).replace(/\[date\]/g,today).replace(/\[TAREHE\]/g,today).replace(/\[tarehe\]/g,today)
-      .replace(/\[YOUR ADDRESS\]/g,'[Your address — add this]').replace(/\[ANWANI YAKO\]/g,'[Anwani yako — ongeza hapa]').replace(/\[ANWANI\]/g,'[Anwani yako — ongeza hapa]');
+      .replace(/\[YOUR ADDRESS\]/g,'[Your address, add this]').replace(/\[ANWANI YAKO\]/g,'[Anwani yako, ongeza hapa]').replace(/\[ANWANI\]/g,'[Anwani yako, ongeza hapa]');
     if(phone){filled=filled.replace(/\[PHONE NUMBER\]/g,phone).replace(/\[NAMBARI YA SIMU\]/g,phone);}
     var el=document.getElementById('ltLetter-'+letterFlowJobId);
     if(el){renderLetter(el,filled,letterFlowJobId);updateLetterCount(el,letterFlowJobId);el.scrollIntoView({behavior:'smooth',block:'nearest'});}
@@ -989,7 +989,7 @@
                 : '<div style="width:34px;height:34px;border-radius:50%;background:var(--haki-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;">⚖️</div>';
               var waLink = 'https://wa.me/'+l.wa_num+'?text='+encodeURIComponent(waMsg);
               var tgLink = l.telegram ? 'https://t.me/'+l.telegram : '';
-              sec.innerHTML='<div style="display:flex;gap:.6rem;align-items:flex-start;"><div style="width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;">'+avatarImg+'</div><div style="flex:1;font-size:.82rem;"><div style="font-weight:600;"><a href="/lawyers/'+l.id+'/" target="_blank" rel="noopener" style="color:var(--haki-dark);text-decoration:none;">'+l.name+'</a>'+(l.firm?' <span style="color:#888;font-weight:400;">— '+l.firm+'</span>':'')+'</div><div style="color:#777;font-size:.78rem;">📍 '+l.county+(specs?' · '+specs:'')+'</div><div style="display:flex;gap:.4rem;margin-top:.35rem;flex-wrap:wrap;"><button onclick="openLawyerBriefing('+l.id+',\''+encodeURIComponent(waLink)+'\',null,'+(queryId||0)+')" style="background:var(--haki-green);color:#fff;padding:.2em .75em;border-radius:20px;font-size:.74rem;border:none;cursor:pointer;">💬 WhatsApp</button>'+(tgLink?'<button onclick="openLawyerBriefing('+l.id+',null,\''+encodeURIComponent(tgLink)+'\','+(queryId||0)+')" style="background:#2AABEE;color:#fff;padding:.2em .75em;border-radius:20px;font-size:.74rem;border:none;cursor:pointer;">✈️ Telegram</button>':'')+'<a href="/lawyers/'+l.id+'/" target="_blank" rel="noopener" style="background:#f5f5f5;color:#444;padding:.2em .75em;border-radius:20px;font-size:.74rem;text-decoration:none;border:1px solid #ddd;">👤 Profile</a><a href="/lawyers/'+l.id+'/report/" target="_blank" rel="noopener" style="color:#dc3545;padding:.2em .5em;border-radius:20px;font-size:.7rem;text-decoration:none;border:1px solid #f5c6cb;">🚩</a></div></div></div>';
+              sec.innerHTML='<div style="display:flex;gap:.6rem;align-items:flex-start;"><div style="width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;">'+avatarImg+'</div><div style="flex:1;font-size:.82rem;"><div style="font-weight:600;"><a href="/lawyers/'+l.id+'/" target="_blank" rel="noopener" style="color:var(--haki-dark);text-decoration:none;">'+l.name+'</a>'+(l.firm?' <span style="color:#888;font-weight:400;">· '+l.firm+'</span>':'')+'</div><div style="color:#777;font-size:.78rem;">📍 '+l.county+(specs?' · '+specs:'')+'</div><div style="display:flex;gap:.4rem;margin-top:.35rem;flex-wrap:wrap;"><button onclick="openLawyerBriefing('+l.id+',\''+encodeURIComponent(waLink)+'\',null,'+(queryId||0)+')" style="background:var(--haki-green);color:#fff;padding:.2em .75em;border-radius:20px;font-size:.74rem;border:none;cursor:pointer;">💬 WhatsApp</button>'+(tgLink?'<button onclick="openLawyerBriefing('+l.id+',null,\''+encodeURIComponent(tgLink)+'\','+(queryId||0)+')" style="background:#2AABEE;color:#fff;padding:.2em .75em;border-radius:20px;font-size:.74rem;border:none;cursor:pointer;">✈️ Telegram</button>':'')+'<a href="/lawyers/'+l.id+'/" target="_blank" rel="noopener" style="background:#f5f5f5;color:#444;padding:.2em .75em;border-radius:20px;font-size:.74rem;text-decoration:none;border:1px solid #ddd;">👤 Profile</a><a href="/lawyers/'+l.id+'/report/" target="_blank" rel="noopener" style="color:#dc3545;padding:.2em .5em;border-radius:20px;font-size:.7rem;text-decoration:none;border:1px solid #f5c6cb;">🚩</a></div></div></div>';
               lawyerSlot.appendChild(sec);
             });
           }).catch(function(){});
@@ -1011,7 +1011,7 @@
     var jobId=data.job_id||currentJobId, a=data.answer||{};
     if(data.is_serious){
       var row=document.createElement('div'); row.className='msg-row bot';
-      row.innerHTML=avatarHTML()+'<div class="serious-msg">🚨 <strong>'+(LANG==='sw'?'Kesi Nyeti — Tafuta Wakili Haraka':'Serious Case — Get a Lawyer Urgently')+'</strong><br><br>'+(LANG==='sw'?'Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br>🌐 www.nlas.go.ke':'This case needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br>🌐 www.nlas.go.ke')+'</div>';
+      row.innerHTML=avatarHTML()+'<div class="serious-msg">🚨 <strong>'+(LANG==='sw'?'Kesi Nyeti: Tafuta Wakili Haraka':'Serious Case: Get a Lawyer Urgently')+'</strong><br><br>'+(LANG==='sw'?'Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br>🌐 www.nlas.go.ke':'This case needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br>🌐 www.nlas.go.ke')+'</div>';
       messagesEl.appendChild(row); scrollDown(); resetInput();
       persistCurrentConv(); return;
     }
@@ -1054,7 +1054,7 @@
     if(data.sources&&data.sources.length){
       var srcSec=document.createElement('div'); srcSec.className='bot-card-section';
       var srcHtml='<span class="bot-card-label label-sources"><span>📚</span><span>'+(LANG==='sw'?'Vyanzo vya Sheria':'Legal Sources')+'</span></span><ul class="list-unstyled chat-sources mb-0">';
-      data.sources.slice(0,6).forEach(function(s,i){srcHtml+='<li><span style="background:var(--haki-light);color:var(--haki-dark);padding:.1em .5em;border-radius:10px;font-size:.72rem;flex-shrink:0;">'+(i+1)+'</span><span style="flex:1;"><strong>'+s.title+'</strong>'+(s.section?' — <em style="color:#888;">'+s.section+'</em>':'')+'</span>'+(s.url?'<a href="'+s.url+'" target="_blank" rel="noopener">↗</a>':'')+'</li>';});
+      data.sources.slice(0,6).forEach(function(s,i){srcHtml+='<li><span style="background:var(--haki-light);color:var(--haki-dark);padding:.1em .5em;border-radius:10px;font-size:.72rem;flex-shrink:0;">'+(i+1)+'</span><span style="flex:1;"><strong>'+s.title+'</strong>'+(s.section?' <em style="color:#888;">· '+s.section+'</em>':'')+'</span>'+(s.url?'<a href="'+s.url+'" target="_blank" rel="noopener">↗</a>':'')+'</li>';});
       srcHtml+='</ul>'; srcSec.innerHTML=srcHtml; card.appendChild(srcSec);
     }
 
@@ -1175,7 +1175,7 @@
     var SERIOUS_KW=['murder','mauaji','rape','ubakaji','defilement','udhalilishaji','terrorism','ugaidi','robbery with violence','manslaughter','kuua'];
     if(SERIOUS_KW.some(function(kw){return story.toLowerCase().indexOf(kw)!==-1;})){
       addUserMessage(story);chatInput.value='';chatInput.style.height='auto';sendBtn.disabled=true;
-      addBotBubble(LANG==='sw'?'🚨 <strong>Kesi Nyeti — Tafuta Wakili Haraka</strong><br><br>Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br>🌐 www.nlas.go.ke':'🚨 <strong>Serious Case — Get a Lawyer Urgently</strong><br><br>This situation needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br>🌐 www.nlas.go.ke');
+      addBotBubble(LANG==='sw'?'🚨 <strong>Kesi Nyeti: Tafuta Wakili Haraka</strong><br><br>Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br>🌐 www.nlas.go.ke':'🚨 <strong>Serious Case: Get a Lawyer Urgently</strong><br><br>This situation needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br>🌐 www.nlas.go.ke');
       sendBtn.disabled=chatInput.value.trim().length<3; return;
     }
 
@@ -1417,11 +1417,11 @@ function renderBriefing(d, lawyerId) {
   var tips = isSw ? [
     'Omba ada yake kwa maandishi kabla ya kumkubali',
     'Usimlipe pesa kabla ya kupata makubaliano ya maandishi',
-    'Kama ada ni tofauti na ulivyoambiwa — ripoti hapa chini',
+    'Kama ada ni tofauti na ulivyoambiwa, ripoti hapa chini',
   ] : [
     'Ask them to confirm their fees in writing before agreeing to anything',
     'Do not pay any money before you have a written fee agreement',
-    'If the fee differs from what was discussed — use the report link below',
+    'If the fee differs from what was discussed, use the report link below',
   ];
   var ul = document.getElementById('briefTipsList');
   ul.innerHTML = '';

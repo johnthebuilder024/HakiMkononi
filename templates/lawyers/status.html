@@ -9,7 +9,7 @@
         <div class="card card-haki">
           <div class="card-header bg-white border-bottom py-3">
             <h2 class="h5 mb-0 fw-bold" style="color:var(--haki-green);">
-              Application Status — {{ lawyer.full_name }}
+              Application Status: {{ lawyer.full_name }}
             </h2>
           </div>
           <div class="card-body p-4 text-center">
@@ -22,7 +22,7 @@
 
             {% elif lawyer.kyc_status == 'level1_pass' %}
               <div style="font-size:3rem;">📋</div>
-              <h3 class="fw-bold mt-2">Step 1 Complete — Upload Documents</h3>
+              <h3 class="fw-bold mt-2">Step 1 Complete. Upload Documents</h3>
               <p class="text-muted">Your basic information has been validated. Please upload your KYC documents to continue.</p>
               <a href="/lawyers/documents/{{ lawyer.pk }}/" class="btn btn-haki mt-2">Upload Documents →</a>
 
@@ -44,7 +44,7 @@
               <div style="font-size:3rem;">✅</div>
               <h3 class="fw-bold mt-2" style="color:var(--haki-green);">You Are Verified!</h3>
               <p class="text-muted">
-                Congratulations — your profile is now live on HakiMkononi.<br>
+                Congratulations. Your profile is now live on HakiMkononi.<br>
                 Wanjiku can now see you and connect with you for legal help.
               </p>
               <div class="alert alert-success mt-3" style="font-size:.83rem;">

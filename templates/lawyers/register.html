@@ -167,7 +167,7 @@
                   <label class="form-label fw-semibold">Professional Bio <span class="text-danger">*</span></label>
                   <textarea name="bio" class="form-control {% if errors.bio %}is-invalid{% endif %}"
                             rows="3" maxlength="500"
-                            placeholder="Brief professional bio — why should Wanjiku trust you? (max 500 chars)">{{ data.bio|default:'' }}</textarea>
+                            placeholder="Brief professional bio. Why should Wanjiku trust you? (max 500 chars)">{{ data.bio|default:'' }}</textarea>
                   {% if errors.bio %}<div class="invalid-feedback">{{ errors.bio }}</div>{% endif %}
                 </div>
 

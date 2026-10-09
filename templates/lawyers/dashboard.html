@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Dashboard — {{ lawyer.full_name }} | HakiMkononi{% endblock %}
+{% block title %}Dashboard: {{ lawyer.full_name }} | HakiMkononi{% endblock %}
 
 {% block content %}
 <section class="py-3" style="background:linear-gradient(135deg,var(--haki-green),var(--haki-dark));">
@@ -170,9 +170,9 @@
             {% else %}
             <p class="text-muted text-center p-4 mb-0" style="font-size:.88rem;">
               {% if lang == 'en' %}
-                No leads yet. Your profile is live — clients who match your county and specialties will see you.
+                No leads yet. Your profile is live. Clients who match your county and specialties will see you.
               {% else %}
-                Hakuna wateja bado. Wasifu wako uko wazi — wateja wanaolingana na kaunti na utaalamu wako watakuona.
+                Hakuna wateja bado. Wasifu wako uko wazi. Wateja wanaolingana na kaunti na utaalamu wako watakuona.
               {% endif %}
             </p>
             {% endif %}
@@ -287,7 +287,7 @@
             <h2 class="h6 fw-bold mb-0" style="color:var(--haki-green);">
               💬 {% if lang == 'en' %}Post a Public Answer{% else %}Tuma Jibu la Umma{% endif %}
               <span class="text-muted fw-normal" style="font-size:.75rem;">
-                &nbsp;— {% if lang == 'en' %}builds your reputation (1 pending at a time){% else %}inajenga sifa yako (moja inayosubiri kwa wakati mmoja){% endif %}
+                &nbsp;({% if lang == 'en' %}builds your reputation, 1 pending at a time{% else %}inajenga sifa yako, moja inayosubiri kwa wakati mmoja{% endif %})
               </span>
             </h2>
           </div>

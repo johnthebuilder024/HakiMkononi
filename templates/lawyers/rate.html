@@ -100,11 +100,11 @@
 <script>
 var LANG = '{{ lang }}';
 var starLabels = {
-  1: LANG==='en' ? '1 — Very poor' : '1 — Mbaya sana',
-  2: LANG==='en' ? '2 — Poor'      : '2 — Mbaya',
-  3: LANG==='en' ? '3 — Okay'      : '3 — Sawa',
-  4: LANG==='en' ? '4 — Good'      : '4 — Nzuri',
-  5: LANG==='en' ? '5 — Excellent' : '5 — Bora sana',
+  1: LANG==='en' ? '1: Very poor' : '1: Mbaya sana',
+  2: LANG==='en' ? '2: Poor'      : '2: Mbaya',
+  3: LANG==='en' ? '3: Okay'      : '3: Sawa',
+  4: LANG==='en' ? '4: Good'      : '4: Nzuri',
+  5: LANG==='en' ? '5: Excellent' : '5: Bora sana',
 };
 function pickStar(val){
   document.getElementById('ratingInput').value = val;

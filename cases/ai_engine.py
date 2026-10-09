@@ -495,12 +495,12 @@ LSK_FEE_GUIDE = {
         "en": {
             "range": "KES 5,000 – 40,000",
             "note": "Consumer disputes at the Consumer Protection Tribunal or Magistrate Court. "
-                    "Small claims (under KES 200,000) can be filed at the Small Claims Court — no lawyer needed.",
+                    "Small claims (under KES 200,000) can be filed at the Small Claims Court with no lawyer needed.",
         },
         "sw": {
             "range": "KES 5,000 – 40,000",
             "note": "Migogoro ya walaji kwenye Baraza la Ulinzi wa Walaji au Mahakama ya Wilaya. "
-                    "Madai madogo (chini ya KES 200,000) yanaweza kufunguliwa kwenye Mahakama ya Madai Madogo — hakuna haja ya wakili.",
+                    "Madai madogo (chini ya KES 200,000) yanaweza kufunguliwa kwenye Mahakama ya Madai Madogo bila haja ya wakili.",
         },
     },
     "constitution": {

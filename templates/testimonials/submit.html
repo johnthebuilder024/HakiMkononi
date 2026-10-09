@@ -93,7 +93,8 @@
 
               <div class="mb-3">
                 <label class="form-label fw-semibold small">
-                  {% if lang == 'en' %}Your Story * — What happened and how did HakiMkononi help?{% else %}Hadithi Yako * — Nini kilitokea na HakiMkononi ilikuwa na msaada vipi?{% endif %}
+                  {% if lang == 'en' %}Your Story *{% else %}Hadithi Yako *{% endif %}
+                  <span class="text-muted fw-normal">({% if lang == 'en' %}What happened and how did HakiMkononi help?{% else %}Nini kilitokea na HakiMkononi ilikuwa na msaada vipi?{% endif %})</span>
                 </label>
                 <textarea name="story" class="form-control" rows="5" required
                           placeholder="{% if lang == 'en' %}Example: My landlord locked me out. I used HakiMkononi to understand my rights, sent the demand letter, and he unlocked the door within 3 days.{% else %}Mfano: Landlord wangu alinifunga mlango. Nilitumia HakiMkononi kuelewa haki zangu, nilituma barua ya kudai, na akafungua mlango ndani ya siku 3.{% endif %}"></textarea>
@@ -101,7 +102,8 @@
 
               <div class="mb-4">
                 <label class="form-label fw-semibold small">
-                  {% if lang == 'en' %}Outcome (optional) — What did you get?{% else %}Matokeo (si lazima) — Ulipata nini?{% endif %}
+                  {% if lang == 'en' %}Outcome{% else %}Matokeo{% endif %}
+                  <span class="text-muted fw-normal">({% if lang == 'en' %}optional: what did you get?{% else %}si lazima: ulipata nini?{% endif %})</span>
                 </label>
                 <input type="text" name="outcome" class="form-control"
                        placeholder="{% if lang == 'en' %}e.g. Got 3 months salary back{% else %}mfano: Nilipata mshahara wa miezi 3 nyuma{% endif %}">

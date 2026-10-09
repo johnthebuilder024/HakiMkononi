@@ -175,9 +175,9 @@
              style="width:0%;transition:width 1s linear;"></div>
       </div>
       <p class="text-white-50 mt-2 mb-0 small" id="timerHint">
-        {% if lang == "en" %}Reading the law for you — results appear as they are ready.
-        {% elif lang == "sheng" %}Inasoma sheria — majibu yataonekana mara mara.
-        {% else %}Inasoma sheria — majibu yataonekana mara mara.{% endif %}
+        {% if lang == "en" %}Reading the law for you. Results appear as they are ready.
+        {% elif lang == "sheng" %}Inasoma sheria. Majibu yataonekana mara mara.
+        {% else %}Inasoma sheria. Majibu yataonekana mara mara.{% endif %}
       </p>
     </div>
   </div>
@@ -225,14 +225,14 @@
 
     var lang = '{{ lang }}';
     var at60 = {
-      sw:    'Bado inaendelea — HakiMkononi inasoma sheria kwa makini…',
-      en:    'Still going — reading the law carefully for you…',
-      sheng: 'Bado inaendelea — inasoma sheria kwa makini…'
+      sw:    'Bado inaendelea. HakiMkononi inasoma sheria kwa makini...',
+      en:    'Still working. Reading the law carefully for you...',
+      sheng: 'Bado inaendelea. Inasoma sheria kwa makini...'
     };
     var at120 = {
-      sw:    'Karibu kumaliza — subiri kidogo zaidi…',
-      en:    'Almost there — just a little longer…',
-      sheng: 'Karibu kuisha — subiri kidogo tu buda…'
+      sw:    'Karibu kumaliza. Subiri kidogo zaidi...',
+      en:    'Almost there. Just a little longer...',
+      sheng: 'Karibu kuisha. Subiri kidogo tu buda...'
     };
 
     _timerInterval = setInterval(function() {
