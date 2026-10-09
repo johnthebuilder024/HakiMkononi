@@ -278,7 +278,80 @@
         </div>
       </div>
 
-    </div>
+    </div><!-- end .row -->
+
+      <!-- ── Public Answer (reputation building) ── -->
+      <div class="col-12 mt-4">
+        <div class="card card-haki">
+          <div class="card-header py-3" style="background:var(--haki-light);">
+            <h2 class="h6 fw-bold mb-0" style="color:var(--haki-green);">
+              💬 {% if lang == 'en' %}Post a Public Answer{% else %}Tuma Jibu la Umma{% endif %}
+              <span class="text-muted fw-normal" style="font-size:.75rem;">
+                &nbsp;— {% if lang == 'en' %}builds your reputation (1 pending at a time){% else %}inajenga sifa yako (moja inayosubiri kwa wakati mmoja){% endif %}
+              </span>
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-4">
+              <div class="col-12 col-md-6">
+                <form method="POST" novalidate>
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="post_public_answer">
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold small">
+                      {% if lang == 'en' %}Question{% else %}Swali{% endif %}
+                    </label>
+                    <textarea name="pa_question" class="form-control" rows="2" maxlength="500"
+                              placeholder="{% if lang == 'en' %}e.g. My employer fired me without notice. What are my rights?{% else %}mfano: Mwajiri wangu alinifukuza bila notisi. Haki zangu ni gani?{% endif %}"></textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold small">
+                      {% if lang == 'en' %}Your Answer (plain language, max 800 chars){% else %}Jibu Lako (lugha rahisi, max maneno 800){% endif %}
+                    </label>
+                    <textarea name="pa_answer" class="form-control" rows="4" maxlength="800"
+                              placeholder="{% if lang == 'en' %}Write your answer in plain language Wanjiku can understand...{% else %}Andika jibu lako kwa lugha rahisi ambayo Wanjiku anaweza kuelewa...{% endif %}"></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-haki">
+                    ✉️ {% if lang == 'en' %}Submit for Review{% else %}Tuma kwa Ukaguzi{% endif %}
+                  </button>
+                  <small class="d-block text-muted mt-2">
+                    {% if lang == 'en' %}Admin will review and approve before it appears on your profile.{% else %}Msimamizi ataangalia na kupitisha kabla haijatokea kwenye wasifu wako.{% endif %}
+                  </small>
+                </form>
+              </div>
+              <div class="col-12 col-md-6">
+                <small class="text-muted fw-semibold d-block mb-2">
+                  {% if lang == 'en' %}Your Pending Answers{% else %}Majibu Yako Yanayosubiri{% endif %}
+                </small>
+                {% if public_answers_pending %}
+                  {% for pa in public_answers_pending %}
+                  <div class="mb-2 p-2" style="background:#fff8e1;border-radius:6px;font-size:.82rem;">
+                    <strong>Q:</strong> {{ pa.question|truncatechars:80 }}<br>
+                    <span class="badge" style="background:#ffc107;color:#000;">⏳ {% if lang == 'en' %}Pending review{% else %}Inasubiri ukaguzi{% endif %}</span>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <p class="text-muted" style="font-size:.82rem;">
+                    {% if lang == 'en' %}No pending answers.{% else %}Hakuna majibu yanayosubiri.{% endif %}
+                  </p>
+                {% endif %}
+                {% if public_answers_approved %}
+                <small class="text-muted fw-semibold d-block mb-2 mt-3">
+                  {% if lang == 'en' %}Live on Your Profile{% else %}Kwenye Wasifu Wako{% endif %}
+                </small>
+                  {% for pa in public_answers_approved %}
+                  <div class="mb-2 p-2" style="background:#e8f5e9;border-radius:6px;font-size:.82rem;">
+                    <strong>Q:</strong> {{ pa.question|truncatechars:80 }}<br>
+                    <span class="badge" style="background:var(--haki-green);color:#fff;">✅ {% if lang == 'en' %}Live{% else %}Iko hai{% endif %}</span>
+                  </div>
+                  {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
   </div>
 </section>
 {% endblock %}

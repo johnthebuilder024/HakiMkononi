@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if lang == 'en' %}Share Your Win Story | HakiMkononi{% else %}Shiriki Hadithi Yako ya Ushindi | HakiMkononi{% endif %}{% endblock %}
+
+{% block content %}
+<section class="py-3" style="background:linear-gradient(135deg,var(--haki-green),var(--haki-dark));">
+  <div class="container text-white py-1">
+    <h1 class="h4 fw-bold mb-1">🌟 {% if lang == 'en' %}Share Your Win Story{% else %}Shiriki Hadithi Yako ya Ushindi{% endif %}</h1>
+    <p class="mb-0" style="color:rgba(255,255,255,.8);font-size:.9rem;">
+      {% if lang == 'en' %}
+        Did HakiMkononi help you? Your story can inspire another Kenyan to stand up for their rights.
+      {% else %}
+        Je, HakiMkononi ilikusaidia? Hadithi yako inaweza kuhamasisha Mkenya mwingine kudai haki zake.
+      {% endif %}
+    </p>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-7">
+
+        {% if success %}
+        <div class="card card-haki text-center p-5">
+          <div style="font-size:3rem;">🎉</div>
+          <h2 class="h4 fw-bold mt-3" style="color:var(--haki-green);">
+            {% if lang == 'en' %}Thank you!{% else %}Asante sana!{% endif %}
+          </h2>
+          <p class="text-muted">
+            {% if lang == 'en' %}
+              Your story has been submitted for review. Once approved it will appear on HakiMkononi to inspire others.
+            {% else %}
+              Hadithi yako imetumwa kwa ukaguzi. Baada ya kupitishwa itaonekana kwenye HakiMkononi ili kuwahamasisha wengine.
+            {% endif %}
+          </p>
+          <a href="{% url 'home' %}" class="btn btn-haki mt-2">
+            {% if lang == 'en' %}Back to HakiMkononi{% else %}Rudi HakiMkononi{% endif %}
+          </a>
+        </div>
+        {% else %}
+
+        {% if error %}
+        <div class="alert alert-warning mb-3">{{ error }}</div>
+        {% endif %}
+
+        <div class="card card-haki">
+          <div class="card-header py-3" style="background:var(--haki-light);">
+            <h2 class="h6 fw-bold mb-0" style="color:var(--haki-green);">
+              ✍️ {% if lang == 'en' %}Your Story{% else %}Hadithi Yako{% endif %}
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <form method="POST" novalidate>
+              {% csrf_token %}
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold small">
+                  {% if lang == 'en' %}Your First Name *{% else %}Jina Lako la Kwanza *{% endif %}
+                  <span class="text-muted fw-normal">({% if lang == 'en' %}no last name needed{% else %}jina la familia si lazima{% endif %})</span>
+                </label>
+                <input type="text" name="name" class="form-control" required
+                       placeholder="{% if lang == 'en' %}e.g. Jane{% else %}mfano: Jane{% endif %}">
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">
+                    {% if lang == 'en' %}County{% else %}Kaunti{% endif %}
+                  </label>
+                  <select name="county" class="form-select">
+                    <option value="">--</option>
+                    {% for c in counties %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">
+                    {% if lang == 'en' %}Type of Case{% else %}Aina ya Kesi{% endif %}
+                  </label>
+                  <select name="case_type" class="form-select">
+                    <option value="">--</option>
+                    <option value="Employment">{% if lang == 'en' %}Employment{% else %}Ajira{% endif %}</option>
+                    <option value="Landlord">{% if lang == 'en' %}Landlord / Tenant{% else %}Landlord / Mpangaji{% endif %}</option>
+                    <option value="Police">{% if lang == 'en' %}Police / Arrest{% else %}Polisi / Kukamatwa{% endif %}</option>
+                    <option value="Land">{% if lang == 'en' %}Land / Succession{% else %}Ardhi / Urithi{% endif %}</option>
+                    <option value="Family">{% if lang == 'en' %}Family / Children{% else %}Familia / Watoto{% endif %}</option>
+                    <option value="Consumer">{% if lang == 'en' %}Consumer Rights{% else %}Haki za Mlaji{% endif %}</option>
+                    <option value="Other">{% if lang == 'en' %}Other{% else %}Nyingine{% endif %}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold small">
+                  {% if lang == 'en' %}Your Story * — What happened and how did HakiMkononi help?{% else %}Hadithi Yako * — Nini kilitokea na HakiMkononi ilikuwa na msaada vipi?{% endif %}
+                </label>
+                <textarea name="story" class="form-control" rows="5" required
+                          placeholder="{% if lang == 'en' %}Example: My landlord locked me out. I used HakiMkononi to understand my rights, sent the demand letter, and he unlocked the door within 3 days.{% else %}Mfano: Landlord wangu alinifunga mlango. Nilitumia HakiMkononi kuelewa haki zangu, nilituma barua ya kudai, na akafungua mlango ndani ya siku 3.{% endif %}"></textarea>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-semibold small">
+                  {% if lang == 'en' %}Outcome (optional) — What did you get?{% else %}Matokeo (si lazima) — Ulipata nini?{% endif %}
+                </label>
+                <input type="text" name="outcome" class="form-control"
+                       placeholder="{% if lang == 'en' %}e.g. Got 3 months salary back{% else %}mfano: Nilipata mshahara wa miezi 3 nyuma{% endif %}">
+              </div>
+
+              <button type="submit" class="btn btn-haki w-100">
+                🌟 {% if lang == 'en' %}Submit My Story{% else %}Tuma Hadithi Yangu{% endif %}
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

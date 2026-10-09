@@ -1057,6 +1057,25 @@
     fbRow.innerHTML='<span>'+(LANG==='sw'?'Je, ilisaidia?':'Was this helpful?')+'</span><button onclick="sendFeedback('+(data.query_id||0)+', true, \'fb-'+jobId+'\')">👍</button><button onclick="sendFeedback('+(data.query_id||0)+', false, \'fb-'+jobId+'\')">👎</button>';
     card.appendChild(fbRow);
 
+    // ── Fee guide box ────────────────────────────────────────────────
+    if(data.fee_guide&&data.fee_guide.range){
+      var fg=data.fee_guide;
+      var fgSec=document.createElement('div'); fgSec.className='bot-card-section';
+      fgSec.style.cssText='background:#fffbf0;border-top:2px solid #f0c040;';
+      fgSec.innerHTML=
+        '<div style="padding:.65rem 1.1rem;">' +
+        '<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.35rem;">' +
+        '<span style="font-size:1rem;">💰</span>' +
+        '<span style="font-size:.8rem;font-weight:700;color:#7a4200;">'+(LANG==='sw'?'Bei ya Wakili kwa Kesi Hii':'Typical Lawyer Fee for This Case')+'</span>' +
+        '<span style="font-size:.72rem;color:#bbb;margin-left:auto;">LSK Remuneration Order</span>' +
+        '</div>' +
+        '<div style="font-size:1rem;font-weight:700;color:#92400e;margin-bottom:.25rem;">'+fg.range+'</div>' +
+        '<div style="font-size:.78rem;color:#666;line-height:1.5;">'+fg.note+'</div>' +
+        '<div style="font-size:.72rem;color:#bbb;margin-top:.3rem;">'+(LANG==='sw'?'Hizi ni bei za kawaida tu. Daima omba makubaliano ya ada kwa maandishi.':'These are typical ranges only. Always get a written fee agreement.')+'</div>' +
+        '</div>';
+      card.appendChild(fgSec);
+    }
+
     if(data.query_id)renderLawyers(card,data.query_id);
 
     row.innerHTML='';

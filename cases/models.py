@@ -379,7 +379,130 @@ class Lawyer(models.Model):
         return ""
 
 
+class CaseAudio(models.Model):
+    """
+    A recording of a court hearing that Wanjiku uploads.
+    Transcribed via Groq Whisper, then summarised by the AI.
+    """
+    STATUS_PENDING   = 'pending'
+    STATUS_DONE      = 'done'
+    STATUS_ERROR     = 'error'
+    STATUS_CHOICES   = [
+        ('pending', 'Pending transcription'),
+        ('done',    'Done'),
+        ('error',   'Error'),
+    ]
+
+    audio_file       = models.FileField(upload_to='case_audio/',
+                           help_text="Audio recording of the court hearing (mp3/m4a/wav/ogg, max 25MB)")
+    lang             = models.CharField(max_length=10, default='sw')
+    court_station    = models.CharField(max_length=200, blank=True,
+                           help_text="e.g. Kisumu Magistrate Court")
+    hearing_date     = models.DateField(null=True, blank=True)
+    status           = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    transcript       = models.TextField(blank=True, help_text="Raw Whisper transcript")
+    summary          = models.TextField(blank=True, help_text="AI-generated Swahili summary")
+    error_message    = models.CharField(max_length=500, blank=True)
+    created_at       = models.DateTimeField(auto_now_add=True)
+    finished_at      = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Case Audio'
+        verbose_name_plural = 'Case Audio Files'
+
+    def __str__(self):
+        return f"CaseAudio #{self.pk} [{self.status}] — {self.court_station or 'Unknown court'}"
+
+
+class Testimonial(models.Model):
+    """
+    A win story from Wanjiku — plain text, optionally a voice note.
+    Shown on the home page and about page to build trust.
+    Needs admin approval before appearing publicly.
+    """
+    name         = models.CharField(max_length=100,
+                       help_text="First name or pseudonym — no last name needed")
+    county       = models.CharField(max_length=100, blank=True)
+    case_type    = models.CharField(max_length=100, blank=True,
+                       help_text="e.g. Employment, Landlord, Police")
+    story        = models.TextField(
+                       help_text="What happened and how HakiMkononi helped — in their own words")
+    outcome      = models.CharField(max_length=200, blank=True,
+                       help_text="e.g. 'Got 3 months salary back', 'Landlord returned my deposit'")
+    lang         = models.CharField(max_length=10, default='sw')
+    approved     = models.BooleanField(default=False,
+                       help_text="Check to show publicly on the site")
+    created_at   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Testimonial'
+        verbose_name_plural = 'Testimonials'
+
+    def __str__(self):
+        return f"{self.name} ({self.county}) — {'✅' if self.approved else '⏳'}"
+
+
+class LawyerPublicAnswer(models.Model):
+    """
+    One free public answer per week from a verified lawyer.
+    Shown on their profile to build reputation — a real Kenyan question with a real answer.
+    Requires admin approval before going public.
+    """
+    lawyer       = models.ForeignKey(Lawyer, on_delete=models.CASCADE,
+                       related_name='public_answers')
+    question     = models.TextField(max_length=500,
+                       help_text="The legal question being answered (Swahili or English)")
+    answer       = models.TextField(
+                       help_text="The lawyer's answer — max 800 chars, plain language")
+    lang         = models.CharField(max_length=10, default='sw')
+    approved     = models.BooleanField(default=False,
+                       help_text="Admin must approve before this appears on the lawyer's profile")
+    created_at   = models.DateTimeField(auto_now_add=True)
+    updated_at   = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Lawyer Public Answer'
+        verbose_name_plural = 'Lawyer Public Answers'
+        # One pending answer per lawyer at a time — enforce in view logic, not DB
+
+    def __str__(self):
+        return f"{self.lawyer.full_name} — {'✅' if self.approved else '⏳'} — {self.question[:60]}"
+
+
 class Lead(models.Model):
+    """
+    Records when Wanjiku clicks "Connect" to reach a lawyer.
+    Links a Query (the legal question) to a Lawyer.
+    """
+    STATUS_NEW       = 'new'
+    STATUS_CONTACTED = 'contacted'
+    STATUS_CLOSED    = 'closed'
+    STATUS_CHOICES = [
+        ('new',       'New — not yet contacted'),
+        ('contacted', 'Lawyer contacted client'),
+        ('closed',    'Closed'),
+    ]
+
+    query        = models.ForeignKey(Query,  on_delete=models.CASCADE, related_name='leads')
+    lawyer       = models.ForeignKey(Lawyer, on_delete=models.CASCADE, related_name='leads')
+    user_phone   = models.CharField(max_length=20, blank=True,
+                       help_text="Wanjiku's phone — only stored if she consented")
+    user_consented = models.BooleanField(default=False)
+    status       = models.CharField(max_length=15, choices=STATUS_CHOICES, default=STATUS_NEW)
+    notes        = models.TextField(blank=True)
+    created_at   = models.DateTimeField(auto_now_add=True)
+    updated_at   = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Lead'
+        verbose_name_plural = 'Leads'
+
+    def __str__(self):
+        return f"Lead #{self.pk} → {self.lawyer.full_name} | {self.status}"
     """
     Records when Wanjiku clicks "Connect" to reach a lawyer.
     Links a Query (the legal question) to a Lawyer.

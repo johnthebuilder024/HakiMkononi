@@ -345,3 +345,42 @@ class LeadAdmin(admin.ModelAdmin):
     def query_preview(self, obj):
         return obj.query.story[:60] + '...' if len(obj.query.story) > 60 else obj.query.story
     query_preview.short_description = 'Question'
+
+
+from cases.models import CaseAudio, Testimonial, LawyerPublicAnswer
+
+
+@admin.register(CaseAudio)
+class CaseAudioAdmin(admin.ModelAdmin):
+    list_display  = ['pk', 'court_station', 'lang', 'status', 'created_at']
+    list_filter   = ['status', 'lang']
+    readonly_fields = ['transcript', 'summary', 'status', 'error_message', 'created_at', 'finished_at']
+    list_per_page = 30
+
+
+@admin.register(Testimonial)
+class TestimonialAdmin(admin.ModelAdmin):
+    list_display  = ['name', 'county', 'case_type', 'approved', 'created_at']
+    list_filter   = ['approved', 'case_type', 'lang']
+    search_fields = ['name', 'story', 'county']
+    list_editable = ['approved']
+    readonly_fields = ['created_at']
+    list_per_page = 30
+
+
+@admin.register(LawyerPublicAnswer)
+class LawyerPublicAnswerAdmin(admin.ModelAdmin):
+    list_display  = ['lawyer_name', 'question_preview', 'approved', 'created_at']
+    list_filter   = ['approved', 'lang']
+    search_fields = ['lawyer__full_name', 'question', 'answer']
+    list_editable = ['approved']
+    readonly_fields = ['lawyer', 'created_at', 'updated_at']
+    list_per_page = 30
+
+    def lawyer_name(self, obj):
+        return obj.lawyer.full_name
+    lawyer_name.short_description = 'Lawyer'
+
+    def question_preview(self, obj):
+        return obj.question[:70] + ('...' if len(obj.question) > 70 else '')
+    question_preview.short_description = 'Question'

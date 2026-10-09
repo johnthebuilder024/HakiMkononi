@@ -74,6 +74,7 @@ AI-powered legal information for every Kenyan. Type your situation in Swahili or
 ### ✅ Lawyer Public Profile (`/lawyers/<id>/`)
 - Shareable page: name, firm, county, specialties, years of experience, bio, photo
 - WhatsApp + Telegram contact buttons
+- Approved public answers shown — builds trust with potential clients
 
 ### ✅ Lawyer Dashboard (`/lawyers/dashboard/`)
 - Login with email + password (`/lawyers/login/`), password set via emailed link (`/lawyers/set-password/`)
@@ -81,6 +82,7 @@ AI-powered legal information for every Kenyan. Type your situation in Swahili or
 - Lead stats: total, last 30 days, last 7 days, breakdown by status
 - Top counties reaching them (which county the matched questions came from)
 - Edit profile: firm, bio, specialties, counties, photo URL
+- Post a public answer (1 pending at a time) — admin approves, then shown on public profile
 
 ### ✅ Admin Dashboard (`/dashboard/`)
 - Queries per day/week/month
@@ -123,6 +125,24 @@ Distress for Rent Act, Widows and Children's Pensions Act, Marriage Rules (5 set
 ---
 
 ## Future Features (Parked — Build After Lawyer Side Is Done)
+
+### ✅ Fee Guide (LSK Remuneration Order)
+- After every AI answer, Wanjiku sees the typical lawyer fee range for her case type
+- Based on the laws actually cited (employment → KES 20k–150k, landlord → KES 10k–80k, etc.)
+- Includes free legal aid contacts (NLAS, FIDA, Kituo cha Sheria) where relevant
+- Protects Wanjiku from overcharging by giving her a benchmark before she meets a lawyer
+
+### ✅ Court Audio Upload & Transcription (`/court-audio/`)
+- Wanjiku uploads a recording of her court hearing (MP3/M4A/WAV/OGG, up to 5 min)
+- Groq Whisper transcribes the audio, then the AI summarises in plain Swahili
+- Output: "Jaji alisema: 1. Lete barua ya kazi 2. Kesi inarudi tarehe..."
+- `CaseAudio` model tracks status (pending/done/error), transcript, and summary
+- Fully async — upload returns immediately, JS polls for result
+
+### ✅ Testimonials (`/testimonials/submit/`)
+- Wanjiku can share her win story (name, county, case type, outcome)
+- Stored with `approved=False` — admin approves before public display
+- Multilingual (EN/SW)
 
 ### ✅ Self-Representation Pack
 For Wanjiku who wants to fight her own case in court after the other side ignores her demand letter.
@@ -174,6 +194,12 @@ python test_quality.py
 
 # Run quality tests against local server
 TEST_BASE_URL=http://localhost:8000 python test_quality.py
+
+# Scrape recent Kenya Law judgments (adds new law sections + embeddings)
+python manage.py scrape_kenyalaw
+
+# Scrape last 30 days instead of default 7
+python manage.py scrape_kenyalaw --days 30 --dry-run
 ```
 
 ---
@@ -205,6 +231,10 @@ TEST_BASE_URL=http://localhost:8000 python test_quality.py
 | GET | `/lawyers/logout/` | Lawyer logout |
 | GET/POST | `/lawyers/set-password/` | Set password from emailed setup link |
 | GET/POST | `/lawyers/dashboard/` | Lawyer dashboard (leads + profile editing) |
+| POST | `/api/court-audio/` | Upload court hearing audio → transcribe + summarise |
+| GET | `/api/court-audio/<id>/` | Poll for transcription result |
+| GET | `/court-audio/` | Court audio upload page |
+| GET/POST | `/testimonials/submit/` | Submit a win story |
 
 ---
 
@@ -228,7 +258,7 @@ DATABASE_URL=...              # Supabase PostgreSQL
 ---
 
 ## What We Are NOT Building
-- Court pleadings or document submission (premium self-rep pack handles guidance only)
+- Submitting court documents on behalf of users (the self-rep pack generates templates and guidance — Wanjiku files them herself)
 - Advice on murder, defilement, terrorism (NLAS referral only)
 - Percentage of case outcomes (LSK rules)
 - Fake M-Pesa statements, court orders, or LSK certificates

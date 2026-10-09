@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if lang == 'en' %}Court Audio Summary | HakiMkononi{% else %}Muhtasari wa Kusikilizwa Mahakamani | HakiMkononi{% endif %}{% endblock %}
+
+{% block content %}
+<section class="py-3" style="background:linear-gradient(135deg,var(--haki-green),var(--haki-dark));">
+  <div class="container text-white py-1">
+    <h1 class="h4 fw-bold mb-1">🎙️ {% if lang == 'en' %}Court Hearing Summary{% else %}Muhtasari wa Kusikilizwa Mahakamani{% endif %}</h1>
+    <p class="mb-0" style="color:rgba(255,255,255,.8);font-size:.9rem;">
+      {% if lang == 'en' %}
+        Upload a short recording of your court hearing. HakiMkononi will transcribe it and explain in plain Swahili what the judge said.
+      {% else %}
+        Pakia rekodi fupi ya kusikilizwa kwako mahakamani. HakiMkononi itatafsiri na kueleza kwa Kiswahili rahisi alichosema jaji.
+      {% endif %}
+    </p>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-7">
+
+        <!-- Upload form -->
+        <div class="card card-haki mb-4" id="uploadCard">
+          <div class="card-header py-3" style="background:var(--haki-light);">
+            <h2 class="h6 fw-bold mb-0" style="color:var(--haki-green);">
+              🎙️ {% if lang == 'en' %}Upload Your Recording{% else %}Pakia Rekodi Yako{% endif %}
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <div class="mb-3 p-3" style="background:#fff8e1;border-left:4px solid #ffc107;border-radius:4px;font-size:.85rem;">
+              <strong>{% if lang == 'en' %}Tips for best results:{% else %}Vidokezo kwa matokeo bora:{% endif %}</strong>
+              <ul class="mb-0 mt-1">
+                <li>{% if lang == 'en' %}Keep recording under 5 minutes{% else %}Rekodi iwe chini ya dakika 5{% endif %}</li>
+                <li>{% if lang == 'en' %}MP3, M4A, WAV, or OGG format{% else %}Muundo wa MP3, M4A, WAV, au OGG{% endif %}</li>
+                <li>{% if lang == 'en' %}Hold phone close to the speaker{% else %}Shikilia simu karibu na spika{% endif %}</li>
+              </ul>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">
+                🎵 {% if lang == 'en' %}Audio File *{% else %}Faili ya Sauti *{% endif %}
+              </label>
+              <input type="file" id="audioFile" accept="audio/*" class="form-control">
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">
+                  {% if lang == 'en' %}Language{% else %}Lugha{% endif %}
+                </label>
+                <select id="audioLang" class="form-select">
+                  <option value="sw" {% if lang == 'sw' %}selected{% endif %}>Kiswahili</option>
+                  <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">
+                  {% if lang == 'en' %}Court Station (optional){% else %}Mahakama (si lazima){% endif %}
+                </label>
+                <input type="text" id="courtStation" class="form-control"
+                       placeholder="{% if lang == 'en' %}e.g. Kisumu Magistrate Court{% else %}mfano: Mahakama ya Wilaya Kisumu{% endif %}">
+              </div>
+            </div>
+
+            <button id="uploadBtn" class="btn btn-haki w-100" onclick="uploadAudio()">
+              ⬆️ {% if lang == 'en' %}Upload & Transcribe{% else %}Pakia na Tafsiri{% endif %}
+            </button>
+          </div>
+        </div>
+
+        <!-- Result card (hidden until done) -->
+        <div class="card card-haki" id="resultCard" style="display:none;">
+          <div class="card-header py-3" style="background:var(--haki-light);">
+            <h2 class="h6 fw-bold mb-0" style="color:var(--haki-green);">
+              📋 {% if lang == 'en' %}Summary{% else %}Muhtasari{% endif %}
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <div id="statusMsg" class="text-center py-3 text-muted" style="font-size:.9rem;"></div>
+            <div id="summaryDiv" style="display:none;">
+              <h3 class="h6 fw-bold mb-2" style="color:var(--haki-green);">
+                {% if lang == 'en' %}What the judge said:{% else %}Jaji alisema:{% endif %}
+              </h3>
+              <div id="summaryText" style="font-size:.92rem;line-height:1.7;white-space:pre-wrap;"></div>
+              <hr class="mt-3 mb-2">
+              <details class="mt-2">
+                <summary class="text-muted" style="font-size:.78rem;cursor:pointer;">
+                  {% if lang == 'en' %}Raw transcript{% else %}Tafsiri ghafi{% endif %}
+                </summary>
+                <div id="transcriptText" class="mt-2" style="font-size:.78rem;color:#666;white-space:pre-wrap;"></div>
+              </details>
+              <button class="btn btn-sm btn-outline-secondary mt-3" onclick="copySummary()">
+                📋 {% if lang == 'en' %}Copy Summary{% else %}Nakili Muhtasari{% endif %}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <p class="text-muted text-center small mt-3">
+          {% if lang == 'en' %}
+            This summary is AI-generated and may not be 100% accurate. For important legal decisions, consult a verified lawyer.
+          {% else %}
+            Muhtasari huu umetengezwa na AI na huenda usikuwe sahihi 100%. Kwa maamuzi muhimu ya kisheria, wasiliana na wakili aliyethibitishwa.
+          {% endif %}
+        </p>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+var LANG = '{{ lang }}';
+var CSRF = '{{ csrf_token }}';
+var pollTimer = null;
+
+function uploadAudio(){
+  var file = document.getElementById('audioFile').files[0];
+  if(!file){ alert(LANG==='sw'?'Tafadhali chagua faili ya sauti.':'Please select an audio file.'); return; }
+
+  var btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  btn.textContent = LANG==='sw' ? '⏳ Inapakia...' : '⏳ Uploading...';
+
+  var fd = new FormData();
+  fd.append('audio', file);
+  fd.append('lang', document.getElementById('audioLang').value);
+  fd.append('court_station', document.getElementById('courtStation').value);
+  fd.append('csrfmiddlewaretoken', CSRF);
+
+  fetch('/api/court-audio/', {method:'POST', body:fd})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.error){ showError(d.error); return; }
+      document.getElementById('resultCard').style.display = '';
+      document.getElementById('statusMsg').textContent = LANG==='sw' ? '⏳ Inatafsiria... subiri dakika moja.' : '⏳ Transcribing... please wait about a minute.';
+      document.getElementById('uploadCard').style.opacity = '.5';
+      pollTimer = setInterval(function(){ pollStatus(d.id); }, 4000);
+    })
+    .catch(function(){ showError(LANG==='sw' ? 'Hitilafu ya muunganisho.' : 'Connection error.'); });
+}
+
+function pollStatus(id){
+  fetch('/api/court-audio/'+id+'/')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.status === 'done'){
+        clearInterval(pollTimer);
+        document.getElementById('statusMsg').style.display = 'none';
+        document.getElementById('summaryDiv').style.display = '';
+        document.getElementById('summaryText').textContent = d.summary || (LANG==='sw'?'Hakuna muhtasari uliopatikana.':'No summary generated.');
+        document.getElementById('transcriptText').textContent = d.transcript || '';
+      } else if(d.status === 'error'){
+        clearInterval(pollTimer);
+        showError(d.error || (LANG==='sw'?'Hitilafu ya utatuzi.':'Transcription error.'));
+      }
+    })
+    .catch(function(){});
+}
+
+function showError(msg){
+  var btn = document.getElementById('uploadBtn');
+  btn.disabled = false;
+  btn.textContent = LANG==='sw' ? '⬆️ Pakia na Tafsiri' : '⬆️ Upload & Transcribe';
+  document.getElementById('uploadCard').style.opacity = '1';
+  document.getElementById('resultCard').style.display = 'none';
+  alert(msg);
+}
+
+function copySummary(){
+  var text = document.getElementById('summaryText').textContent;
+  try { navigator.clipboard.writeText(text); } catch(e) {}
+}
+</script>
+{% endblock %}

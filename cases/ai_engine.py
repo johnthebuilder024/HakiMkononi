@@ -418,6 +418,148 @@ SERIOUS_CRIMINAL_KEYWORDS = [
     "manslaughter", "kuua bila kukusudia",
 ]
 
+# ─── LSK Fee Guide (Remuneration Order 2014 + 2023 gazette) ──────────────────
+# Approximate ranges for common case types so Wanjiku knows if she's
+# being overcharged. These are GUIDANCE, not fixed prices.
+# Source: LSK Advocates Remuneration Order 2014 + common market rates.
+LSK_FEE_GUIDE = {
+    "employment": {
+        "en": {
+            "range": "KES 20,000 – 150,000",
+            "note": "Unfair dismissal / unpaid wages at Employment & Labour Court. "
+                    "Many advocates take 20–30% of the award (no win, no fee). "
+                    "Consultation fee: KES 2,000–5,000.",
+        },
+        "sw": {
+            "range": "KES 20,000 – 150,000",
+            "note": "Kesi ya kufukuzwa kazi / mshahara ambao haujalipiwa katika Mahakama ya Kazi. "
+                    "Mawakili wengi wanachukua 20–30% ya malipo (hakuna ushindi, hakuna ada). "
+                    "Ada ya ushauri: KES 2,000–5,000.",
+        },
+    },
+    "landlord_tenant": {
+        "en": {
+            "range": "KES 10,000 – 80,000",
+            "note": "Eviction disputes or deposit recovery at the Rent Tribunal or Magistrate Court. "
+                    "Simple cases can be filed yourself (no lawyer needed). "
+                    "Consultation fee: KES 1,500–3,000.",
+        },
+        "sw": {
+            "range": "KES 10,000 – 80,000",
+            "note": "Migogoro ya kukimbia nyumba au kurejesha amana kwenye Baraza la Kodi au Mahakama ya Wilaya. "
+                    "Kesi rahisi zinaweza kufunguliwa wewe mwenyewe (hakuna haja ya wakili). "
+                    "Ada ya ushauri: KES 1,500–3,000.",
+        },
+    },
+    "criminal_procedure": {
+        "en": {
+            "range": "KES 30,000 – 300,000",
+            "note": "Criminal defence depends heavily on the charge. Bail hearings: KES 5,000–30,000. "
+                    "Full trial: KES 50,000–300,000+. Legal Aid (free) available via NLAS: 0800 720 120.",
+        },
+        "sw": {
+            "range": "KES 30,000 – 300,000",
+            "note": "Utetezi wa jinai unategemea sana shtaka. Kusikilizana kwa dhamana: KES 5,000–30,000. "
+                    "Kesi kamili: KES 50,000–300,000+. Msaada wa kisheria (bure) unapatikana kupitia NLAS: 0800 720 120.",
+        },
+    },
+    "land": {
+        "en": {
+            "range": "KES 25,000 – 250,000",
+            "note": "Land disputes at the Environment & Land Court. "
+                    "Succession matters at the High Court: KES 15,000–80,000. "
+                    "Title deed transfers: KES 10,000–50,000.",
+        },
+        "sw": {
+            "range": "KES 25,000 – 250,000",
+            "note": "Migogoro ya ardhi katika Mahakama ya Mazingira na Ardhi. "
+                    "Masuala ya urithi katika Mahakama Kuu: KES 15,000–80,000. "
+                    "Uhamishaji wa hati ya ardhi: KES 10,000–50,000.",
+        },
+    },
+    "children": {
+        "en": {
+            "range": "KES 8,000 – 60,000",
+            "note": "Child support / custody at the Children's Court. "
+                    "Maintenance orders are often handled without a lawyer. "
+                    "FIDA Kenya offers free legal aid for women: 020 271 4911.",
+        },
+        "sw": {
+            "range": "KES 8,000 – 60,000",
+            "note": "Msaada wa mtoto / ulezi katika Mahakama ya Watoto. "
+                    "Amri za matunzo mara nyingi hushughulikiwa bila wakili. "
+                    "FIDA Kenya inatoa msaada wa kisheria bure kwa wanawake: 020 271 4911.",
+        },
+    },
+    "consumer": {
+        "en": {
+            "range": "KES 5,000 – 40,000",
+            "note": "Consumer disputes at the Consumer Protection Tribunal or Magistrate Court. "
+                    "Small claims (under KES 200,000) can be filed at the Small Claims Court — no lawyer needed.",
+        },
+        "sw": {
+            "range": "KES 5,000 – 40,000",
+            "note": "Migogoro ya walaji kwenye Baraza la Ulinzi wa Walaji au Mahakama ya Wilaya. "
+                    "Madai madogo (chini ya KES 200,000) yanaweza kufunguliwa kwenye Mahakama ya Madai Madogo — hakuna haja ya wakili.",
+        },
+    },
+    "constitution": {
+        "en": {
+            "range": "KES 30,000 – 200,000",
+            "note": "Constitutional petitions at the High Court. "
+                    "Many human rights NGOs (KHRC, ICJ Kenya, Kituo cha Sheria) take constitutional cases pro bono.",
+        },
+        "sw": {
+            "range": "KES 30,000 – 200,000",
+            "note": "Malalamiko ya kikatiba katika Mahakama Kuu. "
+                    "Mashirika mengi ya haki za binadamu (KHRC, ICJ Kenya, Kituo cha Sheria) yanachukua kesi za kikatiba bila malipo.",
+        },
+    },
+    "other": {
+        "en": {
+            "range": "KES 5,000 – 50,000",
+            "note": "Rates vary by case complexity. Initial consultation: KES 1,000–5,000. "
+                    "Always ask for a written fee agreement before retaining any lawyer. "
+                    "Free legal aid: NLAS 0800 720 120 (toll-free).",
+        },
+        "sw": {
+            "range": "KES 5,000 – 50,000",
+            "note": "Ada zinatofautiana kulingana na ugumu wa kesi. Ushauri wa kwanza: KES 1,000–5,000. "
+                    "Daima omba makubaliano ya ada kwa maandishi kabla ya kumtunza wakili wowote. "
+                    "Msaada wa kisheria bure: NLAS 0800 720 120 (simu ya bure).",
+        },
+    },
+}
+
+def get_fee_guide(categories: list, lang: str = "sw") -> dict | None:
+    """
+    Given a list of Law.category values from the RAG results, return the most
+    relevant fee guide entry so Wanjiku can check if a lawyer is overcharging.
+    Returns None if no match found.
+    """
+    # Priority order — pick the most specific match
+    priority = ["criminal_procedure", "employment", "landlord_tenant", "land",
+                "children", "consumer", "constitution", "other"]
+    cats = set(categories)
+    for cat in priority:
+        if cat in cats:
+            guide = LSK_FEE_GUIDE.get(cat, {})
+            lang_key = lang if lang in guide else "sw"
+            return {
+                "category": cat,
+                "range":    guide.get(lang_key, {}).get("range", ""),
+                "note":     guide.get(lang_key, {}).get("note", ""),
+            }
+    # fallback to 'other'
+    guide = LSK_FEE_GUIDE["other"]
+    lang_key = lang if lang in guide else "sw"
+    return {
+        "category": "other",
+        "range":    guide[lang_key]["range"],
+        "note":     guide[lang_key]["note"],
+    }
+
+
 _SERIOUS_MESSAGES = {
     "sw": (
         "⚠️ TAFUTA WAKILI HARAKA — Hii kesi ni nzito sana.\n\n"

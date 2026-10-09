@@ -120,25 +120,26 @@ These are the most common, the law is clear, and they affect the most people in 
 | Layer | Tool | Reason |
 |---|---|---|
 | Backend | Django + Python | Chosen by the builder |
-| LLM | GPT-4o-mini | Cheap, handles law well |
-| Embeddings | SentenceTransformers (all-MiniLM-L6-v2) | Free, fast, runs locally |
-| Vector search | Django DB for MVP, Supabase later | No Pinecone cost yet |
-| Speech-to-text | OpenAI Whisper | Understands Swahili and English |
-| Payments | Africa's Talking M-Pesa STK | Kenyan, reliable |
-| WhatsApp API | Africa's Talking | Already works in Kenya |
-| PDF parsing | pdfplumber or PyMuPDF | Split Acts by section |
-| Daily scraper | BeautifulSoup (Month 3+) | Auto-pull new Kenya Law judgments |
+| LLM | Groq (openai/gpt-oss-20b primary, 70b fallback) | Free tier, fast, handles law well |
+| Embeddings | Gemini (text-embedding-004) | Free at ai.google.dev, high quality |
+| Vector search | Django DB (PostgreSQL / Supabase) | No Pinecone cost |
+| Speech-to-text | Groq Whisper (whisper-large-v3) | Fast, understands Swahili and English |
+| Payments | Safaricom Daraja (M-Pesa STK Push) | Kenyan, reliable |
+| WhatsApp | Twilio sandbox (Meta approval pending) | Built, pending approval |
+| PDF parsing | pdfplumber | Split Acts by section |
+| Deployment | Render (free tier) | Auto-deploys on git push |
+| Database | Supabase PostgreSQL | Free, persistent |
 
 ---
 
 ## Money Model
 
 ### Citizens
-- **Free:** 10 questions per month per phone number
-- **99 KES:** Download demand letter or affidavit as PDF
+- **Free:** Unlimited questions — no rate limit, no account needed
+- **Free:** Self-representation pack (court document, evidence checklist, timeline)
 - **Free:** Connect to a verified lawyer
 
-### Lawyers (Built in Chunk 4)
+### Lawyers (subscription — M-Pesa, parked for now)
 - **2,500 KES/month Basic** — profile + 5 leads + appears in county search
 - **5,000 KES/month Pro** — top 3 ranking + 15 leads + WhatsApp button
 - **15,000 KES/month Firm** — unlimited leads in 2 counties + analytics dashboard

@@ -22,7 +22,7 @@ from django.utils import timezone
 
 from cases.models import Law, Query, AnswerJob
 from cases.rag import find_relevant_laws
-from cases.ai_engine import get_answer, is_serious_criminal
+from cases.ai_engine import get_answer, is_serious_criminal, get_fee_guide
 
 
 # ── Conversation memory helpers (mirrors telegram_bot.py) ────────────────────
@@ -152,6 +152,10 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
         # Build summary to return to client so it can update localStorage history
         summary = _summarise_answer(answer)
 
+        # Compute fee guide from the law categories actually used
+        categories = list(top_laws.values_list('category', flat=True).distinct())
+        fee_guide = get_fee_guide(categories, lang=job.lang)
+
         AnswerJob.objects.filter(pk=job_id).update(
             status=AnswerJob.STATUS_DONE,
             answer_law=answer.get("law", ""),
@@ -162,10 +166,13 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
             answer_evidence=answer.get("evidence", ""),
             answer_procedure=answer.get("procedure", ""),
             is_serious=answer.get("is_serious", False),
-            sources_json=json.dumps([
-                {"title": l.title, "section": l.section, "url": l.source_url}
-                for l in top_laws
-            ]),
+            sources_json=json.dumps({
+                "sources": [
+                    {"title": l.title, "section": l.section, "url": l.source_url}
+                    for l in top_laws
+                ],
+                "fee_guide": fee_guide,
+            }),
             query=query,
             finished_at=timezone.now(),
         )
@@ -296,9 +303,17 @@ def job_status(request, job_id):
 
     # Done — return full answer
     try:
-        sources = json.loads(job.sources_json) if job.sources_json else []
+        raw_sources_json = json.loads(job.sources_json) if job.sources_json else {}
+        # Support both old format (list) and new format (dict with sources + fee_guide)
+        if isinstance(raw_sources_json, list):
+            sources   = raw_sources_json
+            fee_guide = None
+        else:
+            sources   = raw_sources_json.get("sources", [])
+            fee_guide = raw_sources_json.get("fee_guide", None)
     except (json.JSONDecodeError, ValueError):
-        sources = []
+        sources   = []
+        fee_guide = None
 
     # Include assistant summary so the browser can update its localStorage history
     summary = _job_summaries.pop(job.pk, "")
@@ -318,6 +333,7 @@ def job_status(request, job_id):
             "ratiba":         job.answer_procedure,
         },
         "sources":    sources,
+        "fee_guide":  fee_guide,
         "elapsed_seconds": elapsed,
         "assistant_summary": summary,  # used by browser to update conversation history
     })
@@ -582,7 +598,11 @@ def answer_pdf(request, job_id):
     L = labels.get(lang, labels["sw"])
 
     try:
-        sources = json.loads(job.sources_json) if job.sources_json else []
+        raw_sources_json = json.loads(job.sources_json) if job.sources_json else {}
+        if isinstance(raw_sources_json, list):
+            sources = raw_sources_json
+        else:
+            sources = raw_sources_json.get("sources", [])
     except (json.JSONDecodeError, ValueError):
         sources = []
 
@@ -1669,3 +1689,147 @@ def transcribe_audio(request):
     except Exception as e:
         print(f"[Whisper] Exception: {e}")
         return JsonResponse({"error": "Transcription service error."}, status=500)
+
+
+# ─── /api/court-audio/ ────────────────────────────────────────────────────────
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def court_audio_submit(request):
+    """
+    POST /api/court-audio/
+    Upload a court hearing audio file.
+    Transcribes via Groq Whisper then summarises via the AI in a background thread.
+
+    Form data:
+      audio         — audio file
+      lang          — 'sw' or 'en'
+      court_station — optional, e.g. "Kisumu Magistrate Court"
+      hearing_date  — optional, YYYY-MM-DD
+    """
+    import requests as _req
+    import os
+    from cases.models import CaseAudio
+    from django.utils import timezone
+
+    if 'audio' not in request.FILES:
+        return JsonResponse({"error": "No audio file provided."}, status=400)
+
+    audio_file    = request.FILES['audio']
+    lang          = request.POST.get('lang', 'sw').strip()
+    court_station = request.POST.get('court_station', '').strip()
+    hearing_date  = request.POST.get('hearing_date', '').strip() or None
+
+    groq_key = os.getenv('GROQ_API_KEY', '').strip()
+    if not groq_key:
+        return JsonResponse({"error": "Transcription not configured."}, status=503)
+
+    # Save the file and create the record
+    record = CaseAudio.objects.create(
+        audio_file=audio_file,
+        lang=lang,
+        court_station=court_station,
+        hearing_date=hearing_date,
+    )
+
+    # Transcribe and summarise in background
+    def _process(record_id: int):
+        from cases.models import CaseAudio
+        from cases.ai_engine import _call_with_fallback
+        import requests as _r2
+        from django.utils import timezone as tz2
+
+        rec = CaseAudio.objects.get(pk=record_id)
+        try:
+            # Re-open the saved file
+            rec.audio_file.open('rb')
+            audio_bytes = rec.audio_file.read()
+            rec.audio_file.close()
+
+            # Transcribe
+            lang_map = {'sw': 'sw', 'en': 'en'}
+            whisper_lang = lang_map.get(rec.lang, None)
+            files = {
+                'file': (rec.audio_file.name.split('/')[-1], audio_bytes, 'audio/mpeg'),
+            }
+            data = {'model': 'whisper-large-v3', 'response_format': 'json', 'temperature': '0'}
+            if whisper_lang:
+                data['language'] = whisper_lang
+
+            r = _r2.post(
+                'https://api.groq.com/openai/v1/audio/transcriptions',
+                headers={'Authorization': f'Bearer {groq_key}'},
+                files=files,
+                data=data,
+                timeout=60,
+            )
+            if r.status_code != 200:
+                raise RuntimeError(f"Whisper error {r.status_code}: {r.text[:200]}")
+
+            transcript = r.json().get('text', '').strip()
+
+            # Summarise the transcript
+            system_sw = (
+                "Wewe ni HakiMkononi, msaidizi wa kisheria. "
+                "Mtumiaji amekupelekea muhtasari wa kusikilizwa kwake mahakamani. "
+                "Fanya muhtasari mfupi wa hatua muhimu kwa Kiswahili rahisi. "
+                "Anza na 'Jaji/Magistrate alisema:' kisha orodhesha hatua 3-5 za vitendo "
+                "kwa kutumia nambari. Andika kwa lugha rahisi sana — kama unaandika kwa mama mboga."
+            )
+            system_en = (
+                "You are HakiMkononi, a Kenyan legal assistant. "
+                "Summarise this court hearing transcript in plain English. "
+                "Start with 'The judge/magistrate said:' then list 3-5 action items numbered. "
+                "Write at secondary school level — the user is not a lawyer."
+            )
+            system = system_sw if rec.lang == 'sw' else system_en
+            user_msg = f"Court hearing transcript:\n\n{transcript}"
+
+            messages = [
+                {"role": "system", "content": system},
+                {"role": "user",   "content": user_msg},
+            ]
+            summary = _call_with_fallback(messages, lang=rec.lang)
+
+            CaseAudio.objects.filter(pk=record_id).update(
+                status=CaseAudio.STATUS_DONE,
+                transcript=transcript,
+                summary=summary,
+                finished_at=tz2.now(),
+            )
+            print(f"[CaseAudio] #{record_id} done")
+
+        except Exception as exc:
+            CaseAudio.objects.filter(pk=record_id).update(
+                status=CaseAudio.STATUS_ERROR,
+                error_message=str(exc)[:500],
+                finished_at=tz2.now(),
+            )
+            print(f"[CaseAudio] #{record_id} error: {exc}")
+
+    import threading
+    t = threading.Thread(target=_process, args=(record.pk,), daemon=True)
+    t.start()
+
+    return JsonResponse({"id": record.pk, "status": "pending"}, status=201)
+
+
+@require_http_methods(["GET"])
+def court_audio_status(request, pk):
+    """
+    GET /api/court-audio/<pk>/
+    Poll for transcription + summary result.
+    """
+    from cases.models import CaseAudio
+    try:
+        rec = CaseAudio.objects.get(pk=pk)
+    except CaseAudio.DoesNotExist:
+        return JsonResponse({"error": "Not found."}, status=404)
+
+    return JsonResponse({
+        "id":          rec.pk,
+        "status":      rec.status,
+        "transcript":  rec.transcript,
+        "summary":     rec.summary,
+        "error":       rec.error_message,
+    })

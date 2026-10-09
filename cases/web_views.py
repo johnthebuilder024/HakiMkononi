@@ -906,11 +906,18 @@ def lawyer_profile(request, lawyer_id):
     # Count leads as a rough popularity indicator (no sensitive data exposed)
     lead_count = Lead.objects.filter(lawyer=lawyer).count()
 
+    # Approved public answers for this lawyer
+    from cases.models import LawyerPublicAnswer
+    public_answers = LawyerPublicAnswer.objects.filter(
+        lawyer=lawyer, approved=True
+    ).order_by('-created_at')[:5]
+
     return _render_with_lang(request, 'lawyers/profile.html', {
-        'lawyer':     lawyer,
-        'wa_link':    wa_link,
-        'tg_link':    tg_link,
-        'lead_count': lead_count,
+        'lawyer':         lawyer,
+        'wa_link':        wa_link,
+        'tg_link':        tg_link,
+        'lead_count':     lead_count,
+        'public_answers': public_answers,
     }, lang)
 
 
@@ -1188,6 +1195,38 @@ def lawyer_dashboard(request, lawyer=None):
             if lead_id and new_status in valid_statuses:
                 Lead.objects.filter(pk=lead_id, lawyer=lawyer).update(status=new_status)
                 save_msg = "Lead updated." if lang == 'en' else "Mteja amesasishwa."
+        elif action == 'post_public_answer':
+            from cases.models import LawyerPublicAnswer
+            question = request.POST.get('pa_question', '').strip()[:500]
+            answer_text = request.POST.get('pa_answer', '').strip()[:800]
+            if question and answer_text:
+                # Only allow one unapproved answer pending at a time
+                pending = LawyerPublicAnswer.objects.filter(
+                    lawyer=lawyer, approved=False
+                ).count()
+                if pending >= 1:
+                    save_msg = (
+                        "You already have a public answer pending review. "
+                        "Wait for it to be approved before posting another."
+                        if lang == 'en' else
+                        "Una jibu moja linalongojea ukaguzi. "
+                        "Subiri lipitishwe kabla ya kutuma lingine."
+                    )
+                else:
+                    LawyerPublicAnswer.objects.create(
+                        lawyer=lawyer,
+                        question=question,
+                        answer=answer_text,
+                        lang=lang,
+                        approved=False,
+                    )
+                    save_msg = (
+                        "Public answer submitted for review. It will appear on your profile once approved."
+                        if lang == 'en' else
+                        "Jibu la umma limetumwa kwa ukaguzi. Litaonekana kwenye wasifu wako baada ya kupitishwa."
+                    )
+            else:
+                save_msg = "Please fill in both the question and answer." if lang == 'en' else "Tafadhali jaza swali na jibu vyote."
 
     # Stats
     now   = timezone.now()
@@ -1213,6 +1252,15 @@ def lawyer_dashboard(request, lawyer=None):
     )
     top_counties = [{'county': c['query__county'], 'count': c['n']} for c in county_counts]
 
+    # Fetch this lawyer's approved public answers (for profile display) and pending (for dashboard)
+    from cases.models import LawyerPublicAnswer
+    public_answers_approved = LawyerPublicAnswer.objects.filter(
+        lawyer=lawyer, approved=True
+    ).order_by('-created_at')[:5]
+    public_answers_pending  = LawyerPublicAnswer.objects.filter(
+        lawyer=lawyer, approved=False
+    ).order_by('-created_at')[:3]
+
     # Build password setup link (show if no password set yet)
     import base64
     setup_token = base64.urlsafe_b64encode(lawyer.email.encode()).decode()
@@ -1231,6 +1279,8 @@ def lawyer_dashboard(request, lawyer=None):
         'setup_token':     setup_token,
         'has_password':    bool(lawyer.password_hash),
         'counties':        COUNTIES,
+        'public_answers_approved': public_answers_approved,
+        'public_answers_pending':  public_answers_pending,
     }, lang)
 
 
@@ -1271,4 +1321,67 @@ def lawyer_check_status(request):
     return _render_with_lang(request, 'lawyers/check_status.html', {
         'lawyer': lawyer,
         'error':  error,
+    }, lang)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── COURT AUDIO PAGE ────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+@require_http_methods(["GET"])
+def court_audio_page(request):
+    """
+    GET /court-audio/
+    Page where Wanjiku can upload a recording of her court hearing
+    and get a plain-language Swahili summary of what the judge said.
+    """
+    lang = _get_lang(request)
+    return _render_with_lang(request, 'court_audio.html', {}, lang)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── TESTIMONIALS ────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+@require_http_methods(["GET", "POST"])
+def submit_testimonial(request):
+    """
+    GET  /testimonials/submit/  — show submission form
+    POST /testimonials/submit/  — save a new testimonial (pending admin approval)
+    """
+    from cases.models import Testimonial
+
+    lang = _get_lang(request)
+    success = False
+    error   = None
+
+    if request.method == 'POST':
+        name      = request.POST.get('name', '').strip()[:100]
+        county    = request.POST.get('county', '').strip()[:100]
+        case_type = request.POST.get('case_type', '').strip()[:100]
+        story     = request.POST.get('story', '').strip()
+        outcome   = request.POST.get('outcome', '').strip()[:200]
+
+        if not name or not story or len(story) < 20:
+            error = (
+                "Please fill in your name and your story (at least 20 characters)."
+                if lang == 'en' else
+                "Tafadhali jaza jina lako na hadithi yako (angalau maneno 20)."
+            )
+        else:
+            Testimonial.objects.create(
+                name=name,
+                county=county,
+                case_type=case_type,
+                story=story,
+                outcome=outcome,
+                lang=lang,
+                approved=False,
+            )
+            success = True
+
+    return _render_with_lang(request, 'testimonials/submit.html', {
+        'success': success,
+        'error':   error,
+        'counties': COUNTIES,
     }, lang)
