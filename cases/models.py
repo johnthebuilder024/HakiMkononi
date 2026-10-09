@@ -312,6 +312,8 @@ class Lawyer(models.Model):
     # ── Status ────────────────────────────────────────────────────────────────
     is_active           = models.BooleanField(default=True,
                               help_text="Uncheck to hide from platform without deleting")
+    pro_bono            = models.BooleanField(default=False,
+                              help_text="Check if this lawyer takes pro bono cases — shown in the directory")
 
     # ── Profile Photo (URL-based — works on Render without file storage) ──────
     # Lawyer pastes a URL to their photo (LinkedIn, personal site, etc.)

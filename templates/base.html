@@ -131,6 +131,14 @@
           <a class="nav-link {% if request.resolver_match.url_name == 'court_audio_page' %}active{% endif %}"
              href="{% url 'court_audio_page' %}">🎙️ {% if lang == 'en' %}Court Audio{% else %}Rekodi ya Mahakama{% endif %}</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'lawyers_directory' %}active{% endif %}"
+             href="{% url 'lawyers_directory' %}">🔍 {% if lang == 'en' %}Find a Lawyer{% else %}Tafuta Wakili{% endif %}</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'fee_schedule' %}active{% endif %}"
+             href="{% url 'fee_schedule' %}">💰 {% if lang == 'en' %}Lawyer Fees{% else %}Ada za Wakili{% endif %}</a>
+        </li>
       </ul>
       <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0"
            role="navigation" aria-label="Language selector">

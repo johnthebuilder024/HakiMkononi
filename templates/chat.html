@@ -473,6 +473,13 @@
           <textarea id="chatInput" rows="1"
                     placeholder="{{ ui.story_placeholder }}"
                     aria-label="{{ ui.field_story }}"></textarea>
+          <!-- Hidden file input for document/audio attachment -->
+          <input type="file" id="attachInput" accept=".pdf,.mp3,.m4a,.wav,.ogg,.webm,audio/*,application/pdf" style="display:none;">
+          <button class="chat-mic-btn" id="attachBtn" type="button"
+                  title="{% if lang == 'en' %}Attach a document or audio file{% else %}Ambatisha hati au faili ya sauti{% endif %}"
+                  id="attachBtn">
+            <span id="attachIcon">📎</span>
+          </button>
           <button class="chat-mic-btn" id="micBtn" type="button"
                   title="{% if lang == 'en' %}Tap to speak{% else %}Bonyeza kusema{% endif %}">
             <span id="micIcon">🎤</span>
@@ -1217,6 +1224,56 @@
       mediaRecorder.start();isRecording=true;micBtn.classList.add('recording');micIcon.textContent='⏹️';
       micStatus.textContent=LANG==='sw'?'🔴 Inarekodia…':'🔴 Recording…';
     }catch(e){micStatus.textContent=e.name==='NotAllowedError'?(LANG==='sw'?'❌ Ruhusu mic':'❌ Allow mic access'):'❌'+(e.message||'Mic error');}
+  });
+
+  // ════════════════════════════════════════════════════════════════
+  //  ATTACHMENT UPLOAD (document / audio file)
+  // ════════════════════════════════════════════════════════════════
+  var attachBtn  = document.getElementById('attachBtn');
+  var attachInput= document.getElementById('attachInput');
+  var attachIcon = document.getElementById('attachIcon');
+
+  attachBtn.addEventListener('click', function(){ attachInput.click(); });
+
+  attachInput.addEventListener('change', async function(){
+    var file = this.files[0];
+    if(!file) return;
+    // Reset the input so the same file can be re-attached if needed
+    this.value = '';
+
+    attachBtn.disabled = true;
+    attachIcon.textContent = '⏳';
+    micStatus.textContent = LANG==='sw' ? '⏳ Inasoma faili...' : '⏳ Reading file...';
+
+    var fd = new FormData();
+    fd.append('file', file);
+    fd.append('lang', LANG);
+    fd.append('csrfmiddlewaretoken', CSRF);
+
+    try {
+      var r = await fetch('/api/extract-text/', {method:'POST', body:fd});
+      var d = await r.json();
+
+      if(d.error){
+        micStatus.textContent = '❌ ' + d.error;
+        setTimeout(function(){ micStatus.textContent = ''; }, 6000);
+      } else {
+        var label = file.name.length > 30 ? file.name.slice(0,28)+'…' : file.name;
+        var prefix = '[' + (LANG==='sw' ? 'Kutoka kwa hati' : 'From attached file') + ': ' + label + ']\n' + d.text + '\n\n';
+        // Prepend to existing input (so user can still type their question after)
+        chatInput.value = prefix + chatInput.value;
+        chatInput.dispatchEvent(new Event('input'));
+        chatInput.focus();
+        micStatus.textContent = LANG==='sw' ? '✅ Faili imesomwa!' : '✅ File attached!';
+        setTimeout(function(){ micStatus.textContent = ''; }, 3000);
+      }
+    } catch(e) {
+      micStatus.textContent = LANG==='sw' ? '❌ Hitilafu ya muunganisho.' : '❌ Connection error.';
+      setTimeout(function(){ micStatus.textContent = ''; }, 4000);
+    }
+
+    attachBtn.disabled = false;
+    attachIcon.textContent = '📎';
   });
 
   // ════════════════════════════════════════════════════════════════

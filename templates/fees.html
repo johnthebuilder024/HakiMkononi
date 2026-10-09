@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if lang == 'en' %}Lawyer Fee Guide | HakiMkononi{% else %}Mwongozo wa Ada za Wakili | HakiMkononi{% endif %}{% endblock %}
+
+{% block content %}
+<section class="py-3" style="background:linear-gradient(135deg,var(--haki-green),var(--haki-dark));">
+  <div class="container text-white py-1">
+    <h1 class="h4 fw-bold mb-1">💰 {% if lang == 'en' %}Typical Lawyer Fees in Kenya{% else %}Ada za Kawaida za Mawakili Kenya{% endif %}</h1>
+    <p class="mb-0" style="color:rgba(255,255,255,.8);font-size:.9rem;">
+      {% if lang == 'en' %}
+        Based on the LSK Advocates Remuneration Order 2014 and current market rates. Use this to check if a lawyer is overcharging you.
+      {% else %}
+        Kulingana na Amri ya Malipo ya Mawakili wa LSK 2014 na viwango vya soko la sasa. Tumia hii kuangalia kama wakili anakuomba zaidi.
+      {% endif %}
+    </p>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-9">
+
+        <!-- Important disclaimer at top -->
+        <div class="alert d-flex gap-2 align-items-start mb-4"
+             style="background:#fff8e1;border:1px solid #ffc107;border-radius:8px;">
+          <span style="font-size:1.2rem;flex-shrink:0;">⚠️</span>
+          <div style="font-size:.85rem;">
+            {% if lang == 'en' %}
+              <strong>These are estimates only.</strong> Actual fees depend on case complexity, the lawyer's experience, and negotiation.
+              Always ask for a <strong>written fee agreement</strong> before retaining any lawyer.
+              If you cannot afford a lawyer, contact <strong>NLAS (free): 0800 720 120</strong>.
+            {% else %}
+              <strong>Hizi ni makadirio tu.</strong> Ada halisi zinategemea ugumu wa kesi, uzoefu wa wakili, na mazungumzo.
+              Daima omba <strong>makubaliano ya ada kwa maandishi</strong> kabla ya kumtunza wakili.
+              Kama huwezi kumudu wakili, wasiliana na <strong>NLAS (bure): 0800 720 120</strong>.
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Fee cards -->
+        {% for fee in fees %}
+        <div class="card card-haki mb-3">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-start gap-3 flex-wrap">
+              <div style="flex-shrink:0;font-size:2rem;width:44px;text-align:center;">{{ fee.icon }}</div>
+              <div style="flex:1;">
+                <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-1">
+                  <h2 class="h6 fw-bold mb-0" style="color:var(--haki-dark);">{{ fee.label }}</h2>
+                  <span class="fw-bold" style="color:var(--haki-green);font-size:1rem;white-space:nowrap;">
+                    {{ fee.range }}
+                  </span>
+                </div>
+                <p class="text-muted mb-0" style="font-size:.85rem;line-height:1.6;">{{ fee.note }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+        <!-- Free legal aid section -->
+        <div class="card card-haki mb-4" style="border-left:4px solid var(--haki-green);">
+          <div class="card-header py-3" style="background:var(--haki-light);">
+            <h2 class="h6 fw-bold mb-0" style="color:var(--haki-green);">
+              🆓 {% if lang == 'en' %}Free Legal Aid in Kenya{% else %}Msaada wa Kisheria Bure Kenya{% endif %}
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3" style="font-size:.88rem;">
+              <div class="col-12 col-sm-6">
+                <strong>NLAS (National Legal Aid Service)</strong><br>
+                📞 0800 720 120 ({% if lang == 'en' %}toll-free{% else %}simu ya bure{% endif %})<br>
+                🌐 nlas.go.ke
+              </div>
+              <div class="col-12 col-sm-6">
+                <strong>FIDA Kenya</strong><br>
+                {% if lang == 'en' %}Free legal aid for women{% else %}Msaada bure wa kisheria kwa wanawake{% endif %}<br>
+                📞 020 271 4911 · 📞 020 387 4998
+              </div>
+              <div class="col-12 col-sm-6">
+                <strong>Kituo cha Sheria</strong><br>
+                {% if lang == 'en' %}Criminal & human rights cases{% else %}Kesi za jinai na haki za binadamu{% endif %}<br>
+                📞 0800 720 372 ({% if lang == 'en' %}toll-free{% else %}simu ya bure{% endif %})
+              </div>
+              <div class="col-12 col-sm-6">
+                <strong>LSK Pro-Bono</strong><br>
+                {% if lang == 'en' %}Law Society of Kenya pro bono programme{% else %}Mpango wa pro bono wa Law Society of Kenya{% endif %}<br>
+                🌐 lsk.or.ke
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTAs -->
+        <div class="d-flex gap-3 flex-wrap justify-content-center mt-2">
+          <a href="{% url 'lawyers_directory' %}" class="btn btn-haki px-4">
+            🔍 {% if lang == 'en' %}Find a Verified Lawyer{% else %}Tafuta Wakili Aliyeidhinishwa{% endif %}
+          </a>
+          <a href="{% url 'home' %}" class="btn btn-outline-secondary px-4">
+            ⚖️ {% if lang == 'en' %}Ask a Legal Question{% else %}Uliza Swali la Kisheria{% endif %}
+          </a>
+        </div>
+
+        <!-- Source note -->
+        <p class="text-muted text-center mt-4" style="font-size:.75rem;">
+          {% if lang == 'en' %}
+            Source: LSK Advocates Remuneration Order 2014 (as amended) and typical Nairobi market rates as of 2024.
+            HakiMkononi is a legal information service — these figures are guidance only, not legal advice.
+          {% else %}
+            Chanzo: Amri ya Malipo ya Mawakili wa LSK 2014 (kama ilivyorekebishwa) na viwango vya kawaida vya soko la Nairobi kufikia 2024.
+            HakiMkononi ni huduma ya taarifa za kisheria — takwimu hizi ni mwongozo tu, si ushauri wa kisheria.
+          {% endif %}
+        </p>
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

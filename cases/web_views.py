@@ -1385,3 +1385,113 @@ def submit_testimonial(request):
         'error':   error,
         'counties': COUNTIES,
     }, lang)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── LAWYER DIRECTORY ────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+@require_http_methods(["GET"])
+def lawyers_directory(request):
+    """
+    GET /lawyers/directory/
+    Browsable, filterable public directory of all verified lawyers.
+    Filters: county, specialty, pro_bono, min_years
+    """
+    from cases.models import Lawyer
+
+    lang = _get_lang(request)
+
+    # Read filter params
+    f_county    = request.GET.get('county', '').strip()
+    f_specialty = request.GET.get('specialty', '').strip()
+    f_pro_bono  = request.GET.get('pro_bono', '').strip()
+    f_min_years = request.GET.get('min_years', '').strip()
+    f_search    = request.GET.get('q', '').strip()
+
+    # Base queryset — only verified, active lawyers
+    qs = Lawyer.objects.filter(
+        kyc_status=Lawyer.KYC_VERIFIED, is_active=True
+    ).order_by('-verified_at')
+
+    # Apply filters
+    if f_county:
+        qs = qs.filter(county__iexact=f_county) | qs.filter(county_secondary__iexact=f_county)
+    if f_specialty:
+        # JSON field containment — check if specialty code is in the list
+        qs = qs.filter(specialties__contains=[f_specialty])
+    if f_pro_bono == '1':
+        qs = qs.filter(pro_bono=True)
+    if f_min_years.isdigit():
+        qs = qs.filter(years_experience__gte=int(f_min_years))
+    if f_search:
+        from django.db.models import Q
+        qs = qs.filter(
+            Q(full_name__icontains=f_search) |
+            Q(firm_name__icontains=f_search) |
+            Q(bio__icontains=f_search)
+        )
+
+    lawyers = list(qs[:50])  # cap at 50 results
+    total = qs.count()
+
+    # Build spec choices from model
+    spec_choices = Lawyer.SPEC_CHOICES
+
+    return _render_with_lang(request, 'lawyers/directory.html', {
+        'lawyers':      lawyers,
+        'total':        total,
+        'counties':     COUNTIES,
+        'spec_choices': spec_choices,
+        # current filter values (for pre-filling the filter form)
+        'f_county':    f_county,
+        'f_specialty': f_specialty,
+        'f_pro_bono':  f_pro_bono,
+        'f_min_years': f_min_years,
+        'f_search':    f_search,
+    }, lang)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ─── LSK FEE SCHEDULE ────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+
+@require_http_methods(["GET"])
+def fee_schedule(request):
+    """
+    GET /fees/
+    Standalone LSK fee schedule page so Wanjiku knows what to expect
+    before hiring a lawyer, independent of asking a legal question.
+    """
+    from cases.ai_engine import LSK_FEE_GUIDE
+
+    lang = _get_lang(request)
+
+    # Build a display-friendly list ordered by how common each case type is
+    display_order = [
+        ('employment',       '👔' if lang == 'en' else '👔', 'Employment & Labour', 'Ajira na Kazi'),
+        ('landlord_tenant',  '🏠', 'Landlord & Tenant', 'Landlord na Mpangaji'),
+        ('criminal_procedure','🚔', 'Criminal / Police', 'Jinai / Polisi'),
+        ('land',             '🌍', 'Land & Succession', 'Ardhi na Urithi'),
+        ('children',         '👶', 'Children & Family', 'Watoto na Familia'),
+        ('consumer',         '🛒', 'Consumer Rights', 'Haki za Mlaji'),
+        ('constitution',     '📜', 'Constitutional', 'Kikatiba'),
+        ('other',            '⚖️', 'Other Matters', 'Mambo Mengine'),
+    ]
+
+    fees = []
+    for key, icon, label_en, label_sw in display_order:
+        entry = LSK_FEE_GUIDE.get(key, {})
+        label = label_en if lang == 'en' else label_sw
+        data  = entry.get(lang, entry.get('sw', {}))
+        fees.append({
+            'key':    key,
+            'icon':   icon,
+            'label':  label,
+            'range':  data.get('range', ''),
+            'note':   data.get('note', ''),
+        })
+
+    return _render_with_lang(request, 'fees.html', {
+        'fees': fees,
+    }, lang)

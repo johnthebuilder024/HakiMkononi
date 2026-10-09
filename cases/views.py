@@ -1833,3 +1833,111 @@ def court_audio_status(request, pk):
         "summary":     rec.summary,
         "error":       rec.error_message,
     })
+
+
+# ─── /api/extract-text/ ───────────────────────────────────────────────────────
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def extract_text(request):
+    """
+    POST /api/extract-text/
+    Extract text from an uploaded file (PDF, image, or audio).
+
+    For PDF: use pdfplumber to extract text.
+    For audio (mp3/wav/m4a/ogg/webm): transcribe via Groq Whisper.
+    For images: return a helpful error (OCR not configured — advise user to describe instead).
+
+    Form data:
+      file — the uploaded file
+      lang — 'sw' or 'en' (for audio transcription language hint)
+
+    Returns:
+      {"text": "...", "type": "pdf|audio|image", "filename": "..."}
+    """
+    import os
+    import requests as _req
+
+    if 'file' not in request.FILES:
+        return JsonResponse({"error": "No file provided."}, status=400)
+
+    uploaded = request.FILES['file']
+    lang_hint = request.POST.get('lang', '').strip()
+    filename  = uploaded.name or ''
+    ext       = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+    ctype     = (uploaded.content_type or '').lower()
+
+    # ── PDF extraction ─────────────────────────────────────────────────────
+    pdf_exts  = {'pdf'}
+    audio_exts = {'mp3', 'm4a', 'wav', 'ogg', 'webm', 'aac', 'flac'}
+    image_exts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'heic'}
+
+    if ext in pdf_exts or 'pdf' in ctype:
+        try:
+            import pdfplumber, io
+            data = uploaded.read()
+            text_parts = []
+            with pdfplumber.open(io.BytesIO(data)) as pdf:
+                for i, page in enumerate(pdf.pages):
+                    if i >= 20:  # cap at 20 pages to avoid huge prompts
+                        text_parts.append("[... document truncated at 20 pages ...]")
+                        break
+                    page_text = page.extract_text()
+                    if page_text:
+                        text_parts.append(page_text.strip())
+            extracted = '\n\n'.join(text_parts).strip()
+            if not extracted:
+                return JsonResponse({"error": "Could not extract text from this PDF. It may be a scanned image."}, status=422)
+            # Truncate to keep prompt manageable
+            if len(extracted) > 4000:
+                extracted = extracted[:4000] + '\n[... document truncated ...]'
+            return JsonResponse({"text": extracted, "type": "pdf", "filename": filename})
+        except Exception as e:
+            print(f"[ExtractText] PDF error: {e}")
+            return JsonResponse({"error": "Could not read this PDF. Please describe the document in your question instead."}, status=422)
+
+    # ── Audio transcription ────────────────────────────────────────────────
+    elif ext in audio_exts or 'audio' in ctype:
+        groq_key = os.getenv('GROQ_API_KEY', '').strip()
+        if not groq_key:
+            return JsonResponse({"error": "Audio transcription not configured."}, status=503)
+        lang_map = {'sw': 'sw', 'en': 'en'}
+        whisper_lang = lang_map.get(lang_hint.lower(), None)
+        try:
+            files = {
+                'file': (filename or f'audio.{ext or "webm"}', uploaded.read(),
+                         uploaded.content_type or 'audio/mpeg'),
+            }
+            data = {
+                'model': 'whisper-large-v3',
+                'response_format': 'json',
+                'temperature': '0',
+            }
+            if whisper_lang:
+                data['language'] = whisper_lang
+            r = _req.post(
+                'https://api.groq.com/openai/v1/audio/transcriptions',
+                headers={'Authorization': f'Bearer {groq_key}'},
+                files=files, data=data, timeout=60,
+            )
+            if r.status_code != 200:
+                return JsonResponse({"error": "Audio transcription failed."}, status=500)
+            transcript = r.json().get('text', '').strip()
+            if not transcript:
+                return JsonResponse({"error": "No speech detected in the audio file."}, status=422)
+            return JsonResponse({"text": transcript, "type": "audio", "filename": filename})
+        except Exception as e:
+            print(f"[ExtractText] Audio error: {e}")
+            return JsonResponse({"error": "Audio transcription service error."}, status=500)
+
+    # ── Image — no OCR configured ──────────────────────────────────────────
+    elif ext in image_exts or 'image' in ctype:
+        return JsonResponse({
+            "error": "Image text extraction is not supported yet. Please describe what's in the image in your question, or upload a PDF instead.",
+        }, status=422)
+
+    # ── Unknown file type ──────────────────────────────────────────────────
+    else:
+        return JsonResponse({
+            "error": f"Unsupported file type (.{ext or 'unknown'}). Please upload a PDF or audio file (MP3, M4A, WAV).",
+        }, status=400)

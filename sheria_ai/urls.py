@@ -9,6 +9,7 @@ from cases.web_views import lawyers_connect, lawyers_for_query, lawyers_landing
 from cases.web_views import lawyer_profile, lawyer_login, lawyer_logout
 from cases.web_views import lawyer_set_password, lawyer_dashboard, lawyer_check_status
 from cases.web_views import court_audio_page, submit_testimonial
+from cases.web_views import lawyers_directory, fee_schedule
 
 admin.site.site_header = "HakiMkononi Admin"
 admin.site.site_title  = "HakiMkononi"
@@ -34,6 +35,7 @@ urlpatterns = [
     path("dashboard/",                 dashboard,          name="dashboard"),
     # Lawyers — public
     path("lawyers/",                                lawyers_landing,    name="lawyers_landing"),
+    path("lawyers/directory/",                      lawyers_directory,  name="lawyers_directory"),
     path("lawyers/<int:lawyer_id>/",                lawyer_profile,     name="lawyer_profile"),
     path("lawyers/register/",                       lawyer_register,    name="lawyer_register"),
     path("lawyers/documents/<int:lawyer_id>/",      lawyer_documents,   name="lawyer_documents"),
@@ -48,6 +50,7 @@ urlpatterns = [
     path("lawyers/check-status/",                   lawyer_check_status,name="lawyer_check_status"),
     path("court-audio/",                            court_audio_page,   name="court_audio_page"),
     path("testimonials/submit/",                    submit_testimonial, name="submit_testimonial"),
+    path("fees/",                                   fee_schedule,       name="fee_schedule"),
     path("admin/",     admin.site.urls),
     path("api/",   include("cases.urls")),
 ]

@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if lang == 'en' %}Find a Verified Lawyer | HakiMkononi{% else %}Tafuta Wakili Aliyeidhinishwa | HakiMkononi{% endif %}{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="py-3" style="background:linear-gradient(135deg,var(--haki-green),var(--haki-dark));">
+  <div class="container text-white py-1">
+    <h1 class="h4 fw-bold mb-1">🔍 {% if lang == 'en' %}Find a Verified Lawyer{% else %}Tafuta Wakili Aliyeidhinishwa{% endif %}</h1>
+    <p class="mb-0" style="color:rgba(255,255,255,.8);font-size:.9rem;">
+      {% if lang == 'en' %}All lawyers on HakiMkononi are verified by LSK number and practicing certificate.{% else %}Mawakili wote kwenye HakiMkononi wamethibitishwa kwa nambari ya LSK na cheti cha utendaji.{% endif %}
+    </p>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+
+    <!-- Filter bar -->
+    <form method="GET" class="card card-haki p-3 mb-4">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-sm-6 col-md-3">
+          <label class="form-label fw-semibold small mb-1">🔍 {% if lang == 'en' %}Search name / firm{% else %}Tafuta jina / kampuni{% endif %}</label>
+          <input type="text" name="q" class="form-control form-control-sm" value="{{ f_search }}"
+                 placeholder="{% if lang == 'en' %}e.g. Kamau{% else %}mfano: Kamau{% endif %}">
+        </div>
+        <div class="col-12 col-sm-6 col-md-2">
+          <label class="form-label fw-semibold small mb-1">📍 {% if lang == 'en' %}County{% else %}Kaunti{% endif %}</label>
+          <select name="county" class="form-select form-select-sm">
+            <option value="">{% if lang == 'en' %}All Kenya{% else %}Kenya Yote{% endif %}</option>
+            {% for c in counties %}
+            <option value="{{ c }}" {% if f_county == c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-sm-6 col-md-2">
+          <label class="form-label fw-semibold small mb-1">⚖️ {% if lang == 'en' %}Specialty{% else %}Utaalamu{% endif %}</label>
+          <select name="specialty" class="form-select form-select-sm">
+            <option value="">{% if lang == 'en' %}All Specialties{% else %}Utaalamu Wote{% endif %}</option>
+            {% for code, label in spec_choices %}
+            <option value="{{ code }}" {% if f_specialty == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-sm-6 col-md-2">
+          <label class="form-label fw-semibold small mb-1">📅 {% if lang == 'en' %}Min. Experience{% else %}Uzoefu wa Kiwango{% endif %}</label>
+          <select name="min_years" class="form-select form-select-sm">
+            <option value="">{% if lang == 'en' %}Any{% else %}Yoyote{% endif %}</option>
+            <option value="1"  {% if f_min_years == '1'  %}selected{% endif %}>1+ {% if lang == 'en' %}yr{% else %}mwaka{% endif %}</option>
+            <option value="3"  {% if f_min_years == '3'  %}selected{% endif %}>3+ {% if lang == 'en' %}yrs{% else %}miaka{% endif %}</option>
+            <option value="5"  {% if f_min_years == '5'  %}selected{% endif %}>5+ {% if lang == 'en' %}yrs{% else %}miaka{% endif %}</option>
+            <option value="10" {% if f_min_years == '10' %}selected{% endif %}>10+ {% if lang == 'en' %}yrs{% else %}miaka{% endif %}</option>
+          </select>
+        </div>
+        <div class="col-12 col-sm-6 col-md-2">
+          <label class="form-label fw-semibold small mb-1">🤝 Pro Bono</label>
+          <select name="pro_bono" class="form-select form-select-sm">
+            <option value=""  {% if f_pro_bono == '' %}selected{% endif %}>{% if lang == 'en' %}All{% else %}Wote{% endif %}</option>
+            <option value="1" {% if f_pro_bono == '1' %}selected{% endif %}>{% if lang == 'en' %}Pro bono only{% else %}Pro bono pekee{% endif %}</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-1 d-grid">
+          <button type="submit" class="btn btn-haki btn-sm">
+            {% if lang == 'en' %}Filter{% else %}Chuja{% endif %}
+          </button>
+        </div>
+      </div>
+      {% if f_county or f_specialty or f_pro_bono or f_min_years or f_search %}
+      <div class="mt-2">
+        <a href="{% url 'lawyers_directory' %}" class="text-muted small">
+          ✕ {% if lang == 'en' %}Clear filters{% else %}Ondoa vichujio{% endif %}
+        </a>
+      </div>
+      {% endif %}
+    </form>
+
+    <!-- Results count -->
+    <p class="text-muted small mb-3">
+      {% if lang == 'en' %}
+        {{ total }} verified lawyer{{ total|pluralize }} found{% if total > 50 %} (showing first 50){% endif %}
+      {% else %}
+        Mawakili {{ total }} walioidhinishwa wamepatikana{% if total > 50 %} (inaonyesha 50 ya kwanza){% endif %}
+      {% endif %}
+    </p>
+
+    {% if lawyers %}
+    <!-- Lawyer grid -->
+    <div class="row g-3">
+      {% for lawyer in lawyers %}
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="card card-haki h-100">
+          <div class="card-body p-3">
+            <div class="d-flex gap-3 align-items-start">
+              <!-- Avatar -->
+              <div style="flex-shrink:0;">
+                {% if lawyer.profile_photo_url %}
+                  <img src="{{ lawyer.profile_photo_url }}" alt="{{ lawyer.full_name }}"
+                       style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid var(--haki-light);"
+                       onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                  <div style="display:none;width:54px;height:54px;border-radius:50%;background:var(--haki-light);align-items:center;justify-content:center;font-size:1.4rem;border:2px solid var(--haki-light);">⚖️</div>
+                {% else %}
+                  <div style="width:54px;height:54px;border-radius:50%;background:var(--haki-light);display:flex;align-items:center;justify-content:center;font-size:1.4rem;border:2px solid var(--haki-light);">⚖️</div>
+                {% endif %}
+              </div>
+              <!-- Info -->
+              <div style="flex:1;min-width:0;">
+                <div class="d-flex align-items-start justify-content-between gap-1 flex-wrap">
+                  <h2 class="h6 fw-bold mb-0" style="color:var(--haki-dark);">
+                    <a href="{% url 'lawyer_profile' lawyer.pk %}" style="color:inherit;text-decoration:none;">{{ lawyer.full_name }}</a>
+                  </h2>
+                  <span style="background:var(--haki-green);color:#fff;font-size:.6rem;padding:.15em .5em;border-radius:20px;font-weight:600;white-space:nowrap;">✅ {% if lang == 'en' %}Verified{% else %}Imethibitishwa{% endif %}</span>
+                </div>
+                {% if lawyer.firm_name %}<p class="text-muted mb-1" style="font-size:.78rem;">{{ lawyer.firm_name }}</p>{% endif %}
+                <p class="mb-1" style="font-size:.78rem;color:#555;">
+                  📍 {{ lawyer.county }}{% if lawyer.county_secondary %} · {{ lawyer.county_secondary }}{% endif %}
+                  {% if lawyer.years_experience %}&nbsp;·&nbsp; {{ lawyer.years_experience }}yr{% endif %}
+                </p>
+                <!-- Specialties -->
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                  {% for label in lawyer.specialty_labels|slice:":3" %}
+                  <span style="background:var(--haki-light);color:var(--haki-dark);padding:.1em .5em;border-radius:20px;font-size:.7rem;font-weight:600;">{{ label }}</span>
+                  {% endfor %}
+                  {% if lawyer.pro_bono %}
+                  <span style="background:#e0f2fe;color:#0369a1;padding:.1em .5em;border-radius:20px;font-size:.7rem;font-weight:600;">🤝 Pro Bono</span>
+                  {% endif %}
+                </div>
+                <!-- Actions -->
+                <div class="d-flex gap-1 flex-wrap">
+                  <a href="{{ lawyer.get_whatsapp_link }}" target="_blank" rel="noopener"
+                     class="btn btn-haki btn-sm py-0 px-2" style="font-size:.72rem;">
+                    💬 WhatsApp
+                  </a>
+                  {% if lawyer.get_telegram_link %}
+                  <a href="{{ lawyer.get_telegram_link }}" target="_blank" rel="noopener"
+                     class="btn btn-sm py-0 px-2" style="font-size:.72rem;background:#2AABEE;color:#fff;border:none;">
+                    ✈️ Telegram
+                  </a>
+                  {% endif %}
+                  <a href="{% url 'lawyer_profile' lawyer.pk %}"
+                     class="btn btn-sm py-0 px-2" style="font-size:.72rem;background:#f5f5f5;color:#444;border:1px solid #ddd;">
+                    👤 {% if lang == 'en' %}Profile{% else %}Wasifu{% endif %}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- No results -->
+    <div class="card card-haki text-center p-5">
+      <div style="font-size:2.5rem;">🔍</div>
+      <h3 class="h5 fw-bold mt-3" style="color:var(--haki-dark);">
+        {% if lang == 'en' %}No lawyers found{% else %}Hakuna mawakili waliopatikana{% endif %}
+      </h3>
+      <p class="text-muted mb-3">
+        {% if lang == 'en' %}
+          Try broadening your filters, or check back soon — more lawyers join every week.
+        {% else %}
+          Jaribu kupanua vichujio vyako, au angalia tena hivi karibuni — mawakili zaidi wanajiunga kila wiki.
+        {% endif %}
+      </p>
+      <a href="{% url 'lawyers_directory' %}" class="btn btn-haki btn-sm">
+        {% if lang == 'en' %}Show all lawyers{% else %}Onyesha mawakili wote{% endif %}
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- Disclaimer -->
+    <p class="text-muted text-center small mt-4">
+      {% if lang == 'en' %}
+        All lawyers are verified by LSK number and practicing certificate. This is a referral directory — HakiMkononi does not guarantee outcomes or endorse legal advice.
+        &nbsp;·&nbsp; <a href="{% url 'fee_schedule' %}">See typical lawyer fees →</a>
+      {% else %}
+        Mawakili wote wamethibitishwa kwa nambari ya LSK na cheti cha utendaji. Hii ni saraka ya rufaa — HakiMkononi haihakikishii matokeo wala haipendekezi ushauri wa kisheria.
+        &nbsp;·&nbsp; <a href="{% url 'fee_schedule' %}">Ona ada za kawaida za wakili →</a>
+      {% endif %}
+    </p>
+
+  </div>
+</section>
+{% endblock %}

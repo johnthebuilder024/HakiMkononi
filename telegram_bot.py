@@ -1350,14 +1350,14 @@ async def handle_letter_phone(update: Update, context: ContextTypes.DEFAULT_TYPE
     tip = {
         'sw': (
             "💡 *Vidokezo:*\n"
-            "• Badilisha \[Anwani yako\] na anwani yako halisi\n"
+            "• Badilisha [Anwani yako] na anwani yako halisi\n"
             "• Tuma kwa barua pepe, WhatsApp, au mkono\n"
             "• Hifadhi nakala moja kwako\n\n"
             "❓ Una swali lingine?"
         ),
         'en': (
             "💡 *Tips:*\n"
-            "• Replace \[Your address\] with your actual address\n"
+            "• Replace [Your address] with your actual address\n"
             "• Send by email, WhatsApp, or hand-deliver with a witness\n"
             "• Keep a copy for yourself\n\n"
             "❓ Have another question?"
