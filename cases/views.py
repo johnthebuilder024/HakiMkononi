@@ -153,7 +153,7 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
         summary = _summarise_answer(answer)
 
         # Compute fee guide from the law categories actually used
-        categories = list(top_laws.values_list('category', flat=True).distinct())
+        categories = list({l.category for l in top_laws if l.category})
         fee_guide = get_fee_guide(categories, lang=job.lang)
 
         AnswerJob.objects.filter(pk=job_id).update(
