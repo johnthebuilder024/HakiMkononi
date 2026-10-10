@@ -466,6 +466,127 @@ def _build_contextual_query(message: str, history: list, is_correction: bool) ->
         return f"{last_user_msg}. {message}"
 
 
+# ── Intent classification — legal vs conversational ───────────────────────────
+
+_LEGAL_KEYWORDS_EN = {
+    # Employment
+    'fired', 'dismissed', 'terminated', 'salary', 'wages', 'employer', 'employee',
+    'redundancy', 'notice', 'overtime', 'nssf', 'nhif', 'payslip', 'labour',
+    'unfair', 'discriminated', 'harassment', 'workplace',
+    # Land / tenancy
+    'landlord', 'tenant', 'rent', 'eviction', 'evicted', 'house', 'land',
+    'title deed', 'property', 'lease', 'deposit', 'locked out', 'caretaker',
+    'estate', 'inheritance', 'succession', 'shamba',
+    # Criminal / police
+    'arrested', 'police', 'detained', 'bail', 'charged', 'court', 'magistrate',
+    'judge', 'prison', 'jail', 'warrant', 'OB number', 'statement', 'suspect',
+    'robbery', 'stolen', 'assault', 'beaten',
+    # Family
+    'divorce', 'separation', 'child support', 'maintenance', 'custody',
+    'children', 'wife', 'husband', 'marriage', 'dowry',
+    # Consumer / debt
+    'scammed', 'fraud', 'conned', 'debt', 'loan', 'tala', 'mshwari', 'CRB',
+    'blacklisted', 'refund', 'goods', 'contract', 'breach',
+    # Legal process
+    'sue', 'lawsuit', 'claim', 'demand letter', 'compensation', 'rights',
+    'illegal', 'violation', 'constitution', 'human rights', 'justice',
+    'tribunal', 'appeal', 'affidavit', 'evidence',
+}
+_LEGAL_KEYWORDS_SW = {
+    # Employment
+    'kufukuzwa', 'mwajiri', 'mfanyakazi', 'mshahara', 'notisi', 'kazi',
+    'likizo', 'nssf', 'nhif', 'malipo', 'unyanyasaji', 'ubaguzi',
+    # Tenancy
+    'landlord', 'mpangaji', 'kodi', 'kukimbiwa', 'nyumba', 'amana',
+    'ardhi', 'shamba', 'hati', 'urithi', 'mali',
+    # Criminal / police
+    'polisi', 'kukamatwa', 'dhamana', 'mahakama', 'jaji', 'magistrate',
+    'wizi', 'kupigwa', 'taarifa', 'shtaka', 'jela', 'korti',
+    # Family
+    'talaka', 'watoto', 'mtoto', 'mke', 'mume', 'ndoa', 'matunzo',
+    'ulezi', 'mahari',
+    # Consumer / debt
+    'kudanganywa', 'ulaghai', 'deni', 'mkopo', 'CRB', 'kurudisha',
+    'bidhaa', 'mkataba',
+    # Legal process
+    'haki', 'kisheria', 'madai', 'barua ya kudai', 'fidia', 'ushahidi',
+    'katiba', 'haramu', 'ukiukwaji', 'rufaa', 'kesi',
+}
+
+def _is_legal_question(message: str) -> bool:
+    """
+    Returns True if the message appears to be about a legal problem.
+    Uses keyword matching — fast, no API call needed.
+    A message needs to contain at least one legal keyword to be classified
+    as a legal question. Short vague messages default to False (conversational).
+    """
+    text = message.lower()
+    # Very short messages without legal keywords are conversational
+    if len(message.strip()) < 15:
+        return False
+    for kw in _LEGAL_KEYWORDS_EN | _LEGAL_KEYWORDS_SW:
+        if kw in text:
+            return True
+    return False
+
+
+def _get_conversational_reply(message: str, lang: str, history: list) -> str:
+    """
+    Generate a natural conversational reply for non-legal messages.
+    Uses a small Groq call with a persona prompt — NOT the legal RAG pipeline.
+    Falls back gracefully if the call fails.
+    """
+    import os
+    import requests as _req
+
+    groq_key = os.getenv('GROQ_API_KEY', '').strip()
+    if not groq_key:
+        return None
+
+    persona = {
+        'sw': (
+            "Wewe ni HakiMkononi, msaidizi wa kisheria wa Kenya. "
+            "Unazungumza kwa Kiswahili rahisi na wa kirafiki. "
+            "Kazi yako kuu ni kusaidia Wakenya kuelewa haki zao za kisheria bila malipo. "
+            "Ukiulizwa maswali ya kibinafsi (kama jina lako, ulitengezwa na nani, una hisia gani), "
+            "jibu kwa uaminifu na kwa furaha — wewe ni AI iliyoundwa na timu ya HakiMkononi. "
+            "Ukiulizwa kitu ambacho si la kisheria, jibu kwa upole na uelekezee mtumiaji "
+            "kwamba unaweza kusaidia zaidi na maswali ya kisheria. "
+            "Jibu kwa sentensi 2-3 tu. Usiandike orodha. Usiulize maswali mengi."
+        ),
+        'en': (
+            "You are HakiMkononi, a Kenyan legal AI assistant. "
+            "You speak in a warm, friendly, and professional tone. "
+            "Your main purpose is helping Kenyans understand their legal rights for free. "
+            "If asked personal questions (your name, who built you, do you have feelings), "
+            "answer honestly and warmly — you are an AI built by the HakiMkononi team. "
+            "If asked something unrelated to law, respond kindly and gently guide the user "
+            "toward legal questions where you can truly help. "
+            "Reply in 2-3 sentences only. No lists. No multiple questions back."
+        ),
+    }.get(lang, 'You are HakiMkononi, a Kenyan legal AI assistant. Be helpful, warm, and brief.')
+
+    messages = [{"role": "system", "content": persona}]
+    # Include last 2 turns of history for context
+    if history:
+        messages.extend(history[-4:])
+    messages.append({"role": "user", "content": message})
+
+    try:
+        r = _req.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            headers={'Authorization': f'Bearer {groq_key}', 'Content-Type': 'application/json'},
+            json={'model': 'openai/gpt-oss-20b', 'messages': messages,
+                  'temperature': 0.7, 'max_tokens': 200},
+            timeout=(10, 30),
+        )
+        r.raise_for_status()
+        return r.json()['choices'][0]['message']['content'].strip()
+    except Exception as e:
+        logger.warning(f"[ConvAI] fallback: {e}")
+        return None
+
+
 # ── Command handlers ──────────────────────────────────────────────────────────
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -1079,6 +1200,36 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     history        = context.user_data.get('history', [])
     is_correction  = _detect_correction(message)
     is_followup    = _detect_followup(message, history)
+
+    # ── Intent classification: legal vs conversational ────────────────────
+    # If the message has no legal keywords and is not a follow-up to a
+    # legal conversation, handle it as a natural conversation — no RAG needed.
+    if not _is_legal_question(message) and not is_correction and not is_followup:
+        conv_reply = _get_conversational_reply(message, lang, history)
+        if conv_reply:
+            await update.message.reply_text(
+                conv_reply,
+                parse_mode="Markdown",
+                reply_markup=_main_keyboard(lang),
+            )
+            return ANSWERING
+        # If the conversational AI fails, fall through to the legal pipeline
+        # with a gentle nudge to describe their legal problem
+        nudge = {
+            'sw': (
+                "Samahani, sijajua vizuri ulichouliza.\n\n"
+                "Unaweza kunieleza tatizo lako la kisheria? Kwa mfano:\n"
+                "_Mwajiri wangu alinifukuza kazi bila notisi._"
+            ),
+            'en': (
+                "I'm not sure I understood that.\n\n"
+                "Could you describe your legal problem? For example:\n"
+                "_My employer fired me without notice._"
+            ),
+        }.get(lang, "Could you describe your legal problem?")
+        await update.message.reply_text(nudge, parse_mode="Markdown",
+                                        reply_markup=_main_keyboard(lang))
+        return ANSWERING
 
     # Acknowledge correction naturally before answering
     if is_correction and history:
