@@ -14,6 +14,7 @@ urlpatterns = [
     path("meta-whatsapp/",           views.meta_whatsapp_webhook, name="meta_whatsapp_webhook"),
     path("transcribe/",              views.transcribe_audio,      name="transcribe_audio"),
     path("converse/",                views.converse,              name="converse"),
+    path("intent/",                  views.check_intent,          name="check_intent"),
     path("court-audio/",             views.court_audio_submit,    name="court_audio_submit"),
     path("court-audio/<int:pk>/",    views.court_audio_status,    name="court_audio_status"),
     path("extract-text/",            views.extract_text,          name="extract_text"),

@@ -1943,6 +1943,36 @@ def extract_text(request):
         }, status=400)
 
 
+# ─── /api/intent/ ────────────────────────────────────────────────────────────
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def check_intent(request):
+    """
+    POST /api/intent/
+    Two-stage intent classifier. Returns {"intent": "LEGAL" | "CHAT"}.
+    Body: {"message": "...", "lang": "sw|en", "history": [...]}
+
+    Stage 1: keyword scan (instant)
+    Stage 2: Groq AI classifier (only when keywords don't decide)
+    """
+    from cases.ai_engine import classify_intent
+
+    try:
+        body    = json.loads(request.body)
+        message = body.get("message", "").strip()
+        lang    = body.get("lang", "sw").strip()
+        history = body.get("history", [])
+    except (json.JSONDecodeError, TypeError):
+        return JsonResponse({"intent": "LEGAL"})  # safe default
+
+    if not message:
+        return JsonResponse({"intent": "CHAT"})
+
+    intent = classify_intent(message, lang=lang, history=history)
+    return JsonResponse({"intent": intent})
+
+
 # ─── /api/converse/ ───────────────────────────────────────────────────────────
 
 @csrf_exempt

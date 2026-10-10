@@ -1200,35 +1200,29 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     is_correction  = _detect_correction(message)
     is_followup    = _detect_followup(message, history)
 
-    # ── Intent classification: legal vs conversational ────────────────────
-    # If the message has no legal keywords and is not a follow-up to a
-    # legal conversation, handle it as a natural conversation — no RAG needed.
-    if not _is_legal_question(message) and not is_correction and not is_followup:
-        conv_reply = _get_conversational_reply(message, lang, history)
-        if conv_reply:
-            await update.message.reply_text(
-                conv_reply,
-                parse_mode="Markdown",
-                reply_markup=_main_keyboard(lang),
-            )
+    # ── Two-stage intent classification ──────────────────────────────────
+    # Stage 1: keyword scan (instant, in ai_engine)
+    # Stage 2: Groq AI classifier (for anything keywords miss)
+    # Follow-ups and corrections always go to legal pipeline
+    if not is_correction and not is_followup:
+        from cases.ai_engine import classify_intent
+        intent = classify_intent(message, lang=lang, history=history)
+        if intent == 'CHAT':
+            conv_reply = _get_conversational_reply(message, lang, history)
+            if conv_reply:
+                await update.message.reply_text(
+                    conv_reply,
+                    parse_mode="Markdown",
+                    reply_markup=_main_keyboard(lang),
+                )
+                return ANSWERING
+            # Conversational AI failed — give a warm fallback
+            fallback = {
+                'sw': "Samahani, sikuelewa vizuri. Una tatizo la kisheria unalohitaji msaada nalo?",
+                'en': "Sorry, I didn't quite catch that. Do you have a legal question I can help with?",
+            }.get(lang, "Do you have a legal question I can help with?")
+            await update.message.reply_text(fallback, reply_markup=_main_keyboard(lang))
             return ANSWERING
-        # If the conversational AI fails, fall through to the legal pipeline
-        # with a gentle nudge to describe their legal problem
-        nudge = {
-            'sw': (
-                "Samahani, sijajua vizuri ulichouliza.\n\n"
-                "Unaweza kunieleza tatizo lako la kisheria? Kwa mfano:\n"
-                "_Mwajiri wangu alinifukuza kazi bila notisi._"
-            ),
-            'en': (
-                "I'm not sure I understood that.\n\n"
-                "Could you describe your legal problem? For example:\n"
-                "_My employer fired me without notice._"
-            ),
-        }.get(lang, "Could you describe your legal problem?")
-        await update.message.reply_text(nudge, parse_mode="Markdown",
-                                        reply_markup=_main_keyboard(lang))
-        return ANSWERING
 
     # Acknowledge correction naturally before answering
     if is_correction and history:

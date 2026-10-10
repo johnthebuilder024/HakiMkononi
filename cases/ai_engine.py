@@ -608,6 +608,166 @@ def format_law_context(laws) -> str:
     )
 
 
+# ─── Intent classification ────────────────────────────────────────────────────
+# Two-stage: fast keyword scan first, AI classifier for uncertain cases.
+# Used by both the web chat (/api/converse/ + /api/submit/) and the Telegram bot.
+
+# Stage 1 keywords — expanded to catch edge cases keywords usually miss
+_INTENT_KW_EN = {
+    # Employment
+    'fired', 'dismissed', 'terminated', 'redundant', 'laid off', 'salary',
+    'wages', 'pay', 'unpaid', 'employer', 'employee', 'boss', 'work', 'job',
+    'overtime', 'nssf', 'nhif', 'payslip', 'labour', 'unfair', 'discriminat',
+    'harass', 'workplace', 'resign', 'resigned', 'notice', 'contract',
+    # Land / tenancy
+    'landlord', 'tenant', 'rent', 'evict', 'evicted', 'house', 'land',
+    'title deed', 'property', 'lease', 'deposit', 'locked out', 'caretaker',
+    'estate', 'inherit', 'succession', 'shamba', 'plot', 'acre',
+    # Police / criminal
+    'arrested', 'arrest', 'police', 'detain', 'bail', 'charged', 'charge',
+    'court', 'magistrate', 'judge', 'prison', 'jail', 'warrant', 'stolen',
+    'theft', 'rob', 'assault', 'beat', 'beaten', 'threaten', 'bribe',
+    # Family
+    'divorce', 'separat', 'child support', 'maintenance', 'custody',
+    'children', 'wife', 'husband', 'marriage', 'dowry', 'domestic',
+    # Consumer / debt
+    'scam', 'fraud', 'conned', 'cheat', 'debt', 'loan', 'tala', 'mshwari',
+    'crb', 'blacklist', 'refund', 'breach', 'goods', 'defect',
+    # Legal process
+    'sue', 'lawsuit', 'claim', 'demand letter', 'compensat', 'rights',
+    'illegal', 'violat', 'constitution', 'human rights', 'tribunal',
+    'appeal', 'affidavit', 'evidence', 'witness', 'lawyer', 'advocate',
+    'legal', 'case', 'hearing', 'file a', 'my rights',
+    # Common complaint patterns
+    'they did not pay', 'did not pay me', 'has not paid', 'refused to pay',
+    'locked me', 'kicked me out', 'threw out', 'not paid', 'owes me',
+    'owe me', 'threatening me', 'threatened', 'abuse', 'forced me',
+}
+_INTENT_KW_SW = {
+    # Employment
+    'kufukuzwa', 'kufukuzwa kazi', 'mwajiri', 'mfanyakazi', 'mshahara',
+    'kulipwa', 'hakulipwa', 'hajalipa', 'hajalipwa', 'malipo', 'kazi',
+    'likizo', 'unyanyasaji', 'ubaguzi', 'notisi', 'mkataba',
+    # Tenancy / land
+    'landlord', 'mpangaji', 'kodi', 'kukimbiwa', 'kufukuzwa nyumba',
+    'nyumba', 'amana', 'ardhi', 'shamba', 'hati', 'urithi', 'mali',
+    # Police / criminal
+    'polisi', 'kukamatwa', 'kukamatwa bila', 'dhamana', 'mahakama',
+    'jaji', 'wizi', 'kuibiwa', 'kupigwa', 'taarifa', 'shtaka', 'jela',
+    'korti', 'riswa', 'rushwa',
+    # Family
+    'talaka', 'matunzo', 'ulezi', 'watoto', 'mtoto', 'mke', 'mume',
+    'ndoa', 'mahari', 'unyanyasaji wa nyumbani',
+    # Consumer / debt
+    'kudanganywa', 'kuibiwa', 'ulaghai', 'deni', 'mkopo', 'kurudisha',
+    'bidhaa', 'kasoro', 'kulazimishwa',
+    # Legal
+    'haki zangu', 'haki zake', 'haki yake', 'haki yangu', 'kisheria',
+    'madai', 'barua ya kudai', 'fidia', 'ushahidi', 'katiba', 'haramu',
+    'ukiukwaji', 'rufaa', 'kesi', 'wakili', 'mahakamani', 'madai',
+    'alinifukuza', 'hakulipa', 'alinishambulia', 'ananisumbua',
+    'wameniambia', 'wananitaka', 'wananilazimisha', 'wananidhulumu',
+}
+
+def keyword_suggests_legal(message: str) -> bool:
+    """
+    Stage 1: Fast keyword scan. Returns True if any legal keyword found.
+    No API call. Handles ~70% of cases instantly.
+    """
+    text = message.lower()
+    for kw in _INTENT_KW_EN:
+        if kw in text:
+            return True
+    for kw in _INTENT_KW_SW:
+        if kw in text:
+            return True
+    return False
+
+
+def classify_intent(message: str, lang: str = 'sw', history: list = None) -> str:
+    """
+    Two-stage intent classifier. Returns 'LEGAL' or 'CHAT'.
+
+    Stage 1: keyword scan (instant, free)
+    Stage 2: AI classifier via Groq (only when keywords are inconclusive)
+
+    'LEGAL' → route to the RAG + law pipeline
+    'CHAT'  → route to the conversational persona
+    """
+    # Very short messages with no context → conversational
+    if len(message.strip()) < 4:
+        return 'CHAT'
+
+    # Stage 1: keyword scan
+    if keyword_suggests_legal(message):
+        logger.debug("[Intent] Stage1=LEGAL (keyword): %s", message[:60])
+        return 'LEGAL'
+
+    # Pure greetings/thanks → definitely conversational, skip AI call
+    _pure_chat = {
+        'hello', 'hi', 'hey', 'habari', 'sasa', 'mambo', 'niaje', 'ok',
+        'okay', 'sawa', 'thanks', 'thank you', 'asante', 'nashukuru',
+        'good morning', 'good afternoon', 'good evening',
+        'who are you', 'what is your name', 'wewe ni nani', 'jina lako',
+        'are you a bot', 'are you human', 'are you real', 'wewe ni roboti',
+        'what do you do', 'can you help me', 'tell me about yourself',
+        'what can you do', 'how does this work',
+    }
+    msg_clean = message.lower().strip().rstrip('?!.,')
+    if msg_clean in _pure_chat or len(message.strip()) < 12:
+        logger.debug("[Intent] Stage1=CHAT (pure chat): %s", message[:60])
+        return 'CHAT'
+
+    # Stage 2: AI classifier — for uncertain cases
+    groq_key = os.getenv('GROQ_API_KEY', '').strip()
+    if not groq_key:
+        # No Groq key — default to LEGAL for longer messages (safer)
+        return 'LEGAL' if len(message.strip()) > 20 else 'CHAT'
+
+    # Build context from history (last user message, if any)
+    context_hint = ''
+    if history:
+        for turn in reversed(history):
+            if turn.get('role') == 'user' and turn.get('content'):
+                context_hint = f"\nPrior message: {turn['content'][:100]}"
+                break
+
+    classifier_prompt = (
+        "You are an intent classifier for HakiMkononi, a Kenyan legal AI.\n"
+        "Classify the following message as either LEGAL or CHAT.\n\n"
+        "LEGAL = the person has a legal problem, dispute, complaint, or is asking about their rights under Kenyan law.\n"
+        "CHAT  = the person is making conversation, asking about you, expressing feelings, or anything not related to a legal problem.\n\n"
+        "When in doubt, choose LEGAL — it is better to give legal help than to miss a real problem.\n"
+        "Reply with exactly one word: LEGAL or CHAT. Nothing else."
+        f"{context_hint}"
+    )
+
+    try:
+        r = http_requests.post(
+            GROQ_URL,
+            headers=_groq_headers(),
+            json={
+                'model': GROQ_MODEL,
+                'messages': [
+                    {'role': 'system', 'content': classifier_prompt},
+                    {'role': 'user', 'content': message},
+                ],
+                'temperature': 0.0,   # deterministic
+                'max_tokens': 5,       # one word only
+            },
+            timeout=(5, 15),
+        )
+        r.raise_for_status()
+        result = r.json()['choices'][0]['message']['content'].strip().upper()
+        intent = 'LEGAL' if 'LEGAL' in result else 'CHAT'
+        logger.debug("[Intent] Stage2=AI result=%s for: %s", intent, message[:60])
+        return intent
+    except Exception as exc:
+        logger.warning("[Intent] AI classifier failed (%s) — defaulting to LEGAL", exc)
+        # When the classifier fails, default to LEGAL (give legal answer rather than miss a real problem)
+        return 'LEGAL' if len(message.strip()) > 20 else 'CHAT'
+
+
 def parse_answer_sections(raw: str, lang: str = "sw") -> dict:
     """Split the model response into the 4 standard boxes + 3 optional self-rep boxes."""
     sections = {"law": "", "simple": "", "loophole": "", "letter": "",
