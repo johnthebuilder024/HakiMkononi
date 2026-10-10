@@ -1941,3 +1941,105 @@ def extract_text(request):
         return JsonResponse({
             "error": f"Unsupported file type (.{ext or 'unknown'}). Please upload a PDF or audio file (MP3, M4A, WAV).",
         }, status=400)
+
+
+# ─── /api/converse/ ───────────────────────────────────────────────────────────
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def converse(request):
+    """
+    POST /api/converse/
+    Handle conversational (non-legal) messages — returns a natural reply
+    using Groq with a persona prompt, no RAG, no AnswerJob created.
+
+    Body: {"message": "...", "lang": "sw|en", "history": [...]}
+    Returns: {"reply": "..."}
+    """
+    import os
+    import requests as _req
+
+    try:
+        body    = json.loads(request.body)
+        message = body.get("message", "").strip()
+        lang    = body.get("lang", "sw").strip()
+        history = body.get("history", [])
+    except (json.JSONDecodeError, TypeError):
+        return JsonResponse({"error": "Invalid JSON."}, status=400)
+
+    if not message:
+        return JsonResponse({"error": "Empty message."}, status=400)
+
+    groq_key = os.getenv('GROQ_API_KEY', '').strip()
+    if not groq_key:
+        return JsonResponse({"reply": _fallback_conv_reply(message, lang)})
+
+    persona = {
+        'sw': (
+            "Wewe ni HakiMkononi, msaidizi wa kisheria wa Kenya ulioundwa na timu ya HakiMkononi. "
+            "Unazungumza kwa Kiswahili rahisi, wa kirafiki na wa kitaalamu. "
+            "Ukiulizwa maswali ya kibinafsi (jina lako, ulitengezwa na nani, una hisia gani, wewe ni nani), "
+            "jibu kwa uaminifu na kwa furaha. "
+            "Kazi yako kuu ni kusaidia Wakenya kuelewa haki zao za kisheria bila malipo. "
+            "Ukiulizwa kitu ambacho si la kisheria, jibu kwa upole na uelekezee mtumiaji "
+            "kwamba unaweza kusaidia zaidi na maswali ya kisheria. "
+            "Jibu kwa sentensi 2-3 tu. Lugha rahisi. Usiulize maswali mengi kwa wakati mmoja."
+        ),
+        'en': (
+            "You are HakiMkononi, a Kenyan legal AI assistant built by the HakiMkononi team. "
+            "You speak in a warm, friendly, and professional tone. "
+            "If asked personal questions (your name, who built you, do you have feelings, who are you), "
+            "answer honestly and warmly. "
+            "Your main purpose is helping Kenyans understand their legal rights for free. "
+            "If asked something unrelated to law, respond kindly and naturally, "
+            "and gently let the user know you can best help with Kenyan legal questions. "
+            "Reply in 2-3 sentences only. Plain language. Do not ask multiple questions at once."
+        ),
+    }.get(lang, 'You are HakiMkononi, a Kenyan legal AI assistant. Be helpful, warm, and brief.')
+
+    # Trim history to last 4 turns for context
+    trimmed_history = []
+    if isinstance(history, list):
+        trimmed_history = [
+            h for h in history
+            if isinstance(h, dict) and h.get('role') in ('user', 'assistant')
+        ][-8:]
+
+    messages = [{"role": "system", "content": persona}]
+    messages.extend(trimmed_history)
+    messages.append({"role": "user", "content": message})
+
+    try:
+        from cases.ai_engine import GROQ_MODEL
+        r = _req.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            headers={'Authorization': f'Bearer {groq_key}', 'Content-Type': 'application/json'},
+            json={'model': GROQ_MODEL, 'messages': messages,
+                  'temperature': 0.7, 'max_tokens': 250},
+            timeout=(10, 30),
+        )
+        r.raise_for_status()
+        reply = r.json()['choices'][0]['message']['content'].strip()
+        return JsonResponse({"reply": reply})
+    except Exception as e:
+        print(f"[Converse] Error: {e}")
+        return JsonResponse({"reply": _fallback_conv_reply(message, lang)})
+
+
+def _fallback_conv_reply(message: str, lang: str) -> str:
+    """Simple fallback when Groq is unavailable."""
+    msg = message.lower()
+    if any(w in msg for w in ['name', 'jina', 'wewe ni nani', 'who are you']):
+        return {
+            'sw': "Mimi ni HakiMkononi, msaidizi wa kisheria wa Kenya. Nikusaidia kuelewa haki zako bila malipo.",
+            'en': "I'm HakiMkononi, a Kenyan legal AI assistant. I help you understand your rights for free.",
+        }.get(lang, "I'm HakiMkononi, a Kenyan legal AI.")
+    if any(w in msg for w in ['human', 'person', 'real', 'mtu', 'binadamu']):
+        return {
+            'sw': "Mimi si binadamu. Mimi ni AI iliyoundwa na timu ya HakiMkononi kukusaidia na maswali ya kisheria.",
+            'en': "I'm not a human. I'm an AI built by the HakiMkononi team to help with legal questions in Kenya.",
+        }.get(lang, "I'm an AI assistant, not a human.")
+    return {
+        'sw': "Samahani, sijajua vizuri ulichouliza. Je, una tatizo la kisheria unalohitaji msaada nalo?",
+        'en': "I'm not sure I understood that. Do you have a legal problem I can help you with?",
+    }.get(lang, "Do you have a legal question I can help with?")

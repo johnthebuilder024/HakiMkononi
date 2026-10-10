@@ -796,6 +796,41 @@
   var THANKS_SET=new Set(['thanks','thank you','thank you so much','thanks a lot','asante','asante sana','nashukuru','shukrani','sawa asante','nimeshukuru','appreciated','helpful','that helped','you helped me','umesaidia','great','wonderful','excellent','perfect','amazing','awesome']);
   var GREETINGS_SET=new Set(['hello','hi','hey','habari','habari yako','sasa','mambo','niaje','vipi','sup','hola','salamu','good morning','good afternoon','good evening','ok','okay','sawa','yes','no','ndiyo','hapana']);
 
+  // Legal keywords — if none present AND not a follow-up, route to conversational AI
+  var LEGAL_KW_EN=['fired','dismissed','terminated','salary','wages','employer','employee','redundancy','notice','overtime','nssf','nhif','payslip','labour','unfair','discriminated','harassment','landlord','tenant','rent','eviction','evicted','house','land','title deed','property','lease','deposit','locked out','arrested','police','detained','bail','charged','court','magistrate','judge','prison','jail','warrant','assault','beaten','divorce','separation','child support','maintenance','custody','children','wife','husband','marriage','scammed','fraud','conned','debt','loan','tala','mshwari','crb','blacklisted','refund','contract','breach','sue','lawsuit','claim','demand letter','compensation','rights','illegal','violation','constitution','human rights','tribunal','appeal','evidence'];
+  var LEGAL_KW_SW=['kufukuzwa','mwajiri','mfanyakazi','mshahara','notisi','kazi','likizo','malipo','unyanyasaji','ubaguzi','landlord','mpangaji','kodi','kukimbiwa','nyumba','amana','ardhi','shamba','hati','urithi','mali','polisi','kukamatwa','dhamana','mahakama','jaji','wizi','kupigwa','taarifa','shtaka','jela','korti','talaka','watoto','mtoto','mke','mume','ndoa','matunzo','ulezi','kudanganywa','ulaghai','deni','mkopo','kurudisha','bidhaa','mkataba','haki','kisheria','madai','barua ya kudai','fidia','ushahidi','katiba','haramu','ukiukwaji','rufaa','kesi'];
+
+  function isLegalQuestion(text) {
+    if(text.trim().length < 15) return false;
+    var t = text.toLowerCase();
+    for(var i=0; i<LEGAL_KW_EN.length; i++){ if(t.indexOf(LEGAL_KW_EN[i])!==-1) return true; }
+    for(var i=0; i<LEGAL_KW_SW.length; i++){ if(t.indexOf(LEGAL_KW_SW[i])!==-1) return true; }
+    return false;
+  }
+
+  function sendConversational(story) {
+    addUserMessage(story);
+    chatInput.value=''; chatInput.style.height='auto'; sendBtn.disabled=true;
+    var history = loadHistory();
+    addThinking();
+    fetch('/api/converse/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-CSRFToken':CSRF},
+      body: JSON.stringify({message: story, lang: LANG, history: history})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      removeThinking();
+      addBotBubble(d.reply || (LANG==='sw'?'Samahani, jaribu tena.':'Sorry, please try again.'));
+      resetInput();
+    })
+    .catch(function(){
+      removeThinking();
+      addBotBubble(LANG==='sw'?'Samahani, kuna tatizo la muunganisho.':'Sorry, connection issue. Please try again.');
+      resetInput();
+    });
+  }
+
   function detectCorrection(msg){
     var m=msg.toLowerCase().trim();
     for(var i=0;i<CORRECTION_SIGNALS.length;i++){var s=CORRECTION_SIGNALS[i];if(m.startsWith(s+' ')||m.startsWith(s+',')||m===s)return true;}
@@ -1182,7 +1217,17 @@
     addUserMessage(story); chatInput.value=''; chatInput.style.height='auto'; sendBtn.disabled=true;
     if(isCorrection&&hasHistory){addBotBubble('<em style="color:#888;">'+(LANG==='sw'?'Sawa, naelewa. Acha nirekebishe...':'Got it, let me correct that...')+'</em>');}
     currentStory=story; currentCounty=countySelect.value;
-    reassuranceSent=false; reassuranceEl=null; addThinking(); startTime=Date.now();
+    reassuranceSent=false; reassuranceEl=null;
+
+    // ── Intent check: conversational vs legal ────────────────────────────
+    // If no legal keywords found AND not a follow-up/correction to a legal
+    // conversation, route to the fast conversational AI instead of the legal pipeline.
+    if(!isLegalQuestion(story) && !isCorrection && !isFollowup){
+      sendConversational(story);
+      return;
+    }
+
+    addThinking(); startTime=Date.now();
 
     fetch('/api/submit/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
       body:JSON.stringify({story:story,county:currentCounty,lang:LANG,history:history,is_correction:isCorrection,is_followup:isFollowup,self_rep:document.getElementById('selfRepToggle').checked})})
