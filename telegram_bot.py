@@ -218,9 +218,9 @@ def _fill_letter(template: str, name: str, phone: str = "") -> str:
     result = result.replace("[date]", today)   # AI sometimes writes lowercase
     result = result.replace("[TAREHE]", today)
     result = result.replace("[tarehe]", today)
-    result = result.replace("[YOUR ADDRESS]", "[Your address — add this]")
-    result = result.replace("[ANWANI YAKO]", "[Anwani yako — ongeza hapa]")
-    result = result.replace("[ANWANI]", "[Anwani yako — ongeza hapa]")
+    result = result.replace("[YOUR ADDRESS]", "[Your address, add this]")
+    result = result.replace("[ANWANI YAKO]", "[Anwani yako, ongeza hapa]")
+    result = result.replace("[ANWANI]", "[Anwani yako, ongeza hapa]")
     if phone:
         result = result.replace("[PHONE NUMBER]", phone)
         result = result.replace("[NAMBARI YA SIMU]", phone)
@@ -302,7 +302,7 @@ def _format_answer(answer: dict, top_laws: list, lang: str) -> str:
     if answer.get('procedure'):
         parts.append(f"{DIV}\n{L['procedure']}\n{clean(answer['procedure'])[:800]}")
     if top_laws:
-        src = '\n'.join(f"  {i+1}. {l.title} — {l.section}" for i, l in enumerate(top_laws[:4]))
+        src = '\n'.join(f"  {i+1}. {l.title}: {l.section}" for i, l in enumerate(top_laws[:4]))
         parts.append(f"{DIV}\n📚 *Sources*\n{src}")
 
     disclaimer = {
@@ -499,7 +499,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text(
         f"👋 *Karibu HakiMkononi{name_greeting}!*\n\n"
         "Mimi ni AI inayokusaidia kuelewa haki zako za kisheria Kenya *bila malipo*.\n\n"
-        "Unaweza andika au *tuma sauti* — ninaelewa Kiswahili na Kingereza.\n\n"
+        "Unaweza andika au *tuma sauti*. Ninaelewa Kiswahili na Kingereza.\n\n"
         "Chagua lugha yako / Choose your language:\n\n"
         "1️⃣  Kiswahili\n"
         "2️⃣  English",
@@ -528,7 +528,7 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     lang = user.lang
     msgs = {
         'sw': (
-            "⚖️ *HakiMkononi — Msaada*\n\n"
+            "⚖️ *HakiMkononi: Msaada*\n\n"
             "Niambie tatizo lako la kisheria kwa sentensi 1-2.\n"
             "Unaweza *andika* au *tuma sauti* 🎤\n\n"
             "*Mifano:*\n"
@@ -548,7 +548,7 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             "/help — Msaada huu"
         ),
         'en': (
-            "⚖️ *HakiMkononi — Help*\n\n"
+            "⚖️ *HakiMkononi: Help*\n\n"
             "Tell me your legal problem in 1-2 sentences.\n"
             "You can *type* or *send a voice message* 🎤\n\n"
             "*Examples:*\n"
@@ -570,7 +570,7 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     }
     if user.state == WhatsAppUser.STATE_NEW:
         await update.message.reply_text(
-            "⚖️ *HakiMkononi — Help*\n\n"
+            "⚖️ *HakiMkononi: Help*\n\n"
             "Niambie tatizo lako la kisheria / Tell me your legal problem.\n\n"
             "*Mifano / Examples:*\n"
             "• Nilifukuzwa kazi bila notisi\n"
@@ -705,20 +705,20 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         if is_serious:
             serious_voice = {
                 'sw': (
-                    "🚨 *Kesi Nyeti — Tafuta Wakili Haraka*\n\n"
+                    "🚨 *Kesi Nyeti: Tafuta Wakili Haraka*\n\n"
                     "Kesi hii inahitaji wakili wa kweli, si AI.\n\n"
                     "📞 *NLAS (Bure):* 0800 720 120\n"
                     "_NLAS = National Legal Aid Service, mawakili wa serikali bila malipo_\n\n"
                     "🌐 www.nlas.go.ke"
                 ),
                 'en': (
-                    "🚨 *Serious Case — Get a Lawyer Urgently*\n\n"
+                    "🚨 *Serious Case: Get a Lawyer Urgently*\n\n"
                     "This situation needs a real lawyer, not an AI.\n\n"
                     "📞 *NLAS (Free):* 0800 720 120\n"
                     "_NLAS = National Legal Aid Service, free government lawyers_\n\n"
                     "🌐 www.nlas.go.ke"
                 ),
-            }.get(lang, "🚨 *Serious Case* — Contact NLAS: 0800 720 120 (free lawyers)")
+            }.get(lang, "🚨 *Serious Case* Contact NLAS: 0800 720 120 (free lawyers)")
             await ack_msg.edit_text(serious_voice, parse_mode="Markdown")
             return ANSWERING
 
@@ -824,7 +824,7 @@ async def handle_language_choice(update: Update, context: ContextTypes.DEFAULT_T
             f"✅ Vizuri! Lugha: *{name}*\n\n"
             "Sasa niambie tatizo lako la kisheria.\n\n"
             "_Mfano: Nilifukuzwa kazi bila notisi na mwajiri wangu._\n\n"
-            "💡 Unaweza *andika* au *tuma sauti* — ninaelewa vyote.\n"
+            "💡 Unaweza *andika* au *tuma sauti*. Ninaelewa vyote.\n"
             "Nitakupa maelezo ya sheria, haki zako, na barua ya kudai haki.\n\n"
             "_Andika /help kwa mifano zaidi._"
         ),
@@ -832,7 +832,7 @@ async def handle_language_choice(update: Update, context: ContextTypes.DEFAULT_T
             f"✅ Great! Language: *{name}*\n\n"
             "Now tell me your legal problem.\n\n"
             "_Example: My employer fired me without notice._\n\n"
-            "💡 You can *type* or *send a voice message* — I understand both.\n"
+            "💡 You can *type* or *send a voice message*. I understand both.\n"
             "I'll explain your rights and write you a demand letter.\n\n"
             "_Type /help for more examples._"
         ),
@@ -868,7 +868,19 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     # ── Handle quick-reply keyboard button taps ─────────────────────────
     _CLEAR_BUTTONS    = {'🗑️ anza upya', '🗑️ start fresh', 'start fresh', 'anza upya'}
-    _LAWYER_BUTTONS   = {'📞 pata wakili', '📞 find a lawyer', 'find a lawyer', 'pata wakili'}
+    _LAWYER_BUTTONS   = {
+        # Keyboard buttons (exact matches after lowercase)
+        '📞 pata wakili', '📞 find a lawyer', 'find a lawyer', 'pata wakili',
+        # Natural language — want a lawyer
+        'i need a lawyer', 'i want a lawyer', 'help me find a lawyer',
+        'connect me to a lawyer', 'get me a lawyer', 'find me a lawyer',
+        'ninahitaji wakili', 'nataka wakili', 'nipeleke kwa wakili',
+        'unganisha na wakili', 'pata wakili kwangu', 'nipatia wakili',
+        'naomba wakili', 'lawyer', 'wakili',
+        # "Need help" phrasing
+        'i need legal help', 'i need help', 'ninahitaji msaada wa kisheria',
+        'ninahitaji msaada', 'nahitaji msaada',
+    }
     _QUESTION_BUTTONS = {'❓ swali jingine', '❓ ask another question', 'ask another question',
                          'swali jingine', '❓ new question', '❓ swali jipya', 'new question', 'swali jipya'}
     _VOICE_BUTTONS    = {'🎤 send voice', '🎤 tuma sauti', 'send voice', 'tuma sauti'}
@@ -881,17 +893,17 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 "🎤 *Jinsi ya kutuma ujumbe wa sauti kwenye Telegram:*\n\n"
                 "Upande wa kulia wa sanduku la ujumbe utaona ikoni moja ya hizi mbili:\n\n"
                 "• Ikoni ya 📹 (video) — *gusa mara moja* kubadilisha kuwa 🎤\n"
-                "• Ikoni ya 🎤 (maikrofoni) — *shika kidole* na useme swali lako\n\n"
-                "Acha kidole — ujumbe wa sauti utatumwa moja kwa moja.\n\n"
+                "• Ikoni ya 🎤 (maikrofoni): *shika kidole* na useme swali lako\n\n"
+                "Acha kidole. Ujumbe wa sauti utatumwa moja kwa moja.\n\n"
                 "_(Hakikisha sanduku la maandishi liko tupu kwanza)_\n\n"
                 "_Mfano: 'Mwajiri wangu alinifukuza bila notisi...'_"
             ),
             'en': (
                 "🎤 *How to send a voice message on Telegram:*\n\n"
                 "On the right side of the message box you will see one of two icons:\n\n"
-                "• 📹 video icon — *tap it once* to switch it to the 🎤 microphone\n"
+                "• 📹 video icon: *tap it once* to switch it to the 🎤 microphone\n"
                 "• 🎤 microphone — *press and hold* it, then speak your question\n\n"
-                "Release your finger — the voice note sends automatically.\n\n"
+                "Release your finger. The voice note sends automatically.\n\n"
                 "_(Make sure the text box is empty first)_\n\n"
                 "_Example: 'My employer fired me without notice...'_"
             ),
@@ -908,7 +920,27 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await update.message.reply_text(reply, parse_mode="Markdown", reply_markup=ReplyKeyboardRemove())
         return ANSWERING
 
-    if msg_clean in _LAWYER_BUTTONS:
+    # ── Detect lawyer-seeking intent in free text ─────────────────────────
+    _LAWYER_INTENT_EN = {
+        'need a lawyer', 'want a lawyer', 'find a lawyer', 'get a lawyer',
+        'hire a lawyer', 'looking for a lawyer', 'looking for an advocate',
+        'contact a lawyer', 'speak to a lawyer', 'talk to a lawyer',
+        'need legal representation', 'need an advocate',
+    }
+    _LAWYER_INTENT_SW = {
+        'ninahitaji wakili', 'nataka wakili', 'tafuta wakili', 'pata wakili',
+        'nipatia wakili', 'nipeleke kwa wakili', 'ninahitaji msaada wa kisheria',
+        'ninahitaji mwakilishi',
+    }
+    def _has_lawyer_intent(text: str) -> bool:
+        t = text.lower()
+        for phrase in _LAWYER_INTENT_EN | _LAWYER_INTENT_SW:
+            if phrase in t:
+                return True
+        return False
+
+    if msg_clean in _LAWYER_BUTTONS or _has_lawyer_intent(message):
+
         # Try to show verified platform lawyers first
         @sync_to_async(thread_sensitive=False)
         def fetch_any_lawyers():
@@ -939,8 +971,8 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         else:
             # No verified lawyers yet — fall back to free resources
             reply = {
-                'sw': "📞 *Msaada wa Kisheria Bila Malipo Kenya*\n\n*NLAS:* 0800 720 120\n_National Legal Aid Service — bure kabisa_\n\n*Kituo Cha Sheria:* 0800 720 372\n\n*LSK Pro Bono:* lsk.or.ke",
-                'en': "📞 *Free Legal Help in Kenya*\n\n*NLAS:* 0800 720 120\n_National Legal Aid Service — completely free_\n\n*Kituo Cha Sheria:* 0800 720 372\n\n*LSK Pro Bono:* lsk.or.ke",
+                'sw': "📞 *Msaada wa Kisheria Bila Malipo Kenya*\n\n*NLAS:* 0800 720 120\n_National Legal Aid Service, bure kabisa_\n\n*Kituo Cha Sheria:* 0800 720 372\n\n*LSK Pro Bono:* lsk.or.ke",
+                'en': "📞 *Free Legal Help in Kenya*\n\n*NLAS:* 0800 720 120\n_National Legal Aid Service, completely free_\n\n*Kituo Cha Sheria:* 0800 720 372\n\n*LSK Pro Bono:* lsk.or.ke",
             }.get(lang, "📞 NLAS: 0800 720 120 (free lawyers)")
             await update.message.reply_text(reply, parse_mode="Markdown")
         return ANSWERING
@@ -1026,20 +1058,20 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if is_serious_criminal(message):
         serious = {
             'sw': (
-                "🚨 *Kesi Nyeti — Tafuta Wakili Haraka*\n\n"
+                "🚨 *Kesi Nyeti: Tafuta Wakili Haraka*\n\n"
                 "Kesi hii inahitaji wakili wa kweli, si AI.\n\n"
                 "📞 *NLAS (Bure):* 0800 720 120\n"
                 "_NLAS = National Legal Aid Service, mawakili wa serikali bila malipo_\n\n"
                 "🌐 www.nlas.go.ke"
             ),
             'en': (
-                "🚨 *Serious Case — Get a Lawyer Urgently*\n\n"
+                "🚨 *Serious Case: Get a Lawyer Urgently*\n\n"
                 "This situation needs a real lawyer, not an AI.\n\n"
                 "📞 *NLAS (Free):* 0800 720 120\n"
                 "_NLAS = National Legal Aid Service, free government lawyers_\n\n"
                 "🌐 www.nlas.go.ke"
             ),
-        }.get(lang, "🚨 *Serious Case* — Contact NLAS: 0800 720 120 (free lawyers)")
+        }.get(lang, "🚨 *Serious Case* Contact NLAS: 0800 720 120 (free lawyers)")
         await update.message.reply_text(serious, parse_mode="Markdown")
         return ANSWERING
 
@@ -1248,15 +1280,15 @@ async def handle_letter_name(update: Update, context: ContextTypes.DEFAULT_TYPE)
                     "💙 Naelewa unahisi hasira na maumivu.\n\n"
                     "Hali yako ni ngumu sana na ni haki kukuwa na hasira.\n"
                     "Barua hii itakusaidia kupigana kwa njia ya kisheria.\n\n"
-                    "Tafadhali niambie *jina lako halisi* tu — mfano: _John Kamau_"
+                    "Tafadhali niambie *jina lako halisi* tu, mfano: _John Kamau_"
                 ),
                 'en': (
                     "💙 I understand you're feeling angry and hurt.\n\n"
                     "What happened to you is serious and your anger makes complete sense.\n"
                     "This letter will help you fight back through the law.\n\n"
-                    "Please type your *real full name* only — example: _John Kamau_"
+                    "Please type your *real full name* only, example: _John Kamau_"
                 ),
-            }.get(lang, "💙 I understand. Please type your real name only — example: John Kamau")
+            }.get(lang, "💙 I understand. Please type your real name only, example: John Kamau")
         else:
             empathy = {
                 'sw': (
