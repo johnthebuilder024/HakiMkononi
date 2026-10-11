@@ -508,6 +508,12 @@
   </div><!-- end .chat-page -->
 </div><!-- end .chat-outer -->
 
+<!-- Toast notification for clipboard copy -->
+<div id="shareToast" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:#1a7a3c;color:#fff;padding:.6rem 1.2rem;border-radius:20px;font-size:.84rem;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;white-space:nowrap;max-width:90vw;text-align:center;">
+</div>
+
 <!-- Hidden county select — value set by county picker in lawyer section -->
 <select id="countySelect" aria-label="{{ ui.field_county }}" style="display:none;">
   <option value="">{% if lang == 'en' %}All Kenya{% else %}Kenya Yote{% endif %}</option>
@@ -1140,7 +1146,7 @@
     }
 
     var actRow=document.createElement('div'); actRow.className='chat-actions';
-    actRow.innerHTML='<button class="act-primary" onclick="copyAnswer(\''+jobId+'\')">📋 '+(LANG==='sw'?'Nakili':'Copy')+'</button><button onclick="downloadPDF('+jobId+', \'answer\')">⬇️ PDF</button>'+(a.andika_hivi?'<button onclick="downloadPDF('+jobId+', \'letter\')">✉️ '+(LANG==='sw'?'PDF ya Barua':'Letter PDF')+'</button>':'')+'<button onclick="shareAnswer('+jobId+')">🔗 '+(LANG==='sw'?'Shiriki':'Share')+'</button>';
+    actRow.innerHTML='<button class="act-primary" onclick="copyAnswer(\''+jobId+'\')">📋 '+(LANG==='sw'?'Nakili':'Copy')+'</button><button onclick="downloadPDF('+jobId+', \'answer\')">⬇️ PDF</button>'+(a.andika_hivi?'<button onclick="downloadPDF('+jobId+', \'letter\')">✉️ '+(LANG==='sw'?'PDF ya Barua':'Letter PDF')+'</button>':'')+'<button onclick="shareAnswer('+jobId+')">💾 '+(LANG==='sw'?'Hifadhi':'Save Link')+'</button>';
     card.appendChild(actRow);
 
     var fbRow=document.createElement('div'); fbRow.className='feedback-row'; fbRow.id='fb-'+jobId;
@@ -1175,7 +1181,7 @@
     setTimeout(function(){row.scrollIntoView({behavior:'smooth',block:'start'});},80);
     resetInput();
 
-    // Save to per-job localStorage (for ?job= URL sharing)
+    // Save to per-job localStorage (for ?job= URL sharing) — 30 days
     try{localStorage.setItem('haki_job_'+jobId,JSON.stringify({story:currentStory,county:currentCounty,lang:LANG,answer:data.answer,sources:data.sources,query_id:data.query_id,is_serious:data.is_serious,job_id:jobId,saved_at:Date.now()}));}catch(e){}
 
     // Save full conversation to sidebar history
@@ -1207,6 +1213,9 @@
         if(reassuranceEl){ reassuranceEl.remove(); reassuranceEl=null; }
         d.job_id=currentJobId; addAnswerCard(d);
         if(d.assistant_summary&&currentStory)addToHistory(currentStory,d.assistant_summary);
+        // Show save prompt after a short delay so answer renders first
+        var _saveJobId = currentJobId;
+        setTimeout(function(){ showSavePrompt(_saveJobId); }, 400);
         // On the website the letter is editable inline — no need for the name/phone flow.
         // Just show a short tip pointing to the clickable placeholders, then a follow-up nudge.
         var letter=d.answer&&d.answer.andika_hivi;
@@ -1215,13 +1224,13 @@
             addBotBubble(LANG==='sw'
               ?'✏️ Bonyeza <strong>[NAFASI YOYOTE]</strong> kwenye barua ili kuihariri moja kwa moja.<br><br>❓ Una swali lingine? Andika hapa chini.'
               :'✏️ Tap any <strong>[PLACEHOLDER]</strong> in the letter above to fill it in directly.<br><br>❓ Have another question? Type it below.');
-          },400);
+          },1400);
         } else {
           setTimeout(function(){
             addBotBubble(LANG==='sw'
               ?'❓ Una swali lingine? Andika hapa chini.'
               :'❓ Have another question? Type it below.');
-          },400);
+          },1400);
         }
       }else if(d.status==='error'){
         clearInterval(pollTimer);
@@ -1289,10 +1298,51 @@
   window.copyLetter=function(id){var el=document.getElementById(id);if(el)try{navigator.clipboard.writeText(el.innerText||el.textContent||'');}catch(e){}};
   window.copyAnswer=function(jobId){var texts=[];document.querySelectorAll('.bot-card .bot-card-text,.bot-card .chat-letter').forEach(function(el){texts.push((el.innerText||el.textContent||'').trim());});try{navigator.clipboard.writeText(texts.join('\n\n'));}catch(e){}};
   window.downloadPDF=function(jobId,type){var url=type==='letter'?'/api/letter-pdf/'+jobId+'/':'/api/answer-pdf/'+jobId+'/';fetch(url,{cache:'no-store'}).then(function(r){return r.blob();}).then(function(blob){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='HakiMkononi-'+type+'-'+new Date().toISOString().slice(0,10)+'.pdf';a.style.display='none';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(a.href);},10000);}).catch(function(){});};
-  window.shareAnswer=function(jobId){var url=location.origin+'/?job='+jobId+'&lang='+LANG;if(navigator.share)navigator.share({title:'HakiMkononi',url:url}).catch(function(){});else try{navigator.clipboard.writeText(url);}catch(e){}};
+  window.shareAnswer=function(jobId){
+    var url=location.origin+'/?job='+jobId+'&lang='+LANG;
+    var toast=document.getElementById('shareToast');
+    if(navigator.share){
+      navigator.share({title:'HakiMkononi',text:LANG==='sw'?'Jibu langu la kisheria kutoka HakiMkononi:':'My legal answer from HakiMkononi:',url:url}).catch(function(){});
+    } else {
+      try{
+        navigator.clipboard.writeText(url);
+        // Show toast
+        if(toast){
+          toast.textContent=LANG==='sw'?'✅ Kiungo kimehifadhiwa! Unaweza kukifungua wakati wowote.':'✅ Link saved to clipboard! Open it anytime on any device.';
+          toast.style.display='block';
+          setTimeout(function(){ toast.style.display='none'; }, 4000);
+        }
+      }catch(e){}
+    }
+  };
   window.sendFeedback=function(queryId,helpful,rowId){var row=document.getElementById(rowId);if(!queryId){if(row)row.innerHTML='<span>✅ '+(LANG==='sw'?'Asante!':'Thanks!')+'</span>';return;}fetch('/api/feedback/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},body:JSON.stringify({query_id:queryId,helpful:helpful})}).finally(function(){if(row)row.innerHTML='<span>✅ '+(LANG==='sw'?'Asante kwa maoni!':'Thank you!')+'</span>';});};
 
-  // ════════════════════════════════════════════════════════════════
+  // ── Save prompt — shown after every answer ───────────────────────────────
+  window.showSavePrompt = function(jobId) {
+    var url = location.origin + '/?job=' + jobId + '&lang=' + LANG;
+    var waText = encodeURIComponent(
+      (LANG==='sw'
+        ? 'Jibu langu la kisheria kutoka HakiMkononi. Fungua hapa: '
+        : 'My legal answer from HakiMkononi. Open here: ')
+      + url
+    );
+    var waLink = 'https://wa.me/?text=' + waText;
+
+    var html = LANG==='sw'
+      ? '💾 <strong>Hifadhi jibu lako</strong><br><br>' +
+        'Bonyeza <strong>🔗 Shiriki</strong> hapo juu ili kunakili kiungo. ' +
+        'Unaweza kukifungua wakati wowote, kwenye simu yoyote.<br><br>' +
+        '<a href="' + waLink + '" target="_blank" rel="noopener" ' +
+        'style="background:#25D366;color:#fff;padding:.3em .8em;border-radius:20px;text-decoration:none;font-size:.82rem;display:inline-block;margin-top:.3rem;">' +
+        '📲 Jitumie kwenye WhatsApp</a>'
+      : '💾 <strong>Save your answer</strong><br><br>' +
+        'Tap <strong>🔗 Share</strong> above to copy a link you can open anytime, on any device.<br><br>' +
+        '<a href="' + waLink + '" target="_blank" rel="noopener" ' +
+        'style="background:#25D366;color:#fff;padding:.3em .8em;border-radius:20px;text-decoration:none;font-size:.82rem;display:inline-block;margin-top:.3rem;">' +
+        '📲 Send to myself on WhatsApp</a>';
+
+    addBotBubble(html);
+  };
   //  VOICE INPUT
   // ════════════════════════════════════════════════════════════════
   var mediaRecorder=null,audioChunks=[],isRecording=false;
@@ -1376,7 +1426,7 @@
     if(!savedId){ renderSidebar(); return; }
     try{
       var raw=localStorage.getItem('haki_job_'+savedId);
-      if(raw){var s=JSON.parse(raw);if(Date.now()-(s.saved_at||0)<86400000){if(s.story)addUserMessage(s.story);currentJobId=savedId;currentStory=s.story||'';s.job_id=savedId;addAnswerCard(s);renderSidebar();return;}}
+      if(raw){var s=JSON.parse(raw);if(Date.now()-(s.saved_at||0)<2592000000){if(s.story)addUserMessage(s.story);currentJobId=savedId;currentStory=s.story||'';s.job_id=savedId;addAnswerCard(s);renderSidebar();return;}}
     }catch(e){}
     currentJobId=savedId; addThinking(); startTime=Date.now();
     var t=setInterval(function(){
