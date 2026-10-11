@@ -13,7 +13,7 @@ from cases.pdf_parser import parse_pdf
 
 CATEGORY_CHOICES = [
     'constitution', 'employment', 'landlord_tenant',
-    'criminal_procedure', 'children', 'consumer', 'fraud', 'land', 'other'
+    'criminal_procedure', 'children', 'family', 'consumer', 'fraud', 'land', 'other'
 ]
 
 

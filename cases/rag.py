@@ -372,6 +372,19 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         'wamechukua mali', 'wamefunga duka', 'leseni ya biashara',
         'ruhusa ya biashara', 'hawkers', 'wafanyabiashara',
     ]
+    _fraud_en = [
+        'hacked', 'hack', 'mpesa fraud', 'online fraud', 'cyber', 'phishing',
+        'identity theft', 'sim swap', 'account hacked', 'blackmail', 'extort',
+        'sextortion', 'online scam', 'defraud', 'computer misuse', 'cybercrime',
+        'stolen money online', 'fake website', 'fake account', 'impersonation',
+        'hire purchase', 'hire-purchase',
+    ]
+    _fraud_sw = [
+        'ulaghai wa mpesa', 'akaunti yangu', 'simu iliibwa', 'sim kubadilishwa',
+        'udukuzi', 'kudanganywa mtandaoni', 'waliiba pesa zangu', 'blackmail',
+        'picha zangu', 'vitisho vya mtandao', 'akaunti ilifunguliwa bila ruhusa',
+        'hire purchase',
+    ]
 
     is_employment = any(k in story_lower for k in _emp_en + _emp_sw + db_slang.get('employment', []))
     is_land       = any(k in story_lower for k in _land_en + _land_sw + db_slang.get('land', []))
@@ -381,6 +394,7 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     is_data       = any(k in story_lower for k in _data_en + _data_sw + db_slang.get('other', []))
     is_consumer   = any(k in story_lower for k in _consumer_en + _consumer_sw)
     is_county     = any(k in story_lower for k in _county_en + _county_sw)
+    is_fraud      = any(k in story_lower for k in _fraud_en + _fraud_sw + db_slang.get('fraud', []))
     # County enforcement overrides criminal classification for kanjo queries
     if is_county:
         is_criminal = False
@@ -391,12 +405,13 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     if is_land:       on_topic_cats.update({'land', 'landlord_tenant'})
     if is_tenant:     on_topic_cats.update({'landlord_tenant'})  # tenant cases — landlord_tenant is primary
     if is_criminal:   on_topic_cats.add('criminal_procedure')
-    if is_family:     on_topic_cats.add('other')
-    if is_data:       on_topic_cats.add('other')
+    if is_family:     on_topic_cats.update({'family', 'children', 'other'})
+    if is_data:       on_topic_cats.update({'other'})
     if is_consumer:   on_topic_cats.add('consumer')
-    if is_county:     on_topic_cats.add('other')   # county acts sit under 'other'
+    if is_county:     on_topic_cats.update({'other'})   # county acts sit under 'other'
+    if is_fraud:      on_topic_cats.add('fraud')
 
-    topic_detected = is_employment or is_land or is_tenant or is_criminal or is_family or is_data or is_consumer or is_county
+    topic_detected = is_employment or is_land or is_tenant or is_criminal or is_family or is_data or is_consumer or is_county or is_fraud
     OFF_TOPIC_MIN_SCORE = 0.48
 
     # ── Use in-memory cache — zero DB hits ────────────────────────────────────
@@ -451,12 +466,21 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
             score += 0.18
         if is_consumer and entry['category'] == 'consumer':
             score += 0.14
-        if is_family and entry['category'] == 'other' and any(
+        if is_family and entry['category'] == 'family' and any(
             k in (entry['title'] or '').lower()
-            for k in ['marriage', 'succession', 'children', 'matrimonial',
-                      'domestic', 'protection against', 'widows']
+            for k in ['marriage', 'matrimonial', 'domestic', 'protection against',
+                      'widows', 'divorce']
         ):
-            score += 0.14
+            score += 0.18
+        if is_family and entry['category'] in ('children', 'other') and any(
+            k in (entry['title'] or '').lower()
+            for k in ['children', 'succession', 'widows']
+        ):
+            score += 0.10
+        if is_fraud and entry['category'] == 'fraud':
+            score += 0.16
+        if is_fraud and 'hire purchase' in (entry['title'] or '').lower():
+            score += 0.10
         if is_data and entry['category'] == 'other' and 'data protection' in (entry['title'] or '').lower():
             score += 0.14
         if is_county and entry['category'] == 'other' and any(

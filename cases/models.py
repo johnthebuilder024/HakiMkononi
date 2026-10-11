@@ -13,6 +13,7 @@ class Law(models.Model):
         ('landlord_tenant', 'Landlord & Tenant'),
         ('criminal_procedure', 'Criminal Procedure'),
         ('children', 'Children & Family'),
+        ('family', 'Marriage, Divorce & Domestic Violence'),
         ('consumer', 'Consumer Protection'),
         ('fraud', 'Fraud & Cybercrime'),
         ('land', 'Land & Succession'),
@@ -157,6 +158,8 @@ class SlangKeyword(models.Model):
         ('criminal',           'Criminal / Police / Arrest'),
         ('land',               'Land / Landlord / Tenant'),
         ('family',             'Family / Marriage / Divorce'),
+        ('fraud',              'Fraud / Cybercrime / Online Scam'),
+        ('data',               'Data Protection / Privacy'),
     ]
     LANG_CHOICES = [
         ('sheng',    'Sheng'),

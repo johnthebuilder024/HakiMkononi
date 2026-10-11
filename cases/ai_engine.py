@@ -515,6 +515,52 @@ LSK_FEE_GUIDE = {
                     "Mashirika mengi ya haki za binadamu (KHRC, ICJ Kenya, Kituo cha Sheria) yanachukua kesi za kikatiba bila malipo.",
         },
     },
+    "fraud": {
+        "en": {
+            "range": "KES 15,000 – 100,000",
+            "note": "Online fraud, M-Pesa fraud, hacking or cybercrime offences — report to DCI Cybercrime Unit: "
+                    "📞 0800 722 203 (toll-free) or visit dci.go.ke. "
+                    "Civil recovery through Magistrate Court. "
+                    "Hire Purchase disputes at the Magistrate Court: KES 5,000–30,000.",
+        },
+        "sw": {
+            "range": "KES 15,000 – 100,000",
+            "note": "Ulaghai wa mtandaoni, ulaghai wa M-Pesa, udukuzi — ripoti kwa DCI Cybercrime Unit: "
+                    "📞 0800 722 203 (simu ya bure) au tembelea dci.go.ke. "
+                    "Kudai fidia kupitia Mahakama ya Wilaya. "
+                    "Migogoro ya Hire Purchase katika Mahakama ya Wilaya: KES 5,000–30,000.",
+        },
+    },
+    "family": {
+        "en": {
+            "range": "KES 10,000 – 80,000",
+            "note": "Divorce, matrimonial property and domestic violence matters at the High Court / Family Division. "
+                    "FIDA Kenya offers free legal aid for women: 020 271 4911. "
+                    "Domestic violence protection orders can be obtained at a Magistrate Court same-day, no lawyer needed.",
+        },
+        "sw": {
+            "range": "KES 10,000 – 80,000",
+            "note": "Talaka, mali ya ndoa na ukatili wa nyumbani katika Mahakama Kuu / Kitengo cha Familia. "
+                    "FIDA Kenya inatoa msaada wa kisheria bure kwa wanawake: 020 271 4911. "
+                    "Amri ya ulinzi dhidi ya ukatili inaweza kupatikana siku hiyo hiyo katika Mahakama ya Wilaya, bila haja ya wakili.",
+        },
+    },
+    "county": {
+        "en": {
+            "range": "KES 0 – 30,000",
+            "note": "County enforcement disputes (kanjo, business permits, hawker confiscations). "
+                    "File an appeal at the County Government offices or the County Appeal Tribunal within 30 days. "
+                    "Small claims under KES 200,000 can go to the Small Claims Court — no lawyer needed. "
+                    "Contact the County Ombudsman or Kenya Citizens & Foreign Nationals Management Service for complaints.",
+        },
+        "sw": {
+            "range": "KES 0 – 30,000",
+            "note": "Migogoro ya askari wa kaunti (kanjo, leseni za biashara, kukamata mali ya wafanyabiashara). "
+                    "Kata rufaa ofisini kwa Serikali ya Kaunti au Baraza la Rufaa la Kaunti ndani ya siku 30. "
+                    "Madai madogo chini ya KES 200,000 yanaweza kwenda Mahakama ya Madai Madogo — bila haja ya wakili. "
+                    "Wasiliana na Mkurugenzi wa Malalamiko wa Kaunti kwa malalamiko.",
+        },
+    },
     "other": {
         "en": {
             "range": "KES 5,000 – 50,000",
@@ -538,8 +584,8 @@ def get_fee_guide(categories: list, lang: str = "sw") -> dict | None:
     Returns None if no match found.
     """
     # Priority order — pick the most specific match
-    priority = ["criminal_procedure", "employment", "landlord_tenant", "land",
-                "children", "consumer", "constitution", "other"]
+    priority = ["criminal_procedure", "fraud", "employment", "landlord_tenant", "land",
+                "children", "family", "consumer", "county", "constitution", "other"]
     cats = set(categories)
     for cat in priority:
         if cat in cats:
@@ -633,6 +679,13 @@ _INTENT_KW_EN = {
     # Consumer / debt
     'scam', 'fraud', 'conned', 'cheat', 'debt', 'loan', 'tala', 'mshwari',
     'crb', 'blacklist', 'refund', 'breach', 'goods', 'defect',
+    # Cybercrime / fraud
+    'hacked', 'hack', 'mpesa fraud', 'online fraud', 'cyber', 'phishing',
+    'identity theft', 'stolen phone', 'sim swap', 'account hacked',
+    'blackmail', 'extort', 'sextortion', 'online scam', 'defraud',
+    # Data protection / privacy
+    'personal data', 'privacy', 'data breach', 'cctv', 'consent',
+    'data protection', 'my data', 'surveillance', 'leaked my data',
     # Legal process
     'sue', 'lawsuit', 'claim', 'demand letter', 'compensat', 'rights',
     'illegal', 'violat', 'constitution', 'human rights', 'tribunal',
@@ -661,6 +714,13 @@ _INTENT_KW_SW = {
     # Consumer / debt
     'kudanganywa', 'kuibiwa', 'ulaghai', 'deni', 'mkopo', 'kurudisha',
     'bidhaa', 'kasoro', 'kulazimishwa',
+    # Cybercrime / fraud
+    'kudanganywa mtandaoni', 'ulaghai wa mpesa', 'akaunti yangu', 'simu iliibwa',
+    'sim kubadilishwa', 'udukuzi', 'mtandaoni', 'waliiba pesa zangu',
+    'blackmail', 'kunidhuru', 'picha zangu', 'vitisho vya mtandao',
+    # Data protection / privacy
+    'data yangu', 'wanashare data', 'bila ruhusa yangu', 'taarifa zangu',
+    'walichukua picha', 'kampuni imeshare', 'faragha yangu', 'cctv yangu',
     # Legal
     'haki zangu', 'haki zake', 'haki yake', 'haki yangu', 'kisheria',
     'madai', 'barua ya kudai', 'fidia', 'ushahidi', 'katiba', 'haramu',
