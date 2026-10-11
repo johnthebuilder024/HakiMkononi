@@ -466,69 +466,12 @@ def _build_contextual_query(message: str, history: list, is_correction: bool) ->
         return f"{last_user_msg}. {message}"
 
 
-# ── Intent classification — legal vs conversational ───────────────────────────
-
-_LEGAL_KEYWORDS_EN = {
-    # Employment
-    'fired', 'dismissed', 'terminated', 'salary', 'wages', 'employer', 'employee',
-    'redundancy', 'notice', 'overtime', 'nssf', 'nhif', 'payslip', 'labour',
-    'unfair', 'discriminated', 'harassment', 'workplace',
-    # Land / tenancy
-    'landlord', 'tenant', 'rent', 'eviction', 'evicted', 'house', 'land',
-    'title deed', 'property', 'lease', 'deposit', 'locked out', 'caretaker',
-    'estate', 'inheritance', 'succession', 'shamba',
-    # Criminal / police
-    'arrested', 'police', 'detained', 'bail', 'charged', 'court', 'magistrate',
-    'judge', 'prison', 'jail', 'warrant', 'OB number', 'statement', 'suspect',
-    'robbery', 'stolen', 'assault', 'beaten',
-    # Family
-    'divorce', 'separation', 'child support', 'maintenance', 'custody',
-    'children', 'wife', 'husband', 'marriage', 'dowry',
-    # Consumer / debt
-    'scammed', 'fraud', 'conned', 'debt', 'loan', 'tala', 'mshwari', 'CRB',
-    'blacklisted', 'refund', 'goods', 'contract', 'breach',
-    # Legal process
-    'sue', 'lawsuit', 'claim', 'demand letter', 'compensation', 'rights',
-    'illegal', 'violation', 'constitution', 'human rights', 'justice',
-    'tribunal', 'appeal', 'affidavit', 'evidence',
-}
-_LEGAL_KEYWORDS_SW = {
-    # Employment
-    'kufukuzwa', 'mwajiri', 'mfanyakazi', 'mshahara', 'notisi', 'kazi',
-    'likizo', 'nssf', 'nhif', 'malipo', 'unyanyasaji', 'ubaguzi',
-    # Tenancy
-    'landlord', 'mpangaji', 'kodi', 'kukimbiwa', 'nyumba', 'amana',
-    'ardhi', 'shamba', 'hati', 'urithi', 'mali',
-    # Criminal / police
-    'polisi', 'kukamatwa', 'dhamana', 'mahakama', 'jaji', 'magistrate',
-    'wizi', 'kupigwa', 'taarifa', 'shtaka', 'jela', 'korti',
-    # Family
-    'talaka', 'watoto', 'mtoto', 'mke', 'mume', 'ndoa', 'matunzo',
-    'ulezi', 'mahari',
-    # Consumer / debt
-    'kudanganywa', 'ulaghai', 'deni', 'mkopo', 'CRB', 'kurudisha',
-    'bidhaa', 'mkataba',
-    # Legal process
-    'haki', 'kisheria', 'madai', 'barua ya kudai', 'fidia', 'ushahidi',
-    'katiba', 'haramu', 'ukiukwaji', 'rufaa', 'kesi',
-}
-
-def _is_legal_question(message: str) -> bool:
-    """
-    Returns True if the message appears to be about a legal problem.
-    Uses keyword matching — fast, no API call needed.
-    A message needs to contain at least one legal keyword to be classified
-    as a legal question. Short vague messages default to False (conversational).
-    """
-    text = message.lower()
-    # Very short messages without legal keywords are conversational
-    if len(message.strip()) < 15:
-        return False
-    for kw in _LEGAL_KEYWORDS_EN | _LEGAL_KEYWORDS_SW:
-        if kw in text:
-            return True
-    return False
-
+# ── Intent classification — uses shared ai_engine.classify_intent ────────────
+# keyword_suggests_legal() and classify_intent() are in cases/ai_engine.py.
+# Both the website and the bot call the same shared logic from there.
+# The old _LEGAL_KEYWORDS_EN/_LEGAL_KEYWORDS_SW/_is_legal_question() that used
+# to live here have been removed — ai_engine._INTENT_KW_EN/SW is the
+# single authoritative keyword list for the whole platform.
 
 def _get_conversational_reply(message: str, lang: str, history: list) -> str:
     """

@@ -796,9 +796,26 @@
   var THANKS_SET=new Set(['thanks','thank you','thank you so much','thanks a lot','asante','asante sana','nashukuru','shukrani','sawa asante','nimeshukuru','appreciated','helpful','that helped','you helped me','umesaidia','great','wonderful','excellent','perfect','amazing','awesome']);
   var GREETINGS_SET=new Set(['hello','hi','hey','habari','habari yako','sasa','mambo','niaje','vipi','sup','hola','salamu','good morning','good afternoon','good evening','ok','okay','sawa','yes','no','ndiyo','hapana']);
 
-  // Legal keywords — Stage 1 fast pre-check (avoids API call for obvious legal messages)
-  var LEGAL_KW_EN=['fired','dismissed','terminated','salary','wages','employer','employee','redundancy','notice','overtime','nssf','nhif','payslip','labour','unfair','discriminated','harassment','landlord','tenant','rent','eviction','evicted','house','land','title deed','property','lease','deposit','locked out','arrested','police','detained','bail','charged','court','magistrate','judge','prison','jail','warrant','assault','beaten','divorce','separation','child support','maintenance','custody','children','wife','husband','marriage','scammed','fraud','conned','debt','loan','tala','mshwari','crb','blacklisted','refund','contract','breach','sue','lawsuit','claim','demand letter','compensation','rights','illegal','violation','constitution','human rights','tribunal','appeal','evidence','not paid','owes me','owe me','threatening','abuse','forced me','pay me','unpaid','my boss','my landlord','my employer','did not pay','refused to pay','kicked me out','locked me'];
-  var LEGAL_KW_SW=['kufukuzwa','mwajiri','mfanyakazi','mshahara','notisi','kazi','likizo','malipo','unyanyasaji','ubaguzi','landlord','mpangaji','kodi','kukimbiwa','nyumba','amana','ardhi','shamba','hati','urithi','mali','polisi','kukamatwa','dhamana','mahakama','jaji','wizi','kupigwa','taarifa','shtaka','jela','korti','talaka','watoto','mtoto','mke','mume','ndoa','matunzo','ulezi','kudanganywa','ulaghai','deni','mkopo','kurudisha','bidhaa','mkataba','haki','kisheria','madai','barua ya kudai','fidia','ushahidi','katiba','haramu','ukiukwaji','rufaa','kesi','alinifukuza','hakulipa','ananisumbua','wananilazimisha','hajalipa','hajalipwa'];
+  // Legal keywords — Stage 1 fast pre-check — MUST MATCH cases/ai_engine._INTENT_KW_EN/SW
+  // Both this list and ai_engine.py's lists are the single source of truth.
+  // When updating one, update the other.
+  var LEGAL_KW_EN=['fired','dismissed','terminated','redundant','laid off','salary','wages','pay','unpaid','employer','employee','boss','work','job','overtime','nssf','nhif','payslip','labour','unfair','discriminat','harass','workplace','resign','resigned','notice','contract','landlord','tenant','rent','evict','evicted','house','land','title deed','property','lease','deposit','locked out','caretaker','estate','inherit','succession','shamba','plot','acre','arrested','arrest','police','detain','bail','charged','charge','court','magistrate','judge','prison','jail','warrant','stolen','theft','rob','assault','beat','beaten','threaten','bribe','divorce','separat','child support','maintenance','custody','children','wife','husband','marriage','dowry','domestic','scam','fraud','conned','cheat','debt','loan','tala','mshwari','crb','blacklist','refund','breach','goods','defect','sue','lawsuit','claim','demand letter','compensat','rights','illegal','violat','constitution','human rights','tribunal','appeal','affidavit','evidence','witness','lawyer','advocate','legal','case','hearing','file a','my rights','they did not pay','did not pay me','has not paid','refused to pay','locked me','kicked me out','threw out','not paid','owes me','owe me','threatening me','threatened','abuse','forced me'];
+  var LEGAL_KW_SW=['kufukuzwa','kufukuzwa kazi','mwajiri','mfanyakazi','mshahara','kulipwa','hakulipwa','hajalipa','hajalipwa','malipo','kazi','likizo','unyanyasaji','ubaguzi','notisi','mkataba','landlord','mpangaji','kodi','kukimbiwa','kufukuzwa nyumba','nyumba','amana','ardhi','shamba','hati','urithi','mali','polisi','kukamatwa','kukamatwa bila','dhamana','mahakama','jaji','wizi','kuibiwa','kupigwa','taarifa','shtaka','jela','korti','riswa','rushwa','talaka','matunzo','ulezi','watoto','mtoto','mke','mume','ndoa','mahari','unyanyasaji wa nyumbani','kudanganywa','kuibiwa','ulaghai','deni','mkopo','kurudisha','bidhaa','kasoro','kulazimishwa','haki zangu','haki zake','haki yake','haki yangu','kisheria','madai','barua ya kudai','fidia','ushahidi','katiba','haramu','ukiukwaji','rufaa','kesi','wakili','mahakamani','alinifukuza','hakulipa','alinishambulia','ananisumbua','wameniambia','wananitaka','wananilazimisha','wananidhulumu'];
+
+  // Pure-chat patterns — MUST MATCH cases/ai_engine._pure_chat set
+  // These skip the server classifier entirely for speed.
+  var PURE_CHAT_PATTERNS=['hello','hi','hey','habari','sasa','mambo','niaje','ok','okay','sawa',
+    'who are you','what is your name','wewe ni nani','jina lako ni nani',
+    'are you a bot','are you human','are you real','wewe ni roboti',
+    'what do you do','can you help me','tell me about yourself',
+    'what can you do','how does this work','are you intelligent',
+    'do you think you are intelligent','do you think youre intelligent',
+    'are you smart','what are you','how are you','how is life',
+    'how is life as an ai','what is your purpose','who made you',
+    'who created you','who built you','do you have feelings',
+    'can you write code','can you code','write code','write me code',
+    'write python','write a program','do you do coding',
+    'what do you know','what else can you do'];
 
   function keywordSuggestsLegal(text) {
     var t = text.toLowerCase();
@@ -818,7 +835,7 @@
       'who are you','what is your name','wewe ni nani','jina lako','are you a bot',
       'are you human','are you real','wewe ni roboti','what do you do',
       'tell me about yourself','what can you do','how does this work'];
-    if(pureChatPatterns.indexOf(clean)!==-1 || story.trim().length < 12){ onChat(); return; }
+    if(PURE_CHAT_PATTERNS.indexOf(clean)!==-1 || story.trim().length < 12){ onChat(); return; }
     // Stage 1: keyword pre-check (instant)
     if(keywordSuggestsLegal(story)){ onLegal(); return; }
     // Stage 2: server AI classifier for uncertain messages
