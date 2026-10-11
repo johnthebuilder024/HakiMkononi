@@ -402,6 +402,12 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     is_consumer   = any(k in story_lower for k in _consumer_en + _consumer_sw)
     is_county     = any(k in story_lower for k in _county_en + _county_sw)
     is_fraud      = any(k in story_lower for k in _fraud_en + _fraud_sw + db_slang.get('fraud', []))
+    is_traffic    = any(k in story_lower for k in [
+        'traffic', 'driving', 'driver', 'vehicle', 'car', 'matatu', 'motor',
+        'road', 'licence plate', 'traffic police', 'ntsa', 'impound', 'towing',
+        'road accident', 'reckless driving', 'drunk driving', 'speeding',
+        'insurance', 'logbook', 'driving licence', 'road worthiness',
+    ])
     # County enforcement overrides criminal classification for kanjo queries
     if is_county:
         is_criminal = False
@@ -417,8 +423,9 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     if is_consumer:   on_topic_cats.add('consumer')
     if is_county:     on_topic_cats.update({'other'})   # county acts sit under 'other'
     if is_fraud:      on_topic_cats.add('fraud')
+    if is_traffic:    on_topic_cats.update({'other', 'criminal_procedure'})  # Traffic Act is 'other'
 
-    topic_detected = is_employment or is_land or is_tenant or is_criminal or is_family or is_data or is_consumer or is_county or is_fraud
+    topic_detected = is_employment or is_land or is_tenant or is_criminal or is_family or is_data or is_consumer or is_county or is_fraud or is_traffic
     OFF_TOPIC_MIN_SCORE = 0.48
 
     # ── Use in-memory cache — zero DB hits ────────────────────────────────────
@@ -488,6 +495,12 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
             score += 0.16
         if is_fraud and 'hire purchase' in (entry['title'] or '').lower():
             score += 0.10
+        # Suppress Constitution dominance for fraud — boost Computer Misuse Act strongly
+        if is_fraud and entry['category'] == 'fraud' and any(
+            k in (entry['title'] or '').lower()
+            for k in ['computer misuse', 'cybercrimes', 'cybercrime']
+        ):
+            score += 0.12   # extra boost so Computer Misuse beats Constitution
         if is_data and entry['category'] == 'other' and 'data protection' in (entry['title'] or '').lower():
             score += 0.14
         if is_county and entry['category'] == 'other' and any(
@@ -496,6 +509,19 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
                       'physical planning', 'fair administrative', 'business']
         ):
             score += 0.16
+        # Suppress Employment Act for kanjo queries — wrong category
+        if is_county and entry['category'] == 'employment':
+            score -= 0.18
+        if is_traffic and entry['category'] == 'other' and 'traffic' in (entry['title'] or '').lower():
+            score += 0.20   # strong boost — Traffic Act must surface for traffic queries
+        if is_traffic and entry['category'] == 'criminal_procedure':
+            score += 0.08   # Police powers relevant for traffic stops
+        # Land grabbing: boost Land Act + Land Registration Act specifically
+        if is_land and not is_tenant and entry['category'] == 'land' and any(
+            k in (entry['title'] or '').lower()
+            for k in ['land act', 'land registration']
+        ):
+            score += 0.10   # extra push so Land Act beats generic Constitution rights
 
         scored.append((score, entry))
 
