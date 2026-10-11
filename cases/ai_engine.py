@@ -731,12 +731,12 @@ def classify_intent(message: str, lang: str = 'sw', history: list = None) -> str
     if len(message.strip()) < 4:
         return 'CHAT'
 
-    # Stage 1: keyword scan
-    if keyword_suggests_legal(message):
-        logger.debug("[Intent] Stage1=LEGAL (keyword): %s", message[:60])
-        return 'LEGAL'
+    msg_lower = message.lower().strip()
+    msg_clean = msg_lower.rstrip('?!.,')
 
-    # Pure greetings/thanks → definitely conversational, skip AI call
+    # ── Check pure-chat and frustration FIRST — before keyword scan ──────
+    # These must win even if the message accidentally contains a legal word
+    # e.g. "that is wrong about my rights" has 'rights' but is frustration
     _pure_chat = {
         'hello', 'hi', 'hey', 'habari', 'sasa', 'mambo', 'niaje', 'ok',
         'okay', 'sawa', 'thanks', 'thank you', 'asante', 'nashukuru',
@@ -763,12 +763,30 @@ def classify_intent(message: str, lang: str = 'sw', history: list = None) -> str
         'i did not ask that', 'sikuuliza hivyo', 'answer my question',
         'jibu swali langu', 'read my question', 'soma swali langu',
     }
-    msg_clean = message.lower().strip().rstrip('?!.,')
-    if msg_clean in _pure_chat or len(message.strip()) < 12:
-        logger.debug("[Intent] Stage1=CHAT (pure chat): %s", message[:60])
+    # Frustration prefix patterns — catch variants like "why are you not answering my case"
+    _frustration_prefixes = (
+        'are you stupid', 'you are stupid', 'wewe ni mjinga',
+        'why are you not', 'you did not answer', 'you did not understand',
+        'hukuelewa', 'hukujibu', 'that is not what i asked',
+        'you misunderstood', 'i did not ask that', 'sikuuliza',
+        'this is not helpful', 'you are useless', 'wewe hufai',
+        'wrong answer', 'jibu baya', 'answer my question', 'jibu swali',
+        'read my question', 'soma swali',
+    )
+    if msg_clean in _pure_chat or msg_lower.startswith(_frustration_prefixes):
+        logger.debug("[Intent] Stage1=CHAT (pure chat / frustration): %s", message[:60])
         return 'CHAT'
 
-    # Stage 2: AI classifier — for uncertain cases
+    # Short messages with no legal context → conversational
+    if len(message.strip()) < 12:
+        return 'CHAT'
+
+    # ── Stage 1: keyword scan ─────────────────────────────────────────────
+    if keyword_suggests_legal(message):
+        logger.debug("[Intent] Stage1=LEGAL (keyword): %s", message[:60])
+        return 'LEGAL'
+
+    # ── Stage 2: AI classifier ────────────────────────────────────────────
     groq_key = os.getenv('GROQ_API_KEY', '').strip()
     if not groq_key:
         # No Groq key — default to LEGAL for longer messages (safer)
