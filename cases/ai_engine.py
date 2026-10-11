@@ -708,10 +708,17 @@ def classify_intent(message: str, lang: str = 'sw', history: list = None) -> str
         'hello', 'hi', 'hey', 'habari', 'sasa', 'mambo', 'niaje', 'ok',
         'okay', 'sawa', 'thanks', 'thank you', 'asante', 'nashukuru',
         'good morning', 'good afternoon', 'good evening',
-        'who are you', 'what is your name', 'wewe ni nani', 'jina lako',
+        'who are you', 'what is your name', 'wewe ni nani', 'jina lako ni nani',
         'are you a bot', 'are you human', 'are you real', 'wewe ni roboti',
         'what do you do', 'can you help me', 'tell me about yourself',
-        'what can you do', 'how does this work',
+        'what can you do', 'how does this work', 'are you intelligent',
+        'do you think you are intelligent', 'do you think youre intelligent',
+        'are you smart', 'what are you', 'how are you', 'how is life',
+        'how is life as an ai', 'what is your purpose', 'who made you',
+        'who created you', 'who built you', 'do you have feelings',
+        'can you write code', 'can you code', 'write code', 'write me code',
+        'write python', 'write a program', 'do you do coding',
+        'what do you know', 'what else can you do',
     }
     msg_clean = message.lower().strip().rstrip('?!.,')
     if msg_clean in _pure_chat or len(message.strip()) < 12:
