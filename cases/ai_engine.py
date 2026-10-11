@@ -683,6 +683,9 @@ _INTENT_KW_EN = {
     'hacked', 'hack', 'mpesa fraud', 'online fraud', 'cyber', 'phishing',
     'identity theft', 'stolen phone', 'sim swap', 'account hacked',
     'blackmail', 'extort', 'sextortion', 'online scam', 'defraud',
+    'unauthorised access', 'unauthorized access', 'accessed my computer',
+    'accessed my account', 'wire transfer', 'internet fraud', 'cyber fraud',
+    'someone logged into', 'password stolen', 'phone cloned', 'computer misuse',
     # Data protection / privacy
     'personal data', 'privacy', 'data breach', 'cctv', 'consent',
     'data protection', 'my data', 'surveillance', 'leaked my data',

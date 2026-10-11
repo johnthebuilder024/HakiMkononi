@@ -378,12 +378,19 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         'sextortion', 'online scam', 'defraud', 'computer misuse', 'cybercrime',
         'stolen money online', 'fake website', 'fake account', 'impersonation',
         'hire purchase', 'hire-purchase',
+        # broader cybercrime patterns
+        'unauthorised access', 'unauthorized access', 'accessed my computer',
+        'accessed my account', 'accessed my phone', 'my account was',
+        'wire transfer', 'online transaction', 'internet fraud', 'cyber fraud',
+        'someone logged', 'logged into my', 'stole from my account',
+        'password stolen', 'password changed', 'phone cloned',
     ]
     _fraud_sw = [
         'ulaghai wa mpesa', 'akaunti yangu', 'simu iliibwa', 'sim kubadilishwa',
         'udukuzi', 'kudanganywa mtandaoni', 'waliiba pesa zangu', 'blackmail',
         'picha zangu', 'vitisho vya mtandao', 'akaunti ilifunguliwa bila ruhusa',
-        'hire purchase',
+        'hire purchase', 'neno langu la siri', 'simu yangu ilidukuliwa',
+        'pesa zilienda', 'waliingia akaunti', 'mtandao ulaghai',
     ]
 
     is_employment = any(k in story_lower for k in _emp_en + _emp_sw + db_slang.get('employment', []))
