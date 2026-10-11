@@ -82,6 +82,23 @@ class Query(models.Model):
     what_actually_happened = models.TextField(blank=True)  # "Court said..."
     correct_section = models.CharField(max_length=200, blank=True)  # admin correction
 
+    # Review workflow — tracks admin review of 👎 answers
+    REVIEW_PENDING  = 'pending'
+    REVIEW_FIXED    = 'fixed'
+    REVIEW_WONTFIX  = 'wontfix'
+    REVIEW_CHOICES  = [
+        ('pending',  '⏳ Pending review'),
+        ('fixed',    '✅ Fixed'),
+        ('wontfix',  '🔕 Won\'t fix'),
+    ]
+    review_status = models.CharField(
+        max_length=10, choices=REVIEW_CHOICES, default='pending', blank=True,
+        help_text="Admin review status for 👎 answers"
+    )
+    review_note = models.TextField(blank=True,
+        help_text="Admin note on what was fixed or why it won't be fixed"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

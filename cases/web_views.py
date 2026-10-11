@@ -383,13 +383,54 @@ def dashboard(request):
     rated = helpful + not_helpful
     satisfaction = round((helpful / rated * 100)) if rated > 0 else 0
 
-    # ── 👎 Queries needing review ─────────────────────────────────────────────
-    unhelpful_queries = (
+    # ── 👎 Queries needing review — full feedback learning loop ──────────────
+    # Pending review (most urgent — sorted by newest first)
+    pending_review = (
         Query.objects
-        .filter(was_helpful=False)
+        .filter(was_helpful=False, review_status='pending')
         .order_by('-created_at')
-        .prefetch_related('laws_used')[:50]
+        .prefetch_related('laws_used')[:30]
     )
+    # Already fixed ones (last 10 for reference)
+    fixed_this_week = (
+        Query.objects
+        .filter(was_helpful=False, review_status='fixed', created_at__gte=day7)
+        .order_by('-created_at')[:10]
+    )
+    pending_count  = Query.objects.filter(was_helpful=False, review_status='pending').count()
+    fixed_count    = Query.objects.filter(was_helpful=False, review_status='fixed').count()
+    wontfix_count  = Query.objects.filter(was_helpful=False, review_status='wontfix').count()
+
+    # ── Pattern analysis: which law categories have the most failures? ────────
+    from django.db.models import FloatField, ExpressionWrapper
+    failure_by_category = []
+    for cat_code, cat_label in Law.CATEGORY_CHOICES:
+        total_using_cat = (
+            Query.objects
+            .filter(laws_used__category=cat_code)
+            .distinct().count()
+        )
+        unhelpful_using_cat = (
+            Query.objects
+            .filter(laws_used__category=cat_code, was_helpful=False)
+            .distinct().count()
+        )
+        if total_using_cat > 0:
+            rate = round(unhelpful_using_cat / total_using_cat * 100)
+            failure_by_category.append({
+                'category': cat_label,
+                'code': cat_code,
+                'total': total_using_cat,
+                'failed': unhelpful_using_cat,
+                'rate': rate,
+            })
+    failure_by_category.sort(key=lambda x: x['rate'], reverse=True)
+
+    # ── Most common failing question patterns (top repeated stories) ──────────
+    # Questions that got 👎 and whose first 60 chars appear more than once
+    # (a proxy for "this type of question keeps failing")
+    # Keep it simple — just show the raw 👎 queries with their category context
+    unhelpful_queries = pending_review  # alias for template backward compat
 
     # ── Top questions (counties) ──────────────────────────────────────────────
     top_counties = (
@@ -436,18 +477,39 @@ def dashboard(request):
     lawyers_verified       = Lawyer.objects.filter(kyc_status='verified', is_active=True).count()
     lawyers_total          = Lawyer.objects.count()
 
-    # ── Handle POST — save correction ────────────────────────────────────────
+    # ── Handle POST — save correction or update review status ────────────────
     fix_message = None
     if request.method == 'POST':
         query_id       = request.POST.get('query_id')
+        action         = request.POST.get('action', 'save_fix')
         correct_section = request.POST.get('correct_section', '').strip()
         what_happened  = request.POST.get('what_actually_happened', '').strip()
+        review_note    = request.POST.get('review_note', '').strip()
         try:
             q = Query.objects.get(pk=query_id)
-            q.correct_section        = correct_section
-            q.what_actually_happened = what_happened
-            q.save(update_fields=['correct_section', 'what_actually_happened'])
-            fix_message = f"✅ Query #{query_id} updated."
+            if action == 'mark_fixed':
+                q.correct_section        = correct_section
+                q.what_actually_happened = what_happened
+                q.review_status          = 'fixed'
+                q.review_note            = review_note
+                q.save(update_fields=['correct_section','what_actually_happened',
+                                      'review_status','review_note'])
+                fix_message = f"✅ Query #{query_id} marked as fixed."
+            elif action == 'mark_wontfix':
+                q.review_status = 'wontfix'
+                q.review_note   = review_note
+                q.save(update_fields=['review_status','review_note'])
+                fix_message = f"🔕 Query #{query_id} marked as won't fix."
+            elif action == 'reopen':
+                q.review_status = 'pending'
+                q.save(update_fields=['review_status'])
+                fix_message = f"🔄 Query #{query_id} reopened for review."
+            else:
+                # legacy save_fix
+                q.correct_section        = correct_section
+                q.what_actually_happened = what_happened
+                q.save(update_fields=['correct_section', 'what_actually_happened'])
+                fix_message = f"✅ Query #{query_id} updated."
         except Query.DoesNotExist:
             fix_message = f"❌ Query #{query_id} not found."
 
@@ -461,8 +523,15 @@ def dashboard(request):
         'not_helpful':    not_helpful,
         'no_feedback':    no_feedback,
         'satisfaction':   satisfaction,
-        # Data
-        'unhelpful_queries': unhelpful_queries,
+        # Review workflow
+        'unhelpful_queries':    unhelpful_queries,
+        'pending_review':       pending_review,
+        'fixed_this_week':      fixed_this_week,
+        'pending_count':        pending_count,
+        'fixed_count':          fixed_count,
+        'wontfix_count':        wontfix_count,
+        'failure_by_category':  failure_by_category,
+        # Other data
         'top_counties':   top_counties,
         'top_laws':       top_laws,
         'daily_counts':   daily_counts,

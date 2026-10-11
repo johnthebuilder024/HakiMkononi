@@ -312,94 +312,225 @@
 
     </div>
 
-    <!-- Right column — 👎 review queue -->
+    <!-- Right column — feedback review workflow -->
     <div class="col-12 col-lg-8">
-      <div class="section-card">
+
+      <!-- Failure pattern analysis -->
+      {% if failure_by_category %}
+      <div class="section-card mb-4">
         <div class="sc-header">
-          👎 Answers That Didn't Help
-          <span class="badge bg-danger ms-1">{{ not_helpful }}</span>
-          <small class="text-muted fw-normal ms-2">Review each one and add the correct section</small>
+          🔍 Failure Rate by Law Category
+          <small class="text-muted fw-normal ms-2">Which topic areas need the most improvement?</small>
+        </div>
+        <div class="sc-body p-0">
+          <table class="table table-sm mb-0" style="font-size:.82rem;">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th class="text-center">Total</th>
+                <th class="text-center">Failed</th>
+                <th style="width:140px;">Failure Rate</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cat in failure_by_category %}
+              {% if cat.total > 0 %}
+              <tr>
+                <td class="fw-semibold">{{ cat.category }}</td>
+                <td class="text-center">{{ cat.total }}</td>
+                <td class="text-center text-danger fw-bold">{{ cat.failed }}</td>
+                <td>
+                  <div style="background:#f5f5f5;border-radius:4px;height:8px;overflow:hidden;">
+                    <div style="background:{% if cat.rate > 40 %}#dc3545{% elif cat.rate > 20 %}#ffc107{% else %}#1a7a3c{% endif %};height:100%;width:{{ cat.rate }}%;"></div>
+                  </div>
+                  <small class="text-muted">{{ cat.rate }}%</small>
+                </td>
+                <td>
+                  <a href="/admin/cases/query/?was_helpful__exact=0&laws_used__category={{ cat.code }}"
+                     class="btn btn-sm py-0 px-2"
+                     style="font-size:.7rem;background:#f5f5f5;border:1px solid #ddd;"
+                     target="_blank">
+                    Review →
+                  </a>
+                </td>
+              </tr>
+              {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Review queue tabs -->
+      <div class="section-card">
+        <div class="sc-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <span>
+            👎 Review Queue
+            <span class="badge bg-danger ms-1">{{ pending_count }}</span> pending
+            <span class="badge bg-success ms-1">{{ fixed_count }}</span> fixed
+            <span class="badge bg-secondary ms-1">{{ wontfix_count }}</span> won't fix
+          </span>
+          <div class="d-flex gap-1">
+            <button class="btn btn-sm py-0 px-2" onclick="showTab('pending')"
+                    id="tab-pending" style="background:#dc3545;color:#fff;font-size:.75rem;">
+              ⏳ Pending ({{ pending_count }})
+            </button>
+            <button class="btn btn-sm py-0 px-2 btn-outline-success" onclick="showTab('fixed')"
+                    id="tab-fixed" style="font-size:.75rem;">
+              ✅ Fixed this week ({{ fixed_this_week|length }})
+            </button>
+          </div>
         </div>
         <div class="sc-body">
 
-          {% if not unhelpful_queries %}
-          <div class="text-center text-success py-4">
-            <div style="font-size:2rem;">🎉</div>
-            <div class="fw-bold">No unhelpful answers yet!</div>
-            <div class="text-muted small">When Wanjiku clicks 👎, the query will appear here for review.</div>
+          {% if fix_message %}
+          <div class="fix-msg {% if '✅' in fix_message or '🔕' in fix_message or '🔄' in fix_message %}ok{% else %}err{% endif %} mb-3">
+            {{ fix_message }}
           </div>
           {% endif %}
 
-          {% for q in unhelpful_queries %}
-          <div class="review-row">
-            <div class="rr-head">
-              <div class="rr-story">"{{ q.story|truncatechars:120 }}"</div>
-              <div class="rr-meta">
-                #{{ q.pk }}<br>
-                {% if q.county %}<span class="badge bg-secondary">{{ q.county }}</span>{% endif %}<br>
-                {{ q.created_at|date:"d M Y H:i" }}
-              </div>
+          <!-- Pending tab -->
+          <div id="tab-content-pending">
+            {% if not pending_review %}
+            <div class="text-center text-success py-4">
+              <div style="font-size:2.5rem;">🎉</div>
+              <div class="fw-bold mt-2">Review queue is empty!</div>
+              <div class="text-muted small mt-1">All 👎 answers have been reviewed. Check back after more users give feedback.</div>
             </div>
-            <div class="rr-body">
-              <!-- What the AI answered -->
-              <div class="rr-law">{{ q.answer_law|truncatechars:200 }}</div>
+            {% endif %}
 
-              <!-- Laws used -->
-              {% if q.laws_used.all %}
-              <div class="rr-sources">
-                <strong>Sections used:</strong>
-                {% for law in q.laws_used.all %}
-                <span class="badge-section">{{ law.title|truncatechars:30 }} — {{ law.section }}</span>
-                {% endfor %}
-              </div>
-              {% endif %}
-
-              <!-- Existing correction if any -->
-              {% if q.correct_section %}
-              <div class="alert alert-success py-1 px-2 mb-2" style="font-size:.8rem;">
-                ✅ Correction saved: <strong>{{ q.correct_section }}</strong>
-                {% if q.what_actually_happened %}<br>Note: {{ q.what_actually_happened }}{% endif %}
-              </div>
-              {% endif %}
-
-              <!-- Correction form -->
-              <form method="POST" action="/dashboard/" class="mt-2">
-                {% csrf_token %}
-                <input type="hidden" name="query_id" value="{{ q.pk }}">
-                <div class="row g-2">
-                  <div class="col-12 col-md-5">
-                    <input type="text" name="correct_section" class="form-control form-control-sm"
-                           placeholder="Correct section e.g. Employment Act S.35"
-                           value="{{ q.correct_section }}"
-                           style="font-size:.8rem;">
-                  </div>
-                  <div class="col-12 col-md-5">
-                    <input type="text" name="what_actually_happened" class="form-control form-control-sm"
-                           placeholder="What actually happened / notes"
-                           value="{{ q.what_actually_happened }}"
-                           style="font-size:.8rem;">
-                  </div>
-                  <div class="col-12 col-md-2">
-                    <button type="submit" class="btn btn-sm w-100"
-                            style="background:var(--haki-green);color:#fff;font-size:.8rem;">
-                      Save Fix
-                    </button>
-                  </div>
+            {% for q in pending_review %}
+            <div class="review-row" id="qrow-{{ q.pk }}">
+              <div class="rr-head">
+                <div>
+                  <div class="rr-story">"{{ q.story|truncatechars:150 }}"</div>
+                  {% if q.county %}
+                  <span class="badge bg-secondary mt-1" style="font-size:.7rem;">📍 {{ q.county }}</span>
+                  {% endif %}
                 </div>
-              </form>
+                <div class="rr-meta text-end" style="min-width:80px;">
+                  <span class="badge bg-danger" style="font-size:.65rem;">👎 #{{ q.pk }}</span><br>
+                  <small>{{ q.created_at|date:"d M Y" }}</small>
+                </div>
+              </div>
+              <div class="rr-body">
+
+                <!-- What the AI answered -->
+                <details class="mb-2">
+                  <summary style="font-size:.8rem;cursor:pointer;color:#666;">
+                    📜 What the AI answered (click to expand)
+                  </summary>
+                  <div class="rr-law mt-1">{{ q.answer_law|truncatechars:400 }}</div>
+                  {% if q.answer_simple %}
+                  <div style="font-size:.78rem;color:#555;margin-top:.4rem;padding-left:.5rem;border-left:2px solid #ddd;">
+                    {{ q.answer_simple|truncatechars:250 }}
+                  </div>
+                  {% endif %}
+                </details>
+
+                <!-- Laws used -->
+                {% if q.laws_used.all %}
+                <div class="rr-sources mb-2">
+                  <strong>Sections cited:</strong>
+                  {% for law in q.laws_used.all %}
+                  <span class="badge-section">{{ law.title|truncatechars:25 }} · {{ law.section }}</span>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-muted small mb-2">⚠️ No law sections linked — RAG may have missed this question</div>
+                {% endif %}
+
+                <!-- Fix form with 3 actions -->
+                <form method="POST" action="/dashboard/">
+                  {% csrf_token %}
+                  <input type="hidden" name="query_id" value="{{ q.pk }}">
+                  <div class="row g-2 mb-2">
+                    <div class="col-12 col-md-5">
+                      <input type="text" name="correct_section" class="form-control form-control-sm"
+                             placeholder="Correct law section e.g. Employment Act §45"
+                             value="{{ q.correct_section }}"
+                             style="font-size:.78rem;">
+                    </div>
+                    <div class="col-12 col-md-7">
+                      <input type="text" name="review_note" class="form-control form-control-sm"
+                             placeholder="What was wrong / what should have been cited"
+                             value="{{ q.review_note }}"
+                             style="font-size:.78rem;">
+                    </div>
+                  </div>
+                  <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" name="action" value="mark_fixed"
+                            class="btn btn-sm"
+                            style="background:#1a7a3c;color:#fff;font-size:.75rem;">
+                      ✅ Mark Fixed
+                    </button>
+                    <button type="submit" name="action" value="mark_wontfix"
+                            class="btn btn-sm btn-outline-secondary"
+                            style="font-size:.75rem;">
+                      🔕 Won't Fix
+                    </button>
+                    <a href="/admin/cases/law/?q={{ q.laws_used.all|first }}"
+                       class="btn btn-sm btn-outline-primary"
+                       style="font-size:.75rem;" target="_blank">
+                      📄 Edit Law Sections
+                    </a>
+                  </div>
+                </form>
+              </div>
             </div>
-          </div>
-          {% endfor %}
+            {% endfor %}
 
-          {% if not_helpful > 50 %}
-          <div class="text-center text-muted small mt-2">
-            Showing latest 50 of {{ not_helpful }} unhelpful queries.
-            <a href="/admin/cases/query/?was_helpful__exact=0">See all in admin →</a>
+            {% if pending_count > 30 %}
+            <div class="text-center text-muted small mt-3">
+              Showing 30 of {{ pending_count }} pending. <a href="/admin/cases/query/?was_helpful__exact=0&review_status__exact=pending">See all in admin →</a>
+            </div>
+            {% endif %}
           </div>
-          {% endif %}
 
-        </div>
-      </div>
+          <!-- Fixed tab -->
+          <div id="tab-content-fixed" style="display:none;">
+            {% if not fixed_this_week %}
+            <div class="text-center text-muted py-4">
+              <div style="font-size:2rem;">📋</div>
+              <div>No queries fixed in the last 7 days.</div>
+            </div>
+            {% endif %}
+            {% for q in fixed_this_week %}
+            <div class="review-row" style="border-left:3px solid #1a7a3c;">
+              <div class="rr-head" style="background:#f0f8f3;">
+                <div>
+                  <div class="rr-story">"{{ q.story|truncatechars:120 }}"</div>
+                  {% if q.correct_section %}
+                  <small class="text-success mt-1 d-block">✅ Fixed: <strong>{{ q.correct_section }}</strong></small>
+                  {% endif %}
+                  {% if q.review_note %}
+                  <small class="text-muted d-block">{{ q.review_note }}</small>
+                  {% endif %}
+                </div>
+                <div class="rr-meta text-end" style="min-width:80px;">
+                  <span class="badge bg-success" style="font-size:.65rem;">✅ Fixed</span><br>
+                  <small>{{ q.created_at|date:"d M" }}</small>
+                </div>
+              </div>
+              <div class="rr-body" style="padding:.5rem 1rem;">
+                <form method="POST" action="/dashboard/" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="query_id" value="{{ q.pk }}">
+                  <button type="submit" name="action" value="reopen"
+                          class="btn btn-sm btn-outline-warning" style="font-size:.72rem;">
+                    🔄 Reopen
+                  </button>
+                </form>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+        </div><!-- /sc-body -->
+      </div><!-- /section-card -->
+
     </div>
 
   </div><!-- /row -->
@@ -441,5 +572,17 @@
 </footer>
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
+<script>
+function showTab(name) {
+  document.getElementById('tab-content-pending').style.display = name==='pending' ? '' : 'none';
+  document.getElementById('tab-content-fixed').style.display   = name==='fixed'   ? '' : 'none';
+  document.getElementById('tab-pending').style.background = name==='pending' ? '#dc3545' : '#fff';
+  document.getElementById('tab-pending').style.color      = name==='pending' ? '#fff'    : '#dc3545';
+  document.getElementById('tab-pending').style.border     = '1px solid #dc3545';
+  document.getElementById('tab-fixed').style.background   = name==='fixed'   ? '#1a7a3c' : '#fff';
+  document.getElementById('tab-fixed').style.color        = name==='fixed'   ? '#fff'    : '#1a7a3c';
+  document.getElementById('tab-fixed').style.border       = '1px solid #1a7a3c';
+}
+</script>
 </body>
 </html>
