@@ -752,6 +752,16 @@ def classify_intent(message: str, lang: str = 'sw', history: list = None) -> str
         'can you write code', 'can you code', 'write code', 'write me code',
         'write python', 'write a program', 'do you do coding',
         'what do you know', 'what else can you do',
+        # Frustration / meta-complaints about the bot
+        'are you stupid', 'you are stupid', 'wewe ni mjinga', 'hujui chochote',
+        'why are you not answering', 'you did not answer', 'hukujibu',
+        'you did not understand', 'hukuelewa', 'unaelewa nini',
+        'that is not what i asked', 'hiyo si swali langu', 'hiyo sio nilichouliza',
+        'you are useless', 'wewe hufai', 'this is not helpful',
+        'wrong answer', 'jibu baya', 'that is wrong', 'hiyo ni makosa',
+        'you misunderstood', 'you misunderstood me', 'hukuelewa swali langu',
+        'i did not ask that', 'sikuuliza hivyo', 'answer my question',
+        'jibu swali langu', 'read my question', 'soma swali langu',
     }
     msg_clean = message.lower().strip().rstrip('?!.,')
     if msg_clean in _pure_chat or len(message.strip()) < 12:
