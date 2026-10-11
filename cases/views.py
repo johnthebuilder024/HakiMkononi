@@ -168,7 +168,7 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
             is_serious=answer.get("is_serious", False),
             sources_json=json.dumps({
                 "sources": [
-                    {"title": l.title, "section": l.section, "url": l.source_url}
+                    {"title": l.title, "section": l.section, "url": l.source_url, "category": l.category}
                     for l in top_laws
                 ],
                 "fee_guide": fee_guide,
@@ -397,7 +397,7 @@ def ask_sheria(request):
         },
         "is_serious_case": answer.get("is_serious", False),
         "sources": [
-            {"title": l.title, "section": l.section, "url": l.source_url}
+            {"title": l.title, "section": l.section, "url": l.source_url, "category": l.category}
             for l in top_laws
         ],
         "disclaimer": (
