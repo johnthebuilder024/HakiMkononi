@@ -649,7 +649,7 @@ def format_law_context(laws) -> str:
     if not laws:
         return "Hakuna sheria iliyopatikana."
     return "\n".join(
-        f"[{l.title} — {l.section}]\nText: {l.content[:800]}\nSource: {l.source_url}\n"
+        f"[{l.title} — {l.section}]\nText: {l.content[:500]}\nSource: {l.source_url}\n"
         for l in laws
     )
 
@@ -968,7 +968,7 @@ def _call_groq(messages: list) -> str:
         "model":       GROQ_MODEL,
         "messages":    messages,
         "temperature": 0.2,
-        "max_tokens":  4000,   # enough for 4-section answer + full demand letter
+        "max_tokens":  3000,   # reduced from 4000 — stays within Groq free-tier token/min limit
     }
     resp = http_requests.post(
         GROQ_URL,
