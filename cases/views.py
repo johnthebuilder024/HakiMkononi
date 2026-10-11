@@ -124,7 +124,7 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
         # Use enriched RAG query when available (for follow-ups/corrections)
         search_story = rag_query or job.story
         top_laws = find_relevant_laws(
-            user_story=search_story, top_n=8, category_boost=["constitution"]
+            user_story=search_story, top_n=5, category_boost=["constitution"]
         )
         answer = get_answer(
             user_story=job.story,
