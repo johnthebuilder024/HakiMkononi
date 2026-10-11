@@ -689,6 +689,9 @@ _INTENT_KW_EN = {
     # Data protection / privacy
     'personal data', 'privacy', 'data breach', 'cctv', 'consent',
     'data protection', 'my data', 'surveillance', 'leaked my data',
+    # Elections
+    'election', 'voter', 'bribery', 'vote buying', 'ballot', 'candidate',
+    'campaign', 'electoral', 'iebc', 'polling station', 'constituency',
     # Legal process
     'sue', 'lawsuit', 'claim', 'demand letter', 'compensat', 'rights',
     'illegal', 'violat', 'constitution', 'human rights', 'tribunal',
@@ -717,13 +720,17 @@ _INTENT_KW_SW = {
     # Consumer / debt
     'kudanganywa', 'kuibiwa', 'ulaghai', 'deni', 'mkopo', 'kurudisha',
     'bidhaa', 'kasoro', 'kulazimishwa',
-    # Cybercrime / fraud
+    # Cybercrime / fraud (sw)
     'kudanganywa mtandaoni', 'ulaghai wa mpesa', 'akaunti yangu', 'simu iliibwa',
     'sim kubadilishwa', 'udukuzi', 'mtandaoni', 'waliiba pesa zangu',
     'blackmail', 'kunidhuru', 'picha zangu', 'vitisho vya mtandao',
-    # Data protection / privacy
+    'sim swap', 'pesa zilienda', 'waliingia akaunti', 'simu yangu ilidukuliwa',
+    # Data protection / privacy (sw)
     'data yangu', 'wanashare data', 'bila ruhusa yangu', 'taarifa zangu',
     'walichukua picha', 'kampuni imeshare', 'faragha yangu', 'cctv yangu',
+    # Elections (sw)
+    'uchaguzi', 'kura', 'mgombea', 'rushwa ya uchaguzi', 'kununua kura',
+    'karatasi ya kura', 'iebc', 'jimbo', 'msimamizi wa uchaguzi', 'chaguzi',
     # Legal
     'haki zangu', 'haki zake', 'haki yake', 'haki yangu', 'kisheria',
     'madai', 'barua ya kudai', 'fidia', 'ushahidi', 'katiba', 'haramu',

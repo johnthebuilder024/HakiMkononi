@@ -391,6 +391,7 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         'picha zangu', 'vitisho vya mtandao', 'akaunti ilifunguliwa bila ruhusa',
         'hire purchase', 'neno langu la siri', 'simu yangu ilidukuliwa',
         'pesa zilienda', 'waliingia akaunti', 'mtandao ulaghai',
+        'sim swap', 'kuiba pesa', 'wameiba pesa', 'akaunti imeibiwa',
     ]
 
     is_employment = any(k in story_lower for k in _emp_en + _emp_sw + db_slang.get('employment', []))
@@ -408,6 +409,12 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         'road accident', 'reckless driving', 'drunk driving', 'speeding',
         'insurance', 'logbook', 'driving licence', 'road worthiness',
     ])
+    is_elections  = any(k in story_lower for k in [
+        'election', 'voter', 'vote buying', 'ballot', 'candidate', 'campaign',
+        'electoral', 'iebc', 'polling', 'bribe to vote', 'bribery voter',
+        'uchaguzi', 'kura', 'mgombea', 'rushwa ya uchaguzi', 'kununua kura',
+        'karatasi ya kura', 'chaguzi', 'msimamizi wa uchaguzi',
+    ])
     # County enforcement overrides criminal classification for kanjo queries
     if is_county:
         is_criminal = False
@@ -424,8 +431,9 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     if is_county:     on_topic_cats.update({'other'})   # county acts sit under 'other'
     if is_fraud:      on_topic_cats.add('fraud')
     if is_traffic:    on_topic_cats.update({'other', 'criminal_procedure'})  # Traffic Act is 'other'
+    if is_elections:  on_topic_cats.update({'other', 'constitution'})         # Elections Act is 'other'
 
-    topic_detected = is_employment or is_land or is_tenant or is_criminal or is_family or is_data or is_consumer or is_county or is_fraud or is_traffic
+    topic_detected = is_employment or is_land or is_tenant or is_criminal or is_family or is_data or is_consumer or is_county or is_fraud or is_traffic or is_elections
     OFF_TOPIC_MIN_SCORE = 0.48
 
     # ── Use in-memory cache — zero DB hits ────────────────────────────────────
@@ -516,6 +524,8 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
             score += 0.20   # strong boost — Traffic Act must surface for traffic queries
         if is_traffic and entry['category'] == 'criminal_procedure':
             score += 0.08   # Police powers relevant for traffic stops
+        if is_elections and entry['category'] == 'other' and 'election' in (entry['title'] or '').lower():
+            score += 0.22   # Elections Act must win for election queries
         # Land grabbing: boost Land Act + Land Registration Act specifically
         if is_land and not is_tenant and entry['category'] == 'land' and any(
             k in (entry['title'] or '').lower()
