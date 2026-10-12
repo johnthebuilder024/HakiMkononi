@@ -25,14 +25,17 @@ FAMILY_TITLE_FRAGMENTS = [
 
 def retag_family_laws(apps, schema_editor):
     Law = apps.get_model('cases', 'Law')
-    updated = 0
-    for law in Law.objects.filter(category='other'):
-        title_lower = law.title.lower()
-        if any(frag in title_lower for frag in FAMILY_TITLE_FRAGMENTS):
-            law.category = 'family'
-            law.save(update_fields=['category'])
-            updated += 1
-    print(f"  → Re-tagged {updated} law sections to 'family' category")
+    # Use a single bulk UPDATE per title fragment — much faster than row-by-row
+    updated_total = 0
+    for frag in FAMILY_TITLE_FRAGMENTS:
+        updated = Law.objects.filter(
+            category='other',
+            title__icontains=frag
+        ).update(category='family')
+        if updated:
+            print(f"  → Re-tagged {updated} '{frag}' sections to 'family'")
+            updated_total += updated
+    print(f"  → Total re-tagged: {updated_total} law sections")
 
 
 def undo_retag(apps, schema_editor):
