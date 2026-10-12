@@ -759,7 +759,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             reply_lang = 'sw' if lang == 'sheng' else lang
             ctx        = format_law_context(top_laws)
             system     = SYSTEM_PROMPTS[reply_lang].format(context=ctx)
-            user_msg   = _USER_MESSAGES[reply_lang].format(story=transcript)
+            user_msg   = _USER_MESSAGES[reply_lang].format(story=v_rag_query)
             groq_messages = _build_groq_messages(system, v_history, user_msg)
             raw        = _call_groq(groq_messages)
             answer     = parse_answer_sections(raw, lang=reply_lang)
@@ -1204,9 +1204,9 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             top_laws = find_relevant_laws(rag_query, top_n=8, category_boost=['constitution'])
             ctx_text = format_law_context(top_laws)
             system   = SYSTEM_PROMPTS[reply_lang].format(context=ctx_text)
-            # The user_msg for Groq is always the real current message —
-            # history provides the prior context, not a concatenated string
-            user_msg = _USER_MESSAGES[reply_lang].format(story=message)
+            # Use rag_query (enriched with prior context) as the story for follow-ups/corrections
+            # so the AI understands the full situation, not just the short follow-up message
+            user_msg = _USER_MESSAGES[reply_lang].format(story=rag_query)
             # Build multi-turn messages array with full history
             groq_messages = _build_groq_messages(system, history, user_msg)
             raw      = _call_groq(groq_messages)

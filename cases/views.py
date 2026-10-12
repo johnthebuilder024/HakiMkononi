@@ -127,7 +127,7 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
             user_story=search_story, top_n=5, category_boost=["constitution"]
         )
         answer = get_answer(
-            user_story=job.story,
+            user_story=search_story,  # enriched query so AI has full context for follow-ups
             laws=top_laws,
             lang=job.lang,
             history=history or [],
