@@ -805,8 +805,18 @@
   // Legal keywords — Stage 1 fast pre-check — MUST MATCH cases/ai_engine._INTENT_KW_EN/SW
   // Both this list and ai_engine.py's lists are the single source of truth.
   // When updating one, update the other.
-  var LEGAL_KW_EN=['fired','dismissed','terminated','redundant','laid off','salary','wages','pay','unpaid','employer','employee','boss','work','job','overtime','nssf','nhif','payslip','labour','unfair','discriminat','harass','workplace','resign','resigned','notice','contract','landlord','tenant','rent','evict','evicted','house','land','title deed','property','lease','deposit','locked out','caretaker','estate','inherit','succession','shamba','plot','acre','arrested','arrest','police','detain','bail','charged','charge','court','magistrate','judge','prison','jail','warrant','stolen','theft','rob','assault','beat','beaten','threaten','bribe','divorce','separat','child support','maintenance','custody','children','wife','husband','marriage','dowry','domestic','scam','fraud','conned','cheat','debt','loan','tala','mshwari','crb','blacklist','refund','breach','goods','defect','sue','lawsuit','claim','demand letter','compensat','rights','illegal','violat','constitution','human rights','tribunal','appeal','affidavit','evidence','witness','lawyer','advocate','legal','case','hearing','file a','my rights','they did not pay','did not pay me','has not paid','refused to pay','locked me','kicked me out','threw out','not paid','owes me','owe me','threatening me','threatened','abuse','forced me'];
-  var LEGAL_KW_SW=['kufukuzwa','kufukuzwa kazi','mwajiri','mfanyakazi','mshahara','kulipwa','hakulipwa','hajalipa','hajalipwa','malipo','kazi','likizo','unyanyasaji','ubaguzi','notisi','mkataba','landlord','mpangaji','kodi','kukimbiwa','kufukuzwa nyumba','nyumba','amana','ardhi','shamba','hati','urithi','mali','polisi','kukamatwa','kukamatwa bila','dhamana','mahakama','jaji','wizi','kuibiwa','kupigwa','taarifa','shtaka','jela','korti','riswa','rushwa','talaka','matunzo','ulezi','watoto','mtoto','mke','mume','ndoa','mahari','unyanyasaji wa nyumbani','kudanganywa','kuibiwa','ulaghai','deni','mkopo','kurudisha','bidhaa','kasoro','kulazimishwa','haki zangu','haki zake','haki yake','haki yangu','kisheria','madai','barua ya kudai','fidia','ushahidi','katiba','haramu','ukiukwaji','rufaa','kesi','wakili','mahakamani','alinifukuza','hakulipa','alinishambulia','ananisumbua','wameniambia','wananitaka','wananilazimisha','wananidhulumu'];
+  var LEGAL_KW_EN=['fired','dismissed','terminated','redundant','laid off','salary','wages','pay','unpaid','employer','employee','boss','work','job','overtime','nssf','nhif','payslip','labour','unfair','discriminat','harass','workplace','resign','resigned','notice','contract','landlord','tenant','rent','evict','evicted','house','land','title deed','property','lease','deposit','locked out','caretaker','estate','inherit','succession','shamba','plot','acre','arrested','arrest','police','detain','bail','charged','charge','court','magistrate','judge','prison','jail','warrant','stolen','theft','rob','assault','beat','beaten','threaten','bribe','divorce','separat','child support','maintenance','custody','children','wife','husband','marriage','dowry','domestic','scam','fraud','conned','cheat','debt','loan','tala','mshwari','crb','blacklist','refund','breach','goods','defect','sue','lawsuit','claim','demand letter','compensat','rights','illegal','violat','constitution','human rights','tribunal','appeal','affidavit','evidence','witness','lawyer','advocate','legal','case','hearing','file a','my rights','they did not pay','did not pay me','has not paid','refused to pay','locked me','kicked me out','threw out','not paid','owes me','owe me','threatening me','threatened','abuse','forced me',
+    'hacked','hack','mpesa fraud','online fraud','cyber','phishing','identity theft','stolen phone','sim swap','account hacked','blackmail','extort','sextortion','online scam','defraud','unauthorised access','unauthorized access','accessed my computer','accessed my account','wire transfer','internet fraud','cyber fraud','someone logged into','password stolen','phone cloned','computer misuse',
+    'personal data','privacy','data breach','cctv','consent','data protection','my data','surveillance','leaked my data',
+    'election','voter','vote buying','ballot','candidate','campaign','electoral','iebc','polling station','constituency',
+    'traffic','driving licence','ntsa','impound','road accident','drunk driving','hire purchase','hire-purchase',
+    'work injury','wiba','occupational safety','osha'];
+  var LEGAL_KW_SW=['kufukuzwa','kufukuzwa kazi','mwajiri','mfanyakazi','mshahara','kulipwa','hakulipwa','hajalipa','hajalipwa','malipo','kazi','likizo','unyanyasaji','ubaguzi','notisi','mkataba','landlord','mpangaji','kodi','kukimbiwa','kufukuzwa nyumba','nyumba','amana','ardhi','shamba','hati','urithi','mali','polisi','kukamatwa','kukamatwa bila','dhamana','mahakama','jaji','wizi','kuibiwa','kupigwa','taarifa','shtaka','jela','korti','riswa','rushwa','talaka','matunzo','ulezi','watoto','mtoto','mke','mume','ndoa','mahari','unyanyasaji wa nyumbani','kudanganywa','kuibiwa','ulaghai','deni','mkopo','kurudisha','bidhaa','kasoro','kulazimishwa','haki zangu','haki zake','haki yake','haki yangu','kisheria','madai','barua ya kudai','fidia','ushahidi','katiba','haramu','ukiukwaji','rufaa','kesi','wakili','mahakamani','alinifukuza','hakulipa','alinishambulia','ananisumbua','wameniambia','wananitaka','wananilazimisha','wananidhulumu',
+    'kudanganywa mtandaoni','ulaghai wa mpesa','akaunti yangu','simu iliibwa','sim kubadilishwa','udukuzi','waliiba pesa zangu','picha zangu','vitisho vya mtandao','sim swap','pesa zilienda','waliingia akaunti','simu yangu ilidukuliwa',
+    'data yangu','wanashare data','bila ruhusa yangu','taarifa zangu','kampuni imeshare','faragha yangu','cctv yangu',
+    'uchaguzi','kura','mgombea','rushwa ya uchaguzi','kununua kura','karatasi ya kura','iebc','jimbo','chaguzi',
+    'kanjo','county askari','kaounti','kibanda changu','wamechukua mali','wamefunga duka','leseni ya biashara',
+    'hire purchase','nilijeruhiwa kazini','mwajiri hana bima'];
 
   // Pure-chat patterns — MUST MATCH cases/ai_engine._pure_chat set
   // These skip the server classifier entirely for speed.
@@ -821,7 +831,26 @@
     'who created you','who built you','do you have feelings',
     'can you write code','can you code','write code','write me code',
     'write python','write a program','do you do coding',
-    'what do you know','what else can you do'];
+    'what do you know','what else can you do',
+    // Frustration / meta-complaints — must win even if message has a legal word
+    'are you stupid','you are stupid','wewe ni mjinga','hujui chochote',
+    'why are you not answering','you did not answer','hukujibu',
+    'you did not understand','hukuelewa','unaelewa nini',
+    'that is not what i asked','hiyo si swali langu','hiyo sio nilichouliza',
+    'you are useless','wewe hufai','this is not helpful',
+    'wrong answer','jibu baya','that is wrong','hiyo ni makosa',
+    'you misunderstood','you misunderstood me','hukuelewa swali langu',
+    'i did not ask that','sikuuliza hivyo','answer my question',
+    'jibu swali langu','read my question','soma swali langu'];
+
+  // Frustration prefix patterns — catch variants like "why are you not answering my case"
+  var FRUSTRATION_PREFIXES=['are you stupid','you are stupid','wewe ni mjinga',
+    'why are you not','you did not answer','you did not understand',
+    'hukuelewa','hukujibu','that is not what i asked',
+    'you misunderstood','i did not ask that','sikuuliza',
+    'this is not helpful','you are useless','wewe hufai',
+    'wrong answer','jibu baya','answer my question','jibu swali',
+    'read my question','soma swali'];
 
   function keywordSuggestsLegal(text) {
     var t = text.toLowerCase();
@@ -835,16 +864,22 @@
   function routeMessage(story, isCorrection, isFollowup, onLegal, onChat) {
     // Follow-ups and corrections always go to legal pipeline
     if(isCorrection || isFollowup){ onLegal(); return; }
-    // Very short messages or pure chat patterns → skip API call → chat
+
     var clean = story.toLowerCase().trim().replace(/[!?.,:]+$/,'');
-    var pureChatPatterns = ['hello','hi','hey','habari','sasa','mambo','niaje','ok','okay','sawa',
-      'who are you','what is your name','wewe ni nani','jina lako','are you a bot',
-      'are you human','are you real','wewe ni roboti','what do you do',
-      'tell me about yourself','what can you do','how does this work'];
-    if(PURE_CHAT_PATTERNS.indexOf(clean)!==-1 || story.trim().length < 12){ onChat(); return; }
-    // Stage 1: keyword pre-check (instant)
+
+    // ── Check pure-chat and frustration FIRST — before keyword scan ──
+    // Frustration phrases must win even if they contain a legal word
+    // e.g. "why are you not answering my case" has 'case' but is frustration
+    if(story.trim().length < 12){ onChat(); return; }
+    if(PURE_CHAT_PATTERNS.indexOf(clean) !== -1){ onChat(); return; }
+    for(var i=0; i<FRUSTRATION_PREFIXES.length; i++){
+      if(clean.indexOf(FRUSTRATION_PREFIXES[i]) === 0){ onChat(); return; }
+    }
+
+    // ── Stage 1: keyword pre-check (instant) ─────────────────────────
     if(keywordSuggestsLegal(story)){ onLegal(); return; }
-    // Stage 2: server AI classifier for uncertain messages
+
+    // ── Stage 2: server AI classifier for uncertain messages ──────────
     fetch('/api/intent/',{
       method:'POST',
       headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
