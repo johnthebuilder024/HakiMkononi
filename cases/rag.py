@@ -348,10 +348,25 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     _data_en = [
         'personal data', 'data protection', 'privacy', 'consent', 'data breach',
         'cctv', 'surveillance', 'data controller', 'data processor',
+        # CRB / credit reference
+        'crb', 'credit reference', 'blacklisted', 'credit bureau', 'credit listing',
+        'negative listing', 'listed on crb', 'crb listing', 'credit score',
+        # Employer data sharing
+        'shared my data', 'sharing my data', 'my salary details', 'payslip shared',
+        'shared without consent', 'disclosed my information', 'leaked my details',
+        # CCTV / surveillance specific
+        'hidden camera', 'spy camera', 'recorded without', 'filmed without',
+        'monitored without', 'tracking my', 'location tracked',
     ]
     _data_sw = [
         'data yangu', 'wanashare data', 'bila ruhusa', 'kibinafsi',
         'walichukua picha', 'kampuni imeshare', 'taarifa zangu',
+        # CRB (sw)
+        'crb', 'orodha mbaya ya benki', 'wameniweka crb', 'mkopo ulikataliwa',
+        'benki inakataa', 'listed kwenye crb', 'blacklisted benki',
+        # Employer data (sw)
+        'mshahara wangu umeshirikiwa', 'wameshare taarifa zangu',
+        'wametoa taarifa zangu bila ruhusa',
     ]
     _consumer_en = [
         'consumer', 'refund', 'defective', 'faulty', 'product', 'goods',
@@ -384,6 +399,14 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         'wire transfer', 'online transaction', 'internet fraud', 'cyber fraud',
         'someone logged', 'logged into my', 'stole from my account',
         'password stolen', 'password changed', 'phone cloned',
+        # social media / online impersonation
+        'facebook', 'instagram', 'tiktok', 'twitter', 'whatsapp hacked',
+        'social media', 'fake profile', 'impersonating me', 'impersonating online',
+        'pretending to be me', 'using my photos', 'using my identity',
+        'my account was hacked', 'someone is using my', 'account takeover',
+        # online M-Pesa / till number fraud
+        'till number fraud', 'paybill fraud', 'fake till', 'fake paybill',
+        'mpesa reversed', 'wrong number sent', 'chargeback', 'transaction disputed',
     ]
     _fraud_sw = [
         'ulaghai wa mpesa', 'akaunti yangu', 'simu iliibwa', 'sim kubadilishwa',
@@ -392,6 +415,12 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         'hire purchase', 'neno langu la siri', 'simu yangu ilidukuliwa',
         'pesa zilienda', 'waliingia akaunti', 'mtandao ulaghai',
         'sim swap', 'kuiba pesa', 'wameiba pesa', 'akaunti imeibiwa',
+        # social media (sw)
+        'facebook yangu', 'instagram yangu', 'whatsapp iliibwa', 'akaunti ya mtandaoni',
+        'wanajifanya mimi', 'wanatumia picha zangu', 'wanatumia jina langu',
+        # M-Pesa fraud (sw)
+        'till number bandia', 'paybill bandia', 'nilituma pesa kwa nambari mbaya',
+        'pesa haikuenda', 'transaction ilipingwa',
     ]
 
     is_employment = any(k in story_lower for k in _emp_en + _emp_sw + db_slang.get('employment', []))
@@ -426,9 +455,13 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     if is_tenant:     on_topic_cats.update({'landlord_tenant'})  # tenant cases — landlord_tenant is primary
     if is_criminal:   on_topic_cats.add('criminal_procedure')
     if is_family:     on_topic_cats.update({'family', 'children', 'other'})
-    if is_data:       on_topic_cats.update({'other'})
+    if is_data:       on_topic_cats.update({'other', 'fraud'})  # Data Protection in 'other', Computer Misuse in 'fraud'
     if is_consumer:   on_topic_cats.add('consumer')
     if is_county:     on_topic_cats.update({'other'})   # county acts sit under 'other'
+    # When kanjo is detected, data protection should not dominate — exclude it
+    if is_county and not is_data:
+        on_topic_cats.discard('other')  # will be re-added below only for county-relevant 'other'
+        on_topic_cats.update({'other'})  # keep 'other' but suppress Data Protection via scoring
     if is_fraud:      on_topic_cats.add('fraud')
     if is_traffic:    on_topic_cats.update({'other', 'criminal_procedure'})  # Traffic Act is 'other'
     if is_elections:  on_topic_cats.update({'other', 'constitution'})         # Elections Act is 'other'
@@ -510,7 +543,20 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         ):
             score += 0.12   # extra boost so Computer Misuse beats Constitution
         if is_data and entry['category'] == 'other' and 'data protection' in (entry['title'] or '').lower():
-            score += 0.14
+            score += 0.22   # strong boost — Data Protection Act must win for data queries
+        # When query is purely about data, suppress Employment Act dominating
+        if is_data and not is_employment and entry['category'] == 'employment':
+            score -= 0.20
+        # When fraud involves Computer Misuse (hacking, social media, online fraud)
+        if is_fraud and entry['category'] == 'fraud' and any(
+            k in (entry['title'] or '').lower()
+            for k in ['computer misuse', 'cybercrimes', 'cybercrime']
+        ):
+            score += 0.20   # Computer Misuse Act must surface for hacking/online fraud
+        # Suppress Data Protection Act when query is kanjo/county enforcement — wrong act
+        if is_county and not is_data and entry['category'] == 'other' and \
+           'data protection' in (entry['title'] or '').lower():
+            score -= 0.25
         if is_county and entry['category'] == 'other' and any(
             k in (entry['title'] or '').lower()
             for k in ['county', 'local government', 'trade', 'hawker',

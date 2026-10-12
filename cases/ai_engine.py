@@ -524,6 +524,22 @@ LSK_FEE_GUIDE = {
                     "Wasiliana na Mkurugenzi wa Malalamiko wa Kaunti kwa malalamiko.",
         },
     },
+    "data": {
+        "en": {
+            "range": "KES 5,000 – 60,000",
+            "note": "Data protection complaints — file with the Office of the Data Protection Commissioner (ODPC): 📞 0800 723 253 or odpc.go.ke. "
+                    "CRB disputes — file with Central Bank of Kenya or the specific bank. "
+                    "Court action under Data Protection Act 2019: KES 5,000–60,000 for an advocate. "
+                    "Free options: ODPC complaints are free. Kenya Human Rights Commission also takes cases.",
+        },
+        "sw": {
+            "range": "KES 5,000 – 60,000",
+            "note": "Malalamiko ya ulinzi wa data — wasiliana na Ofisi ya Msimamizi wa Ulinzi wa Data (ODPC): 📞 0800 723 253 au odpc.go.ke. "
+                    "Migogoro ya CRB — wasiliana na Benki Kuu ya Kenya au benki husika. "
+                    "Malalamiko ya ODPC ni bila malipo. "
+                    "Wakili kwa kesi mahakamani: KES 5,000–60,000.",
+        },
+    },
     "other": {
         "en": {
             "range": "KES 5,000 – 50,000",
@@ -547,7 +563,7 @@ def get_fee_guide(categories: list, lang: str = "sw") -> dict | None:
     Returns None if no match found.
     """
     # Priority order — pick the most specific match
-    priority = ["criminal_procedure", "fraud", "employment", "landlord_tenant", "land",
+    priority = ["criminal_procedure", "fraud", "data", "employment", "landlord_tenant", "land",
                 "children", "family", "consumer", "county", "constitution", "other"]
     cats = set(categories)
     for cat in priority:
@@ -649,9 +665,14 @@ _INTENT_KW_EN = {
     'unauthorised access', 'unauthorized access', 'accessed my computer',
     'accessed my account', 'wire transfer', 'internet fraud', 'cyber fraud',
     'someone logged into', 'password stolen', 'phone cloned', 'computer misuse',
+    'facebook hacked', 'instagram hacked', 'social media', 'fake profile',
+    'impersonating me', 'account takeover', 'till number fraud', 'paybill fraud',
     # Data protection / privacy
     'personal data', 'privacy', 'data breach', 'cctv', 'consent',
     'data protection', 'my data', 'surveillance', 'leaked my data',
+    'crb', 'credit reference', 'blacklisted credit', 'credit bureau',
+    'shared my data', 'sharing my data', 'hidden camera', 'spy camera',
+    'recorded without', 'filmed without', 'tracked my location',
     # Elections
     'election', 'voter', 'bribery', 'vote buying', 'ballot', 'candidate',
     'campaign', 'electoral', 'iebc', 'polling station', 'constituency',
@@ -697,9 +718,13 @@ _INTENT_KW_SW = {
     'sim kubadilishwa', 'udukuzi', 'mtandaoni', 'waliiba pesa zangu',
     'blackmail', 'kunidhuru', 'picha zangu', 'vitisho vya mtandao',
     'sim swap', 'pesa zilienda', 'waliingia akaunti', 'simu yangu ilidukuliwa',
+    'facebook yangu', 'instagram yangu', 'whatsapp iliibwa', 'akaunti ya mtandaoni',
+    'wanajifanya mimi', 'wanatumia picha zangu', 'till number bandia',
     # Data protection / privacy (sw)
     'data yangu', 'wanashare data', 'bila ruhusa yangu', 'taarifa zangu',
     'walichukua picha', 'kampuni imeshare', 'faragha yangu', 'cctv yangu',
+    'crb', 'orodha mbaya ya benki', 'wameniweka crb', 'mkopo ulikataliwa',
+    'camera iliyofichwa', 'wananikuatilia',
     # Elections (sw)
     'uchaguzi', 'kura', 'mgombea', 'rushwa ya uchaguzi', 'kununua kura',
     'karatasi ya kura', 'iebc', 'jimbo', 'msimamizi wa uchaguzi', 'chaguzi',

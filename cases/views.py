@@ -154,6 +154,9 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
 
         # Compute fee guide from the law categories actually used
         categories = list({l.category for l in top_laws if l.category})
+        # Inject virtual 'data' category when Data Protection Act is the primary source
+        if any('data protection' in (l.title or '').lower() for l in top_laws[:2]):
+            categories = ['data'] + categories
         fee_guide = get_fee_guide(categories, lang=job.lang)
 
         AnswerJob.objects.filter(pk=job_id).update(
