@@ -648,6 +648,11 @@ _INTENT_KW_EN = {
     'landlord', 'tenant', 'rent', 'evict', 'evicted', 'house', 'land',
     'title deed', 'property', 'lease', 'deposit', 'locked out', 'caretaker',
     'estate', 'inherit', 'succession', 'shamba', 'plot', 'acre',
+    # Succession / wills (deeper keywords)
+    'will', 'probate', 'letters of administration', 'intestate', 'deceased',
+    'next of kin', 'beneficiary', 'executor', 'administrator',
+    'died without a will', 'challenge a will', 'disinherited',
+    'surviving spouse', 'estate of', 'administer the estate',
     # Police / criminal
     'arrested', 'arrest', 'police', 'detain', 'bail', 'charged', 'charge',
     'court', 'magistrate', 'judge', 'prison', 'jail', 'warrant', 'stolen',
@@ -687,6 +692,30 @@ _INTENT_KW_EN = {
     # County enforcement / kanjo
     'kanjo', 'county enforcement', 'county officer', 'county askari',
     'business permit', 'trade license', 'hawker', 'street vendor', 'confiscated',
+    # Banking & mobile money
+    'bank account', 'bank froze', 'frozen account', 'bank refused',
+    'loan interest', 'mobile money agent', 'mpesa agent', 'reverse transaction',
+    'account frozen', 'bank error', 'banking', 'overdraft', 'bank charges',
+    # Insurance
+    'insurance claim', 'insurer refused', 'insurance policy', 'claim denied',
+    'accident claim', 'medical insurance', 'insurance company', 'premium',
+    'third party', 'car insurance', 'nhif claim',
+    # Copyright / intellectual property
+    'copyright', 'intellectual property', 'trademark', 'trade mark',
+    'brand name', 'logo', 'music rights', 'piracy', 'plagiarism', 'patent',
+    'my song', 'my design', 'my artwork', 'copied my work',
+    # Disability rights
+    'disability', 'disabled', 'wheelchair', 'persons with disability',
+    'discrimination disability', 'special needs', 'accessibility',
+    # Environment / pollution
+    'pollution', 'environmental', 'factory waste', 'contaminated water',
+    'noise pollution', 'air pollution', 'nema', 'emca', 'dumping waste',
+    # Public procurement
+    'tender', 'procurement', 'government contract', 'bid rigging',
+    'contractor unpaid', 'government unpaid', 'ppra', 'tendering',
+    # Health rights
+    'hospital refused', 'denied treatment', 'emergency treatment',
+    'medical negligence', 'health rights', 'maternal health',
     # Legal process
     'sue', 'lawsuit', 'claim', 'demand letter', 'compensat', 'rights',
     'illegal', 'violat', 'constitution', 'human rights', 'tribunal',
@@ -737,6 +766,29 @@ _INTENT_KW_SW = {
     # Traffic / WIBA / hire purchase (sw)
     'hire purchase', 'nilijeruhiwa kazini', 'mwajiri hana bima',
     'ajali ya kazi', 'gari lilichukuliwa', 'leseni ya udereva',
+    # Succession / wills (sw)
+    'wosia', 'mirathi', 'marehemu', 'msimamizi wa mali', 'probate',
+    'barua ya usimamizi', 'kupinga wosia', 'mrithi', 'tangazo la wosia',
+    # Banking & mobile money (sw)
+    'benki imefunga akaunti', 'akaunti imezuiwa', 'benki ilikataa',
+    'wakala wa mpesa', 'wakala akadanganya', 'mkopo wa benki', 'benki haijalipi',
+    # Insurance (sw)
+    'bima ilikataa', 'madai ya bima', 'kampuni ya bima', 'bima ya gari',
+    'bima ya afya', 'nhif ilikataa', 'fidia ya ajali',
+    # Copyright / IP (sw)
+    'haki ya kunakili', 'nyimbo zangu', 'kazi yangu imeibiwa', 'nembo yangu',
+    'jina la biashara langu', 'wanapiga nakala', 'uvumbuzi wangu',
+    # Disability (sw)
+    'ulemavu', 'mlemavu', 'kiti cha magurudumu', 'unyanyasaji wa ulemavu',
+    # Environment (sw)
+    'uchafuzi wa mazingira', 'kiwanda kinachochafua', 'maji machafu',
+    'kelele za kiwanda', 'nema', 'kutupa taka',
+    # Procurement (sw)
+    'zabuni', 'manunuzi ya serikali', 'mkataba wa serikali',
+    'serikali haijalipi', 'mchujo wa zabuni',
+    # Health (sw)
+    'hospitali ilikataa', 'dawa zilikataliwa', 'huduma ya dharura ilikataliwa',
+    'uzembe wa daktari', 'haki ya afya',
     # Legal
     'haki zangu', 'haki zake', 'haki yake', 'haki yangu', 'kisheria',
     'madai', 'barua ya kudai', 'fidia', 'ushahidi', 'katiba', 'haramu',
