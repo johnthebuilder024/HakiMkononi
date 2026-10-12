@@ -655,6 +655,15 @@ _INTENT_KW_EN = {
     # Elections
     'election', 'voter', 'bribery', 'vote buying', 'ballot', 'candidate',
     'campaign', 'electoral', 'iebc', 'polling station', 'constituency',
+    # Traffic / road
+    'traffic', 'driving licence', 'ntsa', 'impound', 'road accident',
+    'drunk driving', 'road carnage', 'motor vehicle', 'driving without',
+    # Work injury / OSHA / hire purchase
+    'work injury', 'wiba', 'occupational safety', 'osha', 'workplace injury',
+    'hire purchase', 'hire-purchase',
+    # County enforcement / kanjo
+    'kanjo', 'county enforcement', 'county officer', 'county askari',
+    'business permit', 'trade license', 'hawker', 'street vendor', 'confiscated',
     # Legal process
     'sue', 'lawsuit', 'claim', 'demand letter', 'compensat', 'rights',
     'illegal', 'violat', 'constitution', 'human rights', 'tribunal',
@@ -694,6 +703,13 @@ _INTENT_KW_SW = {
     # Elections (sw)
     'uchaguzi', 'kura', 'mgombea', 'rushwa ya uchaguzi', 'kununua kura',
     'karatasi ya kura', 'iebc', 'jimbo', 'msimamizi wa uchaguzi', 'chaguzi',
+    # County enforcement / kanjo (sw)
+    'kanjo', 'county askari', 'kaounti', 'kibanda changu',
+    'wamechukua mali', 'wamefunga duka', 'leseni ya biashara',
+    'ruhusa ya biashara', 'hawkers', 'wafanyabiashara',
+    # Traffic / WIBA / hire purchase (sw)
+    'hire purchase', 'nilijeruhiwa kazini', 'mwajiri hana bima',
+    'ajali ya kazi', 'gari lilichukuliwa', 'leseni ya udereva',
     # Legal
     'haki zangu', 'haki zake', 'haki yake', 'haki yangu', 'kisheria',
     'madai', 'barua ya kudai', 'fidia', 'ushahidi', 'katiba', 'haramu',

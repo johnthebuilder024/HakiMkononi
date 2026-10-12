@@ -529,7 +529,7 @@ def _get_conversational_reply(message: str, lang: str, history: list) -> str:
         r = _req.post(
             'https://api.groq.com/openai/v1/chat/completions',
             headers={'Authorization': f'Bearer {groq_key}', 'Content-Type': 'application/json'},
-            json={'model': 'openai/gpt-oss-20b', 'messages': messages,
+            json={'model': os.getenv('GROQ_MODEL', 'openai/gpt-oss-20b'), 'messages': messages,
                   'temperature': 0.7, 'max_tokens': 400},
             timeout=(10, 30),
         )

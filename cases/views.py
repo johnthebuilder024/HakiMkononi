@@ -2035,14 +2035,6 @@ def converse(request):
             "answer in 1-2 honest sentences then ask if they have a legal question. "
             "Reply in 2-3 sentences. Never say 'Feel free to ask' or 'I'll do my best'."
         ),
-            "If asked anything off-topic, say warmly: "
-            "'HakiMkononi handles Kenyan legal questions only — that's outside my area. "
-            "Do you have a legal question I can help with?' "
-            "If asked personal questions (your name, are you intelligent, how is life as an AI), "
-            "answer genuinely in 1-2 sentences — be real, not robotic — then ask if they have a legal question. "
-            "Never write code. Never answer off-topic. Complete every sentence. "
-            "Reply in 2-3 sentences. Never say 'Feel free to ask' or 'I'll do my best'."
-        ),
     }.get(lang, "You are HakiMkononi, built by the HakiMkononi team for Kenyan legal questions only. Never write code. Be warm and direct.")
 
     # Trim history to last 4 turns for context
