@@ -360,13 +360,15 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     ]
     _data_sw = [
         'data yangu', 'wanashare data', 'bila ruhusa', 'kibinafsi',
-        'walichukua picha', 'kampuni imeshare', 'taarifa zangu',
+        'walichukua picha', 'kampuni imeshare', 'taarifa zangu za kibinafsi',
         # CRB (sw)
         'crb', 'orodha mbaya ya benki', 'wameniweka crb', 'mkopo ulikataliwa',
         'benki inakataa', 'listed kwenye crb', 'blacklisted benki',
         # Employer data (sw)
         'mshahara wangu umeshirikiwa', 'wameshare taarifa zangu',
         'wametoa taarifa zangu bila ruhusa',
+        # Surveillance (sw)
+        'camera iliyofichwa', 'wananikuatilia',
     ]
     _consumer_en = [
         'consumer', 'refund', 'defective', 'faulty', 'product', 'goods',
@@ -556,13 +558,13 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         # Suppress Data Protection Act when query is kanjo/county enforcement — wrong act
         if is_county and not is_data and entry['category'] == 'other' and \
            'data protection' in (entry['title'] or '').lower():
-            score -= 0.25
+            score -= 0.35   # hard suppress — Data Protection must not appear in kanjo results
         if is_county and entry['category'] == 'other' and any(
             k in (entry['title'] or '').lower()
             for k in ['county', 'local government', 'trade', 'hawker',
                       'physical planning', 'fair administrative', 'business']
         ):
-            score += 0.16
+            score += 0.22   # boosted from 0.16 — Fair Admin Action Act must win for kanjo
         # Suppress Employment Act for kanjo queries — wrong category
         if is_county and entry['category'] == 'employment':
             score -= 0.18
