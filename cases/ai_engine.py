@@ -524,6 +524,94 @@ LSK_FEE_GUIDE = {
                     "Wasiliana na Mkurugenzi wa Malalamiko wa Kaunti kwa malalamiko.",
         },
     },
+    "banking": {
+        "en": {
+            "range": "KES 5,000 – 80,000",
+            "note": "Banking disputes — file complaint with Central Bank of Kenya (CBK): 📞 020 286 0000 or cbuonline@centralbank.go.ke. "
+                    "CRB disputes — write to the bank first, then escalate to CBK or Kenya Credit Reference Bureau. "
+                    "Mobile money disputes — report to Safaricom/Airtel, then Communications Authority: 📞 020 429 0000. "
+                    "Court action in Magistrate Court for amounts under KES 20M.",
+        },
+        "sw": {
+            "range": "KES 5,000 – 80,000",
+            "note": "Migogoro ya benki — wasiliana na Benki Kuu ya Kenya (CBK): 📞 020 286 0000. "
+                    "Migogoro ya CRB — andika benki kwanza, kisha CBK. "
+                    "Migogoro ya pesa za simu — ripoti Safaricom/Airtel, kisha Mamlaka ya Mawasiliano: 📞 020 429 0000.",
+        },
+    },
+    "insurance": {
+        "en": {
+            "range": "KES 10,000 – 100,000",
+            "note": "Insurance disputes — file complaint with Insurance Regulatory Authority (IRA): 📞 020 496 5000 or info@ira.go.ke. "
+                    "IRA mediation is free. Court action through Magistrate Court or IRA Tribunal. "
+                    "NHIF disputes — visit any NHIF office or call 📞 0800 720 601 (toll-free).",
+        },
+        "sw": {
+            "range": "KES 10,000 – 100,000",
+            "note": "Migogoro ya bima — wasiliana na Mamlaka ya Udhibiti wa Bima (IRA): 📞 020 496 5000. "
+                    "Upatanisho wa IRA ni bila malipo. "
+                    "Migogoro ya NHIF — tembelea ofisi yoyote ya NHIF au piga 📞 0800 720 601 (bure).",
+        },
+    },
+    "copyright": {
+        "en": {
+            "range": "KES 10,000 – 150,000",
+            "note": "Copyright disputes — Kenya Copyright Board (KECOBO): 📞 020 238 6091 or info@copyright.go.ke. "
+                    "Trademark disputes — Kenya Industrial Property Institute (KIPI): 📞 020 604 2000. "
+                    "Court action through High Court (Intellectual Property division). "
+                    "KECOBO complaints are free. Litigation: KES 30,000–150,000.",
+        },
+        "sw": {
+            "range": "KES 10,000 – 150,000",
+            "note": "Migogoro ya haki miliki — Kenya Copyright Board (KECOBO): 📞 020 238 6091. "
+                    "Migogoro ya alama za biashara — KIPI: 📞 020 604 2000. "
+                    "Malalamiko ya KECOBO ni bila malipo.",
+        },
+    },
+    "environment": {
+        "en": {
+            "range": "KES 5,000 – 60,000",
+            "note": "Environmental complaints — National Environment Management Authority (NEMA): 📞 020 603 6000 or info@nema.go.ke. "
+                    "NEMA complaints are free. Court action through Environment & Land Court. "
+                    "For urgent pollution — also contact county environment office.",
+        },
+        "sw": {
+            "range": "KES 5,000 – 60,000",
+            "note": "Malalamiko ya mazingira — Mamlaka ya Usimamizi wa Mazingira (NEMA): 📞 020 603 6000. "
+                    "Malalamiko ya NEMA ni bila malipo. "
+                    "Mahakama ya Mazingira na Ardhi kwa kesi ngumu.",
+        },
+    },
+    "procurement": {
+        "en": {
+            "range": "KES 10,000 – 200,000",
+            "note": "Procurement disputes — Public Procurement Regulatory Authority (PPRA): 📞 020 312 7100. "
+                    "Review Board complaints are free and must be filed within 14 days of the decision. "
+                    "For unpaid government contracts — also file with the relevant Ministry Accounting Officer. "
+                    "Court action through High Court (Commercial Division).",
+        },
+        "sw": {
+            "range": "KES 10,000 – 200,000",
+            "note": "Migogoro ya zabuni — Mamlaka ya Udhibiti wa Manunuzi ya Umma (PPRA): 📞 020 312 7100. "
+                    "Malalamiko ya Bodi ya Mapitio ni bila malipo — lazima yafunguliwe ndani ya siku 14. "
+                    "Kwa malipo yanayodaiwa na serikali — pia wasiliana na Afisa Uhasibu wa Wizara husika.",
+        },
+    },
+    "health": {
+        "en": {
+            "range": "KES 5,000 – 80,000",
+            "note": "Health rights complaints — Kenya Health Professionals Oversight Authority or county health department. "
+                    "Emergency treatment refusal — Constitution Article 43 guarantees right to emergency care. "
+                    "Medical negligence — sue in High Court; initial consultation KES 5,000–10,000. "
+                    "NHIF disputes: 📞 0800 720 601 (toll-free).",
+        },
+        "sw": {
+            "range": "KES 5,000 – 80,000",
+            "note": "Malalamiko ya haki za afya — Mamlaka ya Usimamizi wa Wataalamu wa Afya au idara ya afya ya kaunti. "
+                    "Kukataliwa matibabu ya dharura — Katiba Ibara 43 inahakikisha haki hiyo. "
+                    "Uzembe wa daktari — Mahakama Kuu; ushauri wa kwanza KES 5,000–10,000.",
+        },
+    },
     "data": {
         "en": {
             "range": "KES 5,000 – 60,000",
@@ -564,7 +652,8 @@ def get_fee_guide(categories: list, lang: str = "sw") -> dict | None:
     """
     # Priority order — pick the most specific match
     priority = ["criminal_procedure", "fraud", "data", "employment", "landlord_tenant", "land",
-                "children", "family", "consumer", "county", "constitution", "other"]
+                "children", "family", "consumer", "county", "banking", "insurance",
+                "copyright", "environment", "procurement", "health", "constitution", "other"]
     cats = set(categories)
     for cat in priority:
         if cat in cats:

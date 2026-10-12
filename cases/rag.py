@@ -450,6 +450,54 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         'uchaguzi', 'kura', 'mgombea', 'rushwa ya uchaguzi', 'kununua kura',
         'karatasi ya kura', 'chaguzi', 'msimamizi wa uchaguzi',
     ])
+    is_banking    = any(k in story_lower for k in [
+        'bank account', 'bank froze', 'frozen account', 'bank refused', 'banking',
+        'bank charges', 'overdraft', 'mobile money agent', 'mpesa agent',
+        'loan interest', 'reverse transaction', 'account frozen', 'bank error',
+        'bank statement', 'credit facility', 'loan default', 'bank statement',
+        'benki imefunga', 'akaunti imezuiwa', 'benki ilikataa', 'wakala wa mpesa',
+        'wakala akadanganya', 'mkopo wa benki', 'benki haijalipi',
+        'crb', 'credit reference', 'blacklisted credit', 'credit bureau',
+        'orodha mbaya ya benki', 'wameniweka crb', 'mkopo ulikataliwa',
+    ])
+    is_insurance  = any(k in story_lower for k in [
+        'insurance claim', 'insurer refused', 'insurance policy', 'claim denied',
+        'accident claim', 'medical insurance', 'insurance company', 'premium',
+        'third party', 'car insurance', 'nhif claim', 'bima ilikataa',
+        'madai ya bima', 'bima ya gari', 'bima ya afya', 'nhif ilikataa',
+        'fidia ya ajali', 'compensation claim',
+    ])
+    is_copyright  = any(k in story_lower for k in [
+        'copyright', 'intellectual property', 'trademark', 'trade mark',
+        'brand name', 'logo', 'music rights', 'piracy', 'plagiarism', 'patent',
+        'my song', 'my design', 'my artwork', 'copied my work', 'stolen my idea',
+        'haki ya kunakili', 'nyimbo zangu', 'kazi yangu imeibiwa',
+        'nembo yangu', 'jina la biashara langu', 'wanapiga nakala',
+    ])
+    is_disability = any(k in story_lower for k in [
+        'disability', 'disabled', 'wheelchair', 'persons with disability',
+        'special needs', 'accessibility', 'discrimination disability',
+        'ulemavu', 'mlemavu', 'kiti cha magurudumu', 'unyanyasaji wa ulemavu',
+    ])
+    is_environment = any(k in story_lower for k in [
+        'pollution', 'environmental', 'factory waste', 'contaminated water',
+        'noise pollution', 'air pollution', 'nema', 'emca', 'dumping waste',
+        'uchafuzi wa mazingira', 'kiwanda kinachochafua', 'maji machafu',
+        'kelele za kiwanda', 'kutupa taka',
+    ])
+    is_procurement = any(k in story_lower for k in [
+        'tender', 'procurement', 'government contract', 'bid rigging',
+        'contractor unpaid', 'government unpaid', 'ppra', 'tendering',
+        'public procurement', 'bid', 'zabuni', 'manunuzi ya serikali',
+        'mkataba wa serikali', 'serikali haijalipi', 'mchujo wa zabuni',
+    ])
+    is_health     = any(k in story_lower for k in [
+        'hospital refused', 'denied treatment', 'emergency treatment',
+        'medical negligence', 'health rights', 'maternal health',
+        'hospital bill', 'nhif', 'doctor negligence', 'refused admission',
+        'hospitali ilikataa', 'dawa zilikataliwa', 'huduma ya dharura',
+        'uzembe wa daktari', 'haki ya afya',
+    ])
     # County enforcement overrides criminal classification for kanjo queries
     if is_county:
         is_criminal = False
@@ -469,10 +517,20 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         on_topic_cats.discard('other')  # will be re-added below only for county-relevant 'other'
         on_topic_cats.update({'other'})  # keep 'other' but suppress Data Protection via scoring
     if is_fraud:      on_topic_cats.add('fraud')
-    if is_traffic:    on_topic_cats.update({'other', 'criminal_procedure'})  # Traffic Act is 'other'
-    if is_elections:  on_topic_cats.update({'other', 'constitution'})         # Elections Act is 'other'
+    if is_traffic:    on_topic_cats.update({'other', 'criminal_procedure'})
+    if is_elections:  on_topic_cats.update({'other', 'constitution'})
+    if is_banking:    on_topic_cats.update({'other'})   # Banking Act in 'other'
+    if is_insurance:  on_topic_cats.update({'other'})   # Insurance Act in 'other'
+    if is_copyright:  on_topic_cats.update({'other'})   # Copyright + IP + Trade Marks in 'other'
+    if is_disability: on_topic_cats.update({'other', 'constitution'})
+    if is_environment:on_topic_cats.update({'other'})   # EMCA in 'other'
+    if is_procurement:on_topic_cats.update({'other'})   # Procurement Act in 'other'
+    if is_health:     on_topic_cats.update({'other', 'constitution'})
 
-    topic_detected = is_employment or is_land or is_tenant or is_criminal or is_family or is_data or is_consumer or is_county or is_fraud or is_traffic or is_elections
+    topic_detected = (is_employment or is_land or is_tenant or is_criminal or is_family
+                      or is_data or is_consumer or is_county or is_fraud or is_traffic
+                      or is_elections or is_banking or is_insurance or is_copyright
+                      or is_disability or is_environment or is_procurement or is_health)
     OFF_TOPIC_MIN_SCORE = 0.48
 
     # ── Use in-memory cache — zero DB hits ────────────────────────────────────
@@ -578,6 +636,57 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
             score += 0.08   # Police powers relevant for traffic stops
         if is_elections and entry['category'] == 'other' and 'election' in (entry['title'] or '').lower():
             score += 0.22   # Elections Act must win for election queries
+        # Banking / mobile money — boost Banking Act and NPS Act
+        if is_banking and entry['category'] == 'other' and any(
+            k in (entry['title'] or '').lower()
+            for k in ['banking act', 'national payment system', 'microfinance']
+        ):
+            score += 0.22
+        # Suppress Data Protection from banking queries (CRB is data but Banking Act is primary)
+        if is_banking and not is_data and entry['category'] == 'other' and \
+           'data protection' in (entry['title'] or '').lower():
+            score -= 0.20
+        # Insurance — boost Insurance Act
+        if is_insurance and entry['category'] == 'other' and any(
+            k in (entry['title'] or '').lower()
+            for k in ['insurance act']
+        ):
+            score += 0.24
+        # Suppress wrong acts for insurance queries
+        if is_insurance and not is_employment and entry['category'] == 'employment':
+            score -= 0.15
+        # Copyright / IP — boost Copyright Act, Industrial Property, Trade Marks
+        if is_copyright and entry['category'] == 'other' and any(
+            k in (entry['title'] or '').lower()
+            for k in ['copyright', 'industrial property', 'trade marks']
+        ):
+            score += 0.24
+        # Disability — boost Persons with Disabilities Act + Constitution Art 54
+        if is_disability and entry['category'] == 'other' and \
+           'disabilities' in (entry['title'] or '').lower():
+            score += 0.24
+        if is_disability and entry['category'] == 'constitution' and \
+           any(k in (entry['section'] or '').lower() for k in ['54', 'disability', 'person with']):
+            score += 0.16
+        # Environment / pollution — boost EMCA
+        if is_environment and entry['category'] == 'other' and any(
+            k in (entry['title'] or '').lower()
+            for k in ['environmental management', 'emca']
+        ):
+            score += 0.24
+        # Procurement — boost Public Procurement Act, suppress unrelated acts
+        if is_procurement and entry['category'] == 'other' and \
+           'procurement' in (entry['title'] or '').lower():
+            score += 0.24
+        if is_procurement and not is_employment and entry['category'] == 'employment':
+            score -= 0.15
+        # Health — boost Health Act + Constitution Art 43 (right to health)
+        if is_health and entry['category'] == 'other' and \
+           'health act' in (entry['title'] or '').lower():
+            score += 0.22
+        if is_health and entry['category'] == 'constitution' and \
+           any(k in (entry['section'] or '').lower() for k in ['43', 'health', 'right to health']):
+            score += 0.14
         # Land grabbing: boost Land Act + Land Registration Act specifically
         if is_land and not is_tenant and entry['category'] == 'land' and any(
             k in (entry['title'] or '').lower()
