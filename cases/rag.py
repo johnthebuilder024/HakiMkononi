@@ -409,6 +409,10 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
         # online M-Pesa / till number fraud
         'till number fraud', 'paybill fraud', 'fake till', 'fake paybill',
         'mpesa reversed', 'wrong number sent', 'chargeback', 'transaction disputed',
+        # online seller / purchase scam
+        'posed as a seller', 'fake seller', 'paid and received nothing',
+        'never delivered', 'scammed by seller', 'online purchase scam',
+        'sent money never', 'paid online never', 'whatsapp seller',
     ]
     _fraud_sw = [
         'ulaghai wa mpesa', 'akaunti yangu', 'simu iliibwa', 'sim kubadilishwa',

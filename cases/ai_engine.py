@@ -667,6 +667,8 @@ _INTENT_KW_EN = {
     'someone logged into', 'password stolen', 'phone cloned', 'computer misuse',
     'facebook hacked', 'instagram hacked', 'social media', 'fake profile',
     'impersonating me', 'account takeover', 'till number fraud', 'paybill fraud',
+    'posed as a seller', 'fake seller', 'paid and received nothing',
+    'never delivered', 'sent money never', 'paid online',
     # Data protection / privacy
     'personal data', 'privacy', 'data breach', 'cctv', 'consent',
     'data protection', 'my data', 'surveillance', 'leaked my data',
