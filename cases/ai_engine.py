@@ -1403,10 +1403,18 @@ def get_answer(user_story: str, laws: list, lang: str = "sw",
         ).replace(
             "VIFUNGU VYA SHERIA (tumia hivi tu):\n{context}".format(context=context),
             sr_extra + "\n\nVIFUNGU VYA SHERIA (tumia hivi tu):\n" + context
+        ).replace(
+            "VIFUNGU VYA SHERIA:\n{context}".format(context=context),
+            sr_extra + "\n\nVIFUNGU VYA SHERIA:\n" + context
         )
-        # Fallback: if the replace didn't match (prompt wording varies), just append
+        # Fallback: inject before the context block
         if system == base_system:
-            system = base_system.rstrip() + "\n\n" + sr_extra.strip() + "\n"
+            # Find context in the prompt and inject before it
+            ctx_marker = context[:80]  # first 80 chars of context as a unique marker
+            if ctx_marker in system:
+                system = system.replace(ctx_marker, sr_extra.strip() + "\n\n" + ctx_marker, 1)
+            else:
+                system = base_system.rstrip() + "\n\n" + sr_extra.strip() + "\n"
     else:
         system = base_system
 
