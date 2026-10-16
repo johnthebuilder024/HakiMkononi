@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.html import format_html, mark_safe
 from cases.models import Law, Query, SlangKeyword, WhatsAppUser, AnswerJob
 
 
@@ -34,20 +34,20 @@ class LawAdmin(admin.ModelAdmin):
 
     def has_swahili(self, obj):
         if obj.simple_swahili:
-            return format_html('<span style="color:green;">✓ Ipo</span>')
-        return format_html('<span style="color:red;">✗ Haipo</span>')
+            return mark_safe('<span style="color:green;">&#10003; Ipo</span>')
+        return mark_safe('<span style="color:red;">&#10007; Haipo</span>')
     has_swahili.short_description = 'Swahili'
 
     def has_embedding(self, obj):
         if obj.embedding_json:
-            return format_html('<span style="color:green;">✓ Ready</span>')
-        return format_html('<span style="color:orange;">⚠ Run build_embeddings</span>')
+            return mark_safe('<span style="color:green;">&#10003; Ready</span>')
+        return mark_safe('<span style="color:orange;">&#9888; Run build_embeddings</span>')
     has_embedding.short_description = 'AI Embedding'
 
     def source_link(self, obj):
         if obj.source_url:
-            return format_html('<a href="{}" target="_blank">kenyalaw.org ↗</a>', obj.source_url)
-        return '—'
+            return format_html('<a href="{}" target="_blank">kenyalaw.org \u2197</a>', obj.source_url)
+        return '\u2014'
     source_link.short_description = 'Source'
 
     actions = ['build_embeddings_for_selected']
@@ -103,10 +103,10 @@ class QueryAdmin(admin.ModelAdmin):
 
     def feedback_badge(self, obj):
         if obj.was_helpful is True:
-            return format_html('<span style="color:green;font-weight:bold;">✓ Ndio</span>')
+            return mark_safe('<span style="color:green;font-weight:bold;">&#10003; Ndio</span>')
         elif obj.was_helpful is False:
-            return format_html('<span style="color:red;font-weight:bold;">✗ Hapana</span>')
-        return format_html('<span style="color:gray;">— Pending</span>')
+            return mark_safe('<span style="color:red;font-weight:bold;">&#10007; Hapana</span>')
+        return mark_safe('<span style="color:gray;">&mdash; Pending</span>')
     feedback_badge.short_description = 'Feedback'
 
 
