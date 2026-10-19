@@ -10,15 +10,14 @@ Provider priority (configured in .env):
   1. NVIDIA NIM  — free, slow cold-start but good quality
   2. OpenAI      — paid, fast  (set AI_PROVIDER=openai)
 
-NVIDIA model chain (tried in order — add new models at the top):
-  nvidia/nemotron-3-nano-30b-a3b     28 tok/s, first token ~6s  — fastest
-  nvidia/nemotron-3-super-120b-a12b  13 tok/s, first token ~8s  — fallback
-  nvidia/llama-3.3-70b-instruct      good quality, widely available
+NVIDIA model chain: currently empty — all previous models (llama-3.1-8b, llama-3.3-70b,
+deepseek-v4-flash, nemotron-nano-8b) returned HTTP 410 (retired) as of Oct 2026.
+Primary provider is now Groq (openai/gpt-oss-20b) — fast and free tier available.
+Set AI_MODEL env var on Render to override with a specific model.
 
 Timeout strategy:
-  connect_timeout = 30s  (bail if NVIDIA doesn't acknowledge the request)
-  read_timeout    = 60s  (bail if no token arrives for 60s mid-stream)
-  These match the working AdaKanisa app.
+  connect_timeout = 30s
+  read_timeout    = 60s
 """
 
 import json
@@ -39,11 +38,13 @@ AI_PROVIDER = os.getenv("AI_PROVIDER", "nvidia").lower()
 # the next model is tried immediately — no hang.
 # AI_MODEL in .env overrides this list with a single model.
 # Current live models verified September 2026 from docs.api.nvidia.com/nim/reference/llm-apis
+# NOTE: All previously listed models (llama-3.1-8b, llama-3.3-70b, deepseek-v4-flash,
+# nemotron-nano-8b) returned HTTP 410 (Gone) — they have been retired from NVIDIA's API.
+# Set AI_MODEL env var in Render to a valid NVIDIA model ID if/when one becomes available.
+# Groq (openai/gpt-oss-20b) is the primary provider — fast and reliable.
 _NVIDIA_MODEL_CHAIN = [
-    "meta/llama-3.1-8b-instruct",           # fast, free, widely available — primary
-    "meta/llama-3.3-70b-instruct",           # better quality — fallback
-    "deepseek-ai/deepseek-v4-flash",         # fast DeepSeek — second fallback
-    "nvidia/llama-3.1-nemotron-nano-8b-v1",  # NVIDIA's own small model — last resort
+    # Empty — all previous models returned 410 (retired).
+    # Set the AI_MODEL env var on Render to add a model here without code changes.
 ]
 
 # HTTP codes that mean "skip this model, try the next one immediately"
