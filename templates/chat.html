@@ -102,8 +102,10 @@
 .sidebar-item-del {
   opacity: 0; flex-shrink: 0;
   background: none; border: none; color: rgba(255,255,255,.5);
-  cursor: pointer; font-size: .8rem; padding: .1em .3em;
-  border-radius: 4px; transition: opacity .15s, color .15s;
+  cursor: pointer; font-size: .8rem;
+  /* 44px touch target */
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; transition: opacity .15s, color .15s;
 }
 .sidebar-item:hover .sidebar-item-del { opacity: 1; }
 .sidebar-item-del:hover { color: #f87171; }
@@ -124,8 +126,11 @@
   background: none; border: none;
   color: rgba(255,255,255,.85);
   font-size: 1.2rem; cursor: pointer;
-  padding: .2rem .4rem;
-  margin-right: .25rem;
+  /* 44px minimum touch target */
+  padding: .5rem .6rem;
+  margin-right: .1rem;
+  min-width: 44px; min-height: 44px;
+  display: none; align-items: center; justify-content: center;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -146,6 +151,8 @@
   padding: 1.5rem 0 1rem;
   scroll-behavior: smooth;
 }
+/* Constrain message width on large desktop screens for readability */
+#chatWindow .container { max-width: 760px; }
 #chatWindow::-webkit-scrollbar { width: 4px; }
 #chatWindow::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
 
@@ -169,8 +176,10 @@
 .example-chips { display: flex; flex-wrap: wrap; gap: .45rem; justify-content: center; max-width: 520px; }
 .example-chips .chip {
   background: #fff; border: 1.5px solid #dde8dc; border-radius: 20px;
-  padding: .35em .9em; font-size: .82rem; color: var(--haki-dark);
+  padding: .4em 1em; font-size: .84rem; color: var(--haki-dark);
   cursor: pointer; transition: all .15s; white-space: nowrap;
+  /* 44px min touch target */
+  min-height: 38px; display: inline-flex; align-items: center;
 }
 .example-chips .chip:hover { background: var(--haki-green); color: #fff; border-color: var(--haki-green); }
 
@@ -220,7 +229,7 @@
   box-shadow: 0 2px 10px rgba(0,0,0,.07);
   max-width: min(680px, 88vw); overflow: hidden;
 }
-.bot-card-section { padding: .9rem 1.1rem .6rem; }
+.bot-card-section { padding: 1rem 1.1rem .75rem; }
 .bot-card-section + .bot-card-section { border-top: 1px solid #f3f3f3; }
 .bot-card-label {
   display: inline-flex; align-items: center; gap: .3rem;
@@ -238,6 +247,8 @@
 .label-sources{ background: #f5f5f5; color: #555; }
 
 .bot-card-text { font-size: .88rem; line-height: 1.75; color: #1a1a1a; }
+/* Plain explanation gets slightly larger text — it's the core of the answer */
+.bot-card-section:nth-child(2) .bot-card-text { font-size: .92rem; }
 .bot-card-text p { margin-bottom: .4rem; }
 .bot-card-text p:last-child { margin-bottom: 0; }
 .bot-card-text ul,.bot-card-text ol { padding-left: 1.3rem; margin-bottom: .4rem; }
@@ -341,9 +352,11 @@
   background: #fff; border-top: 1px solid #e0e0e0;
   padding: .55rem 1rem .6rem;
   box-shadow: 0 -2px 10px rgba(0,0,0,.05);
+  /* Sticky so keyboard on mobile doesn't bury the input */
+  position: sticky; bottom: 0; z-index: 10;
 }
 .chat-input-inner { max-width: 740px; margin: 0 auto; }
-.chat-disclaimer { font-size: .68rem; color: #bbb; }
+.chat-disclaimer { font-size: .76rem; color: #bbb; }
 
 .chat-textarea-wrap {
   display: flex; align-items: flex-end; gap: .5rem;
@@ -356,9 +369,10 @@
   flex: 1; border: none; background: transparent; resize: none; outline: none;
   font-size: .93rem; line-height: 1.5; max-height: 130px; overflow-y: auto;
   font-family: inherit;
+  min-height: 44px;  /* Comfortable touch target height */
 }
 .chat-send-btn {
-  width: 40px; height: 40px; border-radius: 50%; border: none;
+  width: 44px; height: 44px; border-radius: 50%; border: none;
   background: var(--haki-green); color: #fff; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; transition: background .15s, transform .1s;
@@ -369,7 +383,7 @@
 .chat-send-btn svg { width: 18px; height: 18px; }
 
 .chat-mic-btn {
-  width: 36px; height: 36px; border-radius: 50%;
+  width: 44px; height: 44px; border-radius: 50%;
   border: 1.5px solid #ddd; background: #fff; color: #666;
   cursor: pointer; display: flex; align-items: center;
   justify-content: center; flex-shrink: 0; transition: all .2s; font-size: 1rem;
@@ -383,7 +397,7 @@
 
 /* ── Mobile sidebar overlay ──────────────────────────────────────── */
 @media (max-width: 768px) {
-  .sidebar-toggle { display: block; }
+  .sidebar-toggle { display: flex !important; }  /* override inline display:none */
   .chat-sidebar {
     position: fixed; left: 0; top: 54px; bottom: 0;
     width: 280px; z-index: 500;
@@ -396,11 +410,17 @@
   }
   .sidebar-backdrop.show { display: block; }
   .chat-outer { position: relative; }
+  /* Reduce input bar padding on mobile to save vertical space */
+  .chat-input-bar { padding: .4rem .75rem .5rem; }
+  /* On mobile chips can wrap to two lines if needed */
+  .example-chips .chip { white-space: normal; text-align: center; }
 }
 @media (max-width: 600px) {
   .msg-row { padding: 0 .5rem; }
   .user-bubble { max-width: 82%; }
   .bot-card, .bot-bubble, .serious-msg { max-width: 94vw; }
+  /* Smaller screens: compress chip list */
+  .example-chips { max-width: 340px; }
 }
 </style>
 {% endblock %}
@@ -458,6 +478,18 @@
             {% endfor %}
           </div>
           <p class="mt-2 small text-muted" style="font-size:.75rem;">{{ ui.hero_note }}</p>
+          <!-- County picker — visible on welcome screen -->
+          <div id="welcomeCountyRow" style="display:flex;align-items:center;gap:.5rem;margin-top:.75rem;font-size:.82rem;color:#666;">
+            <span>📍</span>
+            <select id="countySelect" aria-label="{{ ui.field_county }}"
+                    style="border:1px solid #dde;border-radius:20px;padding:.3em .8em;font-size:.82rem;background:#f9f9f9;color:#333;outline:none;cursor:pointer;">
+              <option value="">{% if lang == 'en' %}All Kenya{% else %}Kenya Yote{% endif %}</option>
+              {% for c in counties %}
+              <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </select>
+            <span style="color:#aaa;font-size:.76rem;">{% if lang == 'en' %}for better lawyer matching{% else %}kwa uwiano bora wa wakili{% endif %}</span>
+          </div>
         </div>
 
         <!-- Messages injected here -->
@@ -500,6 +532,7 @@
             <input type="checkbox" id="selfRepToggle" style="accent-color:var(--haki-green);width:13px;height:13px;">
             🏛️ {% if lang == 'en' %}Self-represent in court{% else %}Jitetea mahakamani{% endif %}
           </label>
+          <span id="charCounter" style="display:none;font-size:.72rem;color:#999;"></span>
           <span class="chat-disclaimer">{{ ui.disclaimer }}</span>
         </div>
       </div>
@@ -514,13 +547,7 @@
   box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;white-space:nowrap;max-width:90vw;text-align:center;">
 </div>
 
-<!-- Hidden county select — value set by county picker in lawyer section -->
-<select id="countySelect" aria-label="{{ ui.field_county }}" style="display:none;">
-  <option value="">{% if lang == 'en' %}All Kenya{% else %}Kenya Yote{% endif %}</option>
-  {% for c in counties %}
-  <option value="{{ c }}">{{ c }}</option>
-  {% endfor %}
-</select>
+<!-- County select is now in #welcomeScreen — see above -->
 {% endblock %}
 
 
@@ -1013,7 +1040,21 @@
   // ════════════════════════════════════════════════════════════════
   //  INPUT / SEND
   // ════════════════════════════════════════════════════════════════
-  chatInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,130)+'px';sendBtn.disabled=this.value.trim().length<3;});
+  chatInput.addEventListener('input',function(){
+    this.style.height='auto';
+    this.style.height=Math.min(this.scrollHeight,130)+'px';
+    sendBtn.disabled=this.value.trim().length<3;
+    // Character counter — show when >200 chars
+    var len = this.value.length;
+    var counter = document.getElementById('charCounter');
+    if (len > 200) {
+      counter.textContent = len + ' / 500';
+      counter.style.color = len > 450 ? '#dc3545' : '#999';
+      counter.style.display = 'inline';
+    } else {
+      counter.style.display = 'none';
+    }
+  });
   chatInput.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!sendBtn.disabled)sendMessage();}});
   sendBtn.addEventListener('click',sendMessage);
   window.fillChat=function(el){chatInput.value=el.textContent.trim();chatInput.dispatchEvent(new Event('input'));chatInput.focus();};
@@ -1502,7 +1543,7 @@
   <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:1.5rem 1.5rem 2rem;
               box-shadow:0 -4px 30px rgba(0,0,0,.18);max-height:85vh;overflow-y:auto;position:relative;">
     <button onclick="closeLawyerBriefing()"
-            style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999;">✕</button>
+            style="position:absolute;top:.75rem;right:.75rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%;" aria-label="Close">✕</button>
 
     <div id="briefingSpinner" style="text-align:center;padding:2rem 0;display:none;">
       <div style="width:28px;height:28px;border:3px solid var(--haki-light);border-top-color:var(--haki-green);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto;"></div>
