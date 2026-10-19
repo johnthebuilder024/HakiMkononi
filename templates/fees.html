@@ -41,7 +41,10 @@
 
         <!-- Fee cards -->
         {% for fee in fees %}
-        <div class="card card-haki mb-3">
+        <div class="card card-haki mb-3"
+             style="transition:box-shadow .15s;"
+             onmouseenter="this.style.boxShadow='0 4px 18px rgba(26,122,60,.12)'"
+             onmouseleave="this.style.boxShadow=''">
           <div class="card-body p-4">
             <div class="d-flex align-items-start gap-3 flex-wrap">
               <div style="flex-shrink:0;font-size:2rem;width:44px;text-align:center;">{{ fee.icon }}</div>

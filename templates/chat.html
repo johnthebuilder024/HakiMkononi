@@ -1271,6 +1271,29 @@
 
     if(data.query_id)renderLawyers(card,data.query_id);
 
+    // ── Self-rep discovery nudge — shown after first answer if toggle not checked ──
+    if(!document.getElementById('selfRepToggle').checked && !data.self_rep) {
+      var nudgeRow = document.createElement('div');
+      nudgeRow.className = 'msg-row bot';
+      nudgeRow.id = 'selfRepNudge';
+      nudgeRow.innerHTML = avatarHTML() +
+        '<div class="bot-bubble" style="font-size:.84rem;padding:.6rem .9rem;">' +
+        '🏛️ <strong>' + (LANG==='sw' ? 'Unataka kwenda mahakamani mwenyewe?' : 'Want to represent yourself in court?') + '</strong><br>' +
+        '<span style="color:#666;font-size:.8rem;">' +
+        (LANG==='sw'
+          ? 'Washa kitufe "Jitetea mahakamani" kupata hati ya mahakama, orodha ya ushahidi, na ratiba ya hatua.'
+          : 'Turn on "Self-represent in court" below to get a court document, evidence checklist, and step-by-step filing guide.') +
+        '</span><br>' +
+        '<button onclick="document.getElementById(\'selfRepToggle\').checked=true;document.getElementById(\'selfRepNudge\').remove();chatInput.value=\'' +
+          (LANG==='sw' ? 'Nionyeshe jinsi ya kujitetea mahakamani' : 'Show me how to represent myself in court') +
+        '\';chatInput.dispatchEvent(new Event(\'input\'));sendMessage();" ' +
+        'style="margin-top:.5rem;background:var(--haki-green);color:#fff;border:none;border-radius:20px;padding:.3em .9em;font-size:.8rem;cursor:pointer;">' +
+        '✅ ' + (LANG==='sw' ? 'Ndio, nionyeshe' : 'Yes, show me') +
+        '</button>' +
+        '</div>';
+      messagesEl.appendChild(nudgeRow);
+    }
+
     row.innerHTML='';
     row.appendChild(document.createRange().createContextualFragment(avatarHTML()));
     row.appendChild(card);

@@ -1,0 +1,27 @@
+{
+  "name": "HakiMkononi",
+  "short_name": "HakiMkononi",
+  "description": "Your legal rights in your hands — free Kenyan legal help in Swahili and English",
+  "start_url": "/?lang=sw&source=pwa",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a7a3c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/img/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/img/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["legal", "utilities"],
+  "lang": "sw",
+  "dir": "ltr"
+}
