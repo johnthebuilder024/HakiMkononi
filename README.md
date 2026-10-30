@@ -169,11 +169,22 @@ For Wanjiku who wants to fight her own case in court after the other side ignore
 - Simplified 3-step flow: choose topic → describe → get summary + demand letter via SMS
 - Works on any phone with a GSM signal
 
-### 💡 Auto-Learning from Court Judgments
-- Nightly scraper pulls new Kenya Law judgments from kenyalaw.org
-- Extracts cited sections → adds to law DB
-- Learning loop: 👎 answers reviewed weekly, system prompt refined
-- Law is constantly being interpreted — judgments are the real teacher
+### ✅ Auto-Learning from Court Judgments
+- Nightly cron (`0 2 * * *`) scrapes new Kenya Law judgments from kenyalaw.org
+- Extracts **deep jurisprudence** — not just citation references, but the court's actual
+  interpretation: ratio decidendi, key holdings, what each cited section means in practice
+- Each interpretation is stored with its case reference (e.g. `[2024] KEELC 4992`) so the
+  AI can say "In [case], the court held that Section 45 means..."
+- Gemini embeddings generated automatically for new rows; RAG cache invalidated immediately
+- `python manage.py scrape_kenyalaw` — run manually; or runs nightly on Render
+
+### ✅ Weekly Learning Loop (`learning_loop`)
+- Every Sunday at 3am: reads all 👎 answers from the past 7 days
+- Breaks down failure rate by law category — flags any category above 25% failure
+- Promotes admin corrections (entered in `/dashboard/`) into the live law DB as new
+  "Correction" entries — so RAG returns the right answer next time
+- Embeds corrections immediately; invalidates RAG cache
+- `python manage.py learning_loop` — run manually; or runs every Sunday on Render
 
 ### 💡 Uganda & Tanzania Expansion
 - Uganda: ULII (Uganda Legal Information Institute)

@@ -1,4 +1,24 @@
 services:
+  # ── Nightly scraper — pulls new Kenya Law judgments, extracts court
+  #    interpretations, embeds them so RAG can cite real rulings.
+  - type: cron
+    name: scrape-kenyalaw
+    env: python
+    plan: free
+    schedule: "0 2 * * *"   # 2am Nairobi time every night (UTC+3, so 23:00 UTC)
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python manage.py scrape_kenyalaw"
+
+  # ── Weekly learning loop — analyses 👎 answers, promotes admin corrections
+  #    into the law DB so the same mistake won't happen again next week.
+  - type: cron
+    name: learning-loop
+    env: python
+    plan: free
+    schedule: "0 3 * * 0"   # 3am Nairobi every Sunday (00:00 UTC Sunday)
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python manage.py learning_loop"
+
   - type: web
     name: hakimkononi
     env: python
