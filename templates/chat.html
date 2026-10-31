@@ -1346,9 +1346,8 @@
         if(reassuranceEl){ reassuranceEl.remove(); reassuranceEl=null; }
         d.job_id=currentJobId; addAnswerCard(d);
         if(d.assistant_summary&&currentStory)addToHistory(currentStory,d.assistant_summary);
-        // Show save prompt after a short delay so answer renders first
-        var _saveJobId = currentJobId;
-        setTimeout(function(){ showSavePrompt(_saveJobId); }, 400);
+        // Save prompt — handled below (show ONCE per session, not every answer)
+        // Old showSavePrompt() call removed to prevent duplicate save bubbles
         // On the website the letter is editable inline — no need for the name/phone flow.
         // Just show a short tip pointing to the clickable placeholders, then a follow-up nudge.
         var letter=d.answer&&d.answer.andika_hivi;
