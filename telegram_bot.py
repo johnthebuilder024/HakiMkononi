@@ -1049,6 +1049,8 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         'ninahitaji msaada', 'nahitaji msaada',
     }
     _VOICE_BUTTONS    = {'🎤 send voice', '🎤 tuma sauti', 'send voice', 'tuma sauti'}
+    _QUESTION_BUTTONS = {'❓ swali jingine', '❓ ask another question', 'ask another question',
+                         'swali jingine', '❓ new question', '❓ swali jipya', 'new question', 'swali jipya'}
 
     # Voice prompt button
     if msg_clean in _VOICE_BUTTONS:
