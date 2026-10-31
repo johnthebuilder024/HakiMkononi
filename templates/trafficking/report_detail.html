@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Report {{ report.reference_number }} — HakiMkononi</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+<div class="container py-5" style="max-width:700px;">
+  <div class="d-flex justify-content-between mb-3">
+    <h5 class="fw-bold">Report {{ report.reference_number }}</h5>
+    <a href="{% url 'trafficking:dashboard' %}" class="btn btn-sm btn-outline-secondary">← Dashboard</a>
+  </div>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <p><strong>Status:</strong> {{ report.get_status_display }}</p>
+      <p><strong>Type:</strong> {{ report.get_report_type_display }}</p>
+      <p><strong>County:</strong> {{ report.county_of_origin|default:"Not specified" }}</p>
+      <p><strong>Urgent:</strong> {% if report.is_urgent %}🚨 Yes{% else %}No{% endif %}</p>
+      <p><strong>Created:</strong> {{ report.created_at }}</p>
+      <hr>
+      <p class="text-muted small">Full detail view with story, suspects and actions coming in Chunk 4.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

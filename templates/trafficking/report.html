@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Report Human Trafficking — HakiMkononi</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    :root {
+      --haki-green: #1a7a3c;
+      --haki-dark:  #0f4d26;
+      --haki-red:   #dc3545;
+    }
+    body {
+      background: #f8f9fa;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* ── Panic button — always visible top right ── */
+    #panicBtn {
+      position: fixed;
+      top: 12px; right: 12px;
+      z-index: 9999;
+      background: #6c757d;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: .35em .9em;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      opacity: .75;
+      transition: opacity .15s, background .15s;
+    }
+    #panicBtn:hover { background: #343a40; opacity: 1; }
+
+    /* ── Header bar ── */
+    .report-header {
+      background: var(--haki-dark);
+      color: #fff;
+      padding: 1.2rem 0 1rem;
+    }
+    .report-header h1 { font-size: 1.4rem; font-weight: 800; margin: 0; }
+    .report-header p  { font-size: .88rem; opacity: .85; margin: .3rem 0 0; }
+
+    /* ── Emergency banner ── */
+    .emergency-banner {
+      background: #fff3cd;
+      border-left: 5px solid #ffc107;
+      padding: .75rem 1.2rem;
+      font-size: .88rem;
+    }
+    .emergency-banner strong { color: #856404; }
+
+    /* ── Card ── */
+    .form-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+      padding: 1.8rem;
+      margin-bottom: 1.5rem;
+    }
+    .section-title {
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #888;
+      margin-bottom: .6rem;
+    }
+
+    /* ── Story textarea ── */
+    #story {
+      min-height: 140px;
+      font-size: .92rem;
+      line-height: 1.65;
+      resize: vertical;
+    }
+
+    /* ── Urgency checkbox — big and obvious ── */
+    .urgent-box {
+      background: #fff5f5;
+      border: 2px solid #f5c6cb;
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .urgent-box:hover, .urgent-box.active { border-color: var(--haki-red); }
+    .urgent-label {
+      font-weight: 700;
+      font-size: .95rem;
+      color: var(--haki-red);
+    }
+    .urgent-sub {
+      font-size: .82rem;
+      color: #888;
+      margin-top: .2rem;
+    }
+    #urgentWarning {
+      display: none;
+      background: var(--haki-red);
+      color: #fff;
+      border-radius: 6px;
+      padding: .6rem 1rem;
+      font-size: .85rem;
+      margin-top: .6rem;
+    }
+
+    /* ── Submit button ── */
+    .btn-submit {
+      background: var(--haki-green);
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      padding: .65rem 2rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s;
+      width: 100%;
+    }
+    .btn-submit:hover { background: var(--haki-dark); }
+    .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+
+    /* ── Anonymous badge ── */
+    .anon-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      background: #e8f5ee;
+      color: var(--haki-green);
+      border-radius: 20px;
+      padding: .2em .7em;
+      font-size: .78rem;
+      font-weight: 600;
+    }
+
+    /* ── Lang toggle ── */
+    .lang-pill {
+      display: inline-block;
+      padding: .2em .7em;
+      border-radius: 20px;
+      border: 1.5px solid #ddd;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #555;
+      transition: all .15s;
+      text-decoration: none;
+    }
+    .lang-pill.active, .lang-pill:hover {
+      background: var(--haki-green);
+      color: #fff;
+      border-color: var(--haki-green);
+    }
+
+    @media (max-width: 576px) {
+      .form-card { padding: 1.2rem; }
+      .report-header h1 { font-size: 1.15rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Panic button — closes page immediately with no history -->
+<button id="panicBtn" onclick="panicClose()" title="Close this page quickly">
+  ✕ Close quickly
+</button>
+
+<!-- Header -->
+<div class="report-header">
+  <div class="container" style="max-width:680px;">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h1>🚨 Report Human Trafficking</h1>
+        <p>Your report is anonymous. You do not need to give your name.</p>
+      </div>
+      <div class="d-flex gap-1 mt-1">
+        <a href="?lang=en" class="lang-pill {% if lang == 'en' %}active{% endif %}">EN</a>
+        <a href="?lang=sw" class="lang-pill {% if lang == 'sw' %}active{% endif %}">SW</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Emergency banner -->
+<div class="emergency-banner">
+  <div class="container" style="max-width:680px;">
+    {% if lang == 'sw' %}
+      <strong>⚠️ Mtu yuko hatarini SASA HIVI?</strong>
+      Piga simu DCI moja kwa moja: <strong>0800 722 203</strong> (bure, masaa 24) &nbsp;|&nbsp;
+      HAART Kenya: <strong>+254 738 506 264</strong>
+    {% else %}
+      <strong>⚠️ Is someone in danger RIGHT NOW?</strong>
+      Call DCI directly: <strong>0800 722 203</strong> (free, 24hrs) &nbsp;|&nbsp;
+      HAART Kenya: <strong>+254 738 506 264</strong>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Main form -->
+<div class="container py-4" style="max-width:680px;">
+
+  {% if errors %}
+  <div class="alert alert-danger">
+    <ul class="mb-0">
+      {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <form method="post" novalidate id="reportForm">
+    {% csrf_token %}
+    <input type="hidden" name="lang" value="{{ lang }}">
+
+    <!-- ── Section 1: The story ── -->
+    <div class="form-card">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <p class="section-title mb-0">
+          {% if lang == 'sw' %}1. Nini kilitokea?{% else %}1. What happened?{% endif %}
+        </p>
+        <span class="anon-badge">🔒 {% if lang == 'sw' %}Bila jina{% else %}Anonymous{% endif %}</span>
+      </div>
+      <textarea
+        id="story" name="story"
+        class="form-control"
+        placeholder="{% if lang == 'sw' %}Niambie kwa maneno yako mwenyewe. Lugha yoyote — Kiswahili, Kingereza, au Sheng. Hata maelezo mafupi yanasaidia.&#10;&#10;Mfano: Mtu aliahidi kazi Dubai. Alinichukua passport yangu nikifika airport. Nilifanya kazi nyumbani kwa mtu tajiri bila kulipwa wala kuruhusiwa kutoka...{% else %}Tell us in your own words. Any language — Swahili, English or Sheng. Even a brief description helps.&#10;&#10;Example: A man promised me a job in Dubai. He took my passport at the airport. I was made to work in a house without pay and not allowed to leave...{% endif %}"
+        required
+        minlength="30"
+      >{{ form_data.story }}</textarea>
+      <div class="d-flex justify-content-between mt-1">
+        <small class="text-muted" id="storyHint">
+          {% if lang == 'sw' %}Angalau maneno 10 — kadri unavyoandika ndivyo inavyosaidia zaidi.
+          {% else %}At least 10 words — the more detail you give, the more useful the report.{% endif %}
+        </small>
+        <small class="text-muted" id="storyCount"></small>
+      </div>
+    </div>
+
+    <!-- ── Section 2: Names / aliases ── -->
+    <div class="form-card">
+      <p class="section-title">
+        {% if lang == 'sw' %}2. Majina au lakabu unazokumbuka? (si lazima)
+        {% else %}2. Any names or nicknames you remember? (optional){% endif %}
+      </p>
+      <input
+        type="text"
+        name="aliases"
+        class="form-control"
+        placeholder="{% if lang == 'sw' %}Mfano: Mkubwa, Uncle James, Mama Salon, 0712345678, 'Facebook: JobsKenya2026'{% else %}e.g. Mkubwa, Uncle James, Mama Salon, 0712345678, Facebook name, company name{% endif %}"
+        value="{{ form_data.aliases }}"
+      >
+      <small class="text-muted mt-1 d-block">
+        {% if lang == 'sw' %}
+          Hata jina la utani au nambari ya simu inasaidia sana — tunaweza kuunganisha ripoti nyingi zinazotaja jina moja.
+        {% else %}
+          Even a nickname or phone number helps — we can link multiple reports mentioning the same name.
+        {% endif %}
+      </small>
+    </div>
+
+    <!-- ── Section 3: Location + Date ── -->
+    <div class="form-card">
+      <p class="section-title">
+        {% if lang == 'sw' %}3. Wapi na lini?{% else %}3. Where and when?{% endif %}
+      </p>
+      <div class="row g-2">
+        <div class="col-sm-7">
+          <label class="form-label small fw-600">
+            {% if lang == 'sw' %}Kaunti (mahali palipotokea){% else %}County (where it happened){% endif %}
+          </label>
+          <select name="county" class="form-select">
+            <option value="">{% if lang == 'sw' %}-- Chagua kaunti --{% else %}-- Select county --{% endif %}</option>
+            <option value="Outside Kenya" {% if form_data.county == 'Outside Kenya' %}selected{% endif %}>
+              {% if lang == 'sw' %}Nje ya Kenya{% else %}Outside Kenya{% endif %}
+            </option>
+            {% for county in counties %}
+            <option value="{{ county }}" {% if form_data.county == county %}selected{% endif %}>{{ county }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-5">
+          <label class="form-label small fw-600">
+            {% if lang == 'sw' %}Takriban lini?{% else %}Approximate date?{% endif %}
+          </label>
+          <input
+            type="text"
+            name="approximate_date"
+            class="form-control"
+            placeholder="{% if lang == 'sw' %}Mfano: Oktoba 2026{% else %}e.g. October 2026{% endif %}"
+            value="{{ form_data.approximate_date }}"
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section 4: Urgency ── -->
+    <div class="form-card">
+      <p class="section-title">
+        {% if lang == 'sw' %}4. Je, mtu yuko hatarini sasa hivi?
+        {% else %}4. Is someone being held right now?{% endif %}
+      </p>
+      <label class="urgent-box d-flex gap-3 align-items-start" id="urgentBox">
+        <input
+          type="checkbox"
+          name="is_urgent"
+          id="urgentCheck"
+          style="margin-top:3px;accent-color:var(--haki-red);width:18px;height:18px;flex-shrink:0;"
+          {% if form_data.is_urgent %}checked{% endif %}
+        >
+        <div>
+          <div class="urgent-label">
+            {% if lang == 'sw' %}⚠️ Ndiyo — mtu yuko hatarini SASA HIVI
+            {% else %}⚠️ Yes — a victim is currently being held{% endif %}
+          </div>
+          <div class="urgent-sub">
+            {% if lang == 'sw' %}Tutaarifiwa DCI mara moja.
+            {% else %}We will alert DCI immediately.{% endif %}
+          </div>
+        </div>
+      </label>
+      <div id="urgentWarning">
+        {% if lang == 'sw' %}
+          🚨 <strong>Hali ya Dharura.</strong> Ripoti yako itapelekwa kwa DCI mara baada ya kuwasilishwa.
+          Kama unajua mahali walipo, tafadhali uandike hapo juu katika hadithi yako.
+          Unaweza pia piga simu <strong>0800 722 203</strong> sasa hivi.
+        {% else %}
+          🚨 <strong>Urgent.</strong> Your report will be flagged to DCI immediately after submission.
+          If you know the location, please include it in your story above.
+          You can also call <strong>0800 722 203</strong> right now.
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── Section 5: Optional contact ── -->
+    <div class="form-card">
+      <p class="section-title">
+        {% if lang == 'sw' %}5. Tunaweza kukuwasiliana? (si lazima kabisa)
+        {% else %}5. Can we contact you? (completely optional){% endif %}
+      </p>
+      <input
+        type="text"
+        name="reporter_contact"
+        class="form-control"
+        placeholder="{% if lang == 'sw' %}Nambari ya simu au barua pepe — au acha wazi{% else %}Phone number or email — or leave blank{% endif %}"
+        value="{{ form_data.reporter_contact }}"
+      >
+      <small class="text-muted mt-1 d-block">
+        {% if lang == 'sw' %}
+          🔒 Unaweza kuacha hii wazi. Ripoti yako ina thamani sawa bila maelezo yako ya mawasiliano.
+          Taarifa hii itahifadhiwa kwa usalama na kuonekana na washirika wetu walioidhinishwa tu.
+        {% else %}
+          🔒 You can leave this blank. Your report is just as useful without your contact details.
+          If provided, this is stored securely and only visible to our verified partners.
+        {% endif %}
+      </small>
+    </div>
+
+    <!-- ── Submit ── -->
+    <button type="submit" class="btn-submit" id="submitBtn">
+      {% if lang == 'sw' %}📤 Wasilisha Ripoti{% else %}📤 Submit Report{% endif %}
+    </button>
+
+    <p class="text-center text-muted mt-3" style="font-size:.78rem;">
+      {% if lang == 'sw' %}
+        Kwa kuwasilisha unakubali kwamba taarifa hii itashirikiwa na washirika wetu wa kisheria
+        (DCI, HAART Kenya) kwa madhumuni ya uchunguzi.
+      {% else %}
+        By submitting you agree that this report will be shared with our verified legal partners
+        (DCI, HAART Kenya) for investigation purposes only.
+      {% endif %}
+    </p>
+  </form>
+
+  <!-- Contacts footer -->
+  <div class="text-center text-muted mt-2 pb-4" style="font-size:.8rem;">
+    <strong>{% if lang == 'sw' %}Msaada wa haraka:{% else %}Immediate help:{% endif %}</strong>
+    &nbsp; DCI: <strong>0800 722 203</strong>
+    &nbsp;|&nbsp; HAART: <strong>+254 738 506 264</strong>
+    &nbsp;|&nbsp; NLAS: <strong>0800 720 120</strong>
+  </div>
+</div>
+
+<script>
+  // ── Panic close — replaces history entry so Back doesn't return here ──
+  function panicClose() {
+    window.location.replace('https://www.kra.go.ke');
+  }
+
+  // ── Keyboard shortcut: Escape = panic close ──
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') panicClose();
+  });
+
+  // ── Story character counter ──
+  var storyEl = document.getElementById('story');
+  var countEl = document.getElementById('storyCount');
+  storyEl.addEventListener('input', function() {
+    var words = this.value.trim().split(/\s+/).filter(Boolean).length;
+    countEl.textContent = words + ' {% if lang == "sw" %}maneno{% else %}words{% endif %}';
+    countEl.style.color = words >= 10 ? '#1a7a3c' : '#aaa';
+  });
+
+  // ── Urgency checkbox ──
+  var urgentCheck = document.getElementById('urgentCheck');
+  var urgentBox   = document.getElementById('urgentBox');
+  var urgentWarn  = document.getElementById('urgentWarning');
+
+  function updateUrgent() {
+    if (urgentCheck.checked) {
+      urgentBox.classList.add('active');
+      urgentWarn.style.display = 'block';
+    } else {
+      urgentBox.classList.remove('active');
+      urgentWarn.style.display = 'none';
+    }
+  }
+  urgentCheck.addEventListener('change', updateUrgent);
+  updateUrgent(); // run on load to restore state on validation error
+
+  // ── Form submit — disable button to prevent double submit ──
+  document.getElementById('reportForm').addEventListener('submit', function() {
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '{% if lang == "sw" %}Inatuma...{% else %}Submitting...{% endif %}';
+  });
+</script>
+</body>
+</html>

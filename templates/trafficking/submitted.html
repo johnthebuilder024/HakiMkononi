@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Report Received — HakiMkononi</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    :root { --haki-green: #1a7a3c; --haki-dark: #0f4d26; }
+    body { background: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #panicBtn {
+      position: fixed; top: 12px; right: 12px; z-index: 9999;
+      background: #6c757d; color: #fff; border: none;
+      border-radius: 20px; padding: .35em .9em;
+      font-size: .78rem; font-weight: 600; cursor: pointer;
+      opacity: .75;
+    }
+    #panicBtn:hover { background: #343a40; opacity: 1; }
+    .confirm-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 16px rgba(0,0,0,.08);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      max-width: 520px;
+      margin: 3rem auto;
+    }
+    .check-circle {
+      width: 72px; height: 72px;
+      background: #e8f5ee;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 1.2rem;
+    }
+    .ref-badge {
+      display: inline-block;
+      background: #e8f5ee;
+      color: var(--haki-green);
+      border-radius: 20px;
+      padding: .35em 1.2em;
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: .05em;
+      margin: .8rem 0;
+      font-family: monospace;
+    }
+    .urgent-alert {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      border-radius: 6px;
+      padding: .8rem 1rem;
+      font-size: .88rem;
+      text-align: left;
+      margin: 1rem 0;
+    }
+    .contacts-box {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: left;
+      font-size: .85rem;
+      margin-top: 1.2rem;
+    }
+    .contacts-box h6 { font-size: .8rem; font-weight: 700; text-transform: uppercase; color: #888; }
+    .contact-row { display: flex; justify-content: space-between; padding: .3rem 0; border-bottom: 1px solid #eee; }
+    .contact-row:last-child { border-bottom: none; }
+    .processing-bar {
+      height: 4px;
+      background: #e9ecef;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+    .processing-fill {
+      height: 100%;
+      background: var(--haki-green);
+      border-radius: 2px;
+      animation: fill 3s ease forwards;
+    }
+    @keyframes fill { from { width: 0; } to { width: 100%; } }
+    .status-msg { font-size: .82rem; color: #888; }
+  </style>
+</head>
+<body>
+
+<button id="panicBtn" onclick="panicClose()">✕ Close quickly</button>
+
+<div class="container px-3">
+  <div class="confirm-card">
+
+    {% if is_urgent %}
+    <div class="urgent-alert">
+      🚨 <strong>{% if lang == 'sw' %}Ripoti ya haraka imetumwa.{% else %}Urgent report submitted.{% endif %}</strong>
+      {% if lang == 'sw' %}
+        DCI wamearifiwa. Pia unaweza piga simu <strong>0800 722 203</strong> sasa hivi.
+      {% else %}
+        DCI has been alerted. You can also call <strong>0800 722 203</strong> right now.
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="check-circle">✅</div>
+
+    <h2 style="font-size:1.3rem;font-weight:800;color:#1a1a1a;">
+      {% if lang == 'sw' %}Asante. Ripoti Yako Imepokelewa.
+      {% else %}Thank you. Your Report Has Been Received.{% endif %}
+    </h2>
+
+    <p style="color:#666;font-size:.9rem;">
+      {% if lang == 'sw' %}Nambari yako ya kumbukumbu:{% else %}Your reference number:{% endif %}
+    </p>
+    <div class="ref-badge">{{ reference_number }}</div>
+    <p style="font-size:.78rem;color:#aaa;">
+      {% if lang == 'sw' %}Hifadhi nambari hii — inaweza kutumika kufuatilia ripoti yako.
+      {% else %}Keep this number — you can use it to follow up on your report.{% endif %}
+    </p>
+
+    <!-- AI processing indicator -->
+    <div style="margin-top:1.2rem;" id="processingSection">
+      <p class="status-msg" id="statusMsg">
+        {% if lang == 'sw' %}🤖 AI inasoma ripoti yako na kuandika ripoti rasmi...
+        {% else %}🤖 AI is reading your report and generating a formal report...{% endif %}
+      </p>
+      <div class="processing-bar">
+        <div class="processing-fill" id="processFill"></div>
+      </div>
+    </div>
+
+    <div class="contacts-box">
+      <h6>{% if lang == 'sw' %}Msaada wa haraka{% else %}Immediate help{% endif %}</h6>
+      <div class="contact-row">
+        <span>🚔 DCI Anti-HT Unit</span>
+        <strong>0800 722 203</strong>
+      </div>
+      <div class="contact-row">
+        <span>🤝 HAART Kenya</span>
+        <strong>+254 738 506 264</strong>
+      </div>
+      <div class="contact-row">
+        <span>⚖️ NLAS ({% if lang == 'sw' %}wakili bure{% else %}free lawyers{% endif %})</span>
+        <strong>0800 720 120</strong>
+      </div>
+      <div class="contact-row">
+        <span>👩 FIDA Kenya</span>
+        <strong>020 271 4911</strong>
+      </div>
+    </div>
+
+    <p style="font-size:.75rem;color:#aaa;margin-top:1.2rem;">
+      {% if lang == 'sw' %}
+        Ripoti yako itashirikiwa na washirika wetu walioidhinishwa tu (DCI, HAART Kenya).
+        Hakuna mtu mwingine atakayeona.
+      {% else %}
+        Your report will only be shared with our verified partners (DCI, HAART Kenya).
+        No one else will see it.
+      {% endif %}
+    </p>
+
+  </div>
+</div>
+
+<script>
+  function panicClose() {
+    window.location.replace('https://www.kra.go.ke');
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') panicClose();
+  });
+
+  // Poll for AI processing completion
+  var reportId   = {{ report_id }};
+  var statusMsg  = document.getElementById('statusMsg');
+  var procFill   = document.getElementById('processFill');
+  var pollTimer  = null;
+
+  function pollStatus() {
+    fetch('/report-trafficking/api/status/' + reportId + '/')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.status === 'ready' || d.status === 'actioned') {
+          clearInterval(pollTimer);
+          statusMsg.textContent = '{% if lang == "sw" %}✅ Ripoti rasmi imeandaliwa na washirika wetu.{% else %}✅ Formal report generated and ready for our partners.{% endif %}';
+          statusMsg.style.color = '#1a7a3c';
+          procFill.style.animationDuration = '0s';
+          procFill.style.width = '100%';
+        } else if (d.status === 'error') {
+          clearInterval(pollTimer);
+          statusMsg.textContent = '{% if lang == "sw" %}Ripoti yako imepokelewa. Washirika wataipitia mwenyewe.{% else %}Your report was received. Our partners will review it manually.{% endif %}';
+        }
+      })
+      .catch(function() {});
+  }
+
+  // Start polling after 3 seconds, every 8 seconds, max 2 minutes
+  setTimeout(function() {
+    pollTimer = setInterval(pollStatus, 8000);
+    setTimeout(function() { clearInterval(pollTimer); }, 120000);
+  }, 3000);
+</script>
+</body>
+</html>

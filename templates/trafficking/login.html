@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Partner Login — HakiMkononi</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+<div class="container" style="max-width:400px;margin-top:4rem;">
+  <div class="card shadow-sm">
+    <div class="card-body p-4">
+      <h5 class="fw-bold mb-1">🔐 Partner Dashboard</h5>
+      <p class="text-muted small mb-3">HakiMkononi Anti-Trafficking — Authorised partners only</p>
+      {% if error %}
+      <div class="alert alert-danger py-2 small">{{ error }}</div>
+      {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Access Key</label>
+          <input type="password" name="access_key" class="form-control"
+                 placeholder="Enter your access key" autofocus required>
+        </div>
+        <button type="submit" class="btn btn-dark w-100">Login</button>
+      </form>
+      <p class="text-muted text-center mt-3 small">
+        Access keys are provided to verified partners only.<br>
+        Contact: <a href="mailto:info@hakimkononi.co.ke">info@hakimkononi.co.ke</a>
+      </p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
