@@ -4,26 +4,198 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>Report {{ report.reference_number }} — HakiMkononi</title>
+  <title>{{ report.reference_number }} — HakiMkononi</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body { background:#f4f6f9; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+    .topbar { background:#0f4d26; color:#fff; padding:.7rem 1.2rem; display:flex; align-items:center; justify-content:space-between; }
+    .topbar h1 { font-size:1rem; font-weight:800; margin:0; }
+    .card-section { background:#fff; border-radius:10px; padding:1.3rem 1.5rem; margin-bottom:1rem; box-shadow:0 1px 6px rgba(0,0,0,.07); }
+    .section-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#888; margin-bottom:.5rem; }
+    .story-text { background:#f8f9fa; border-radius:8px; padding:1rem; font-size:.9rem; line-height:1.7; white-space:pre-wrap; border-left:4px solid #dee2e6; }
+    .formal-text { background:#f0f7f4; border-radius:8px; padding:1rem; font-size:.85rem; line-height:1.7; white-space:pre-wrap; border-left:4px solid #1a7a3c; }
+    .alias-badge { display:inline-block; background:#fff3e0; color:#7a4200; border-radius:20px; padding:.2em .8em; font-size:.78rem; font-weight:600; margin:.2rem; border:1px solid #ffd591; }
+    .alias-match-banner { background:#fff8e1; border:2px solid #ffc107; border-radius:10px; padding:1rem 1.2rem; margin-bottom:1rem; }
+    .urgent-banner { background:#fff5f5; border:2px solid #dc3545; border-radius:10px; padding:.8rem 1.2rem; margin-bottom:1rem; }
+    .indicator-chip { display:inline-block; background:#e8f5ee; color:#1a7a3c; border-radius:20px; padding:.15em .65em; font-size:.77rem; margin:.15rem; }
+    .contact-box { background:#f0f7f4; border-radius:8px; padding:.8rem 1rem; font-size:.88rem; }
+    .meta-row { display:flex; gap:1.5rem; flex-wrap:wrap; font-size:.85rem; color:#555; }
+    .meta-item strong { color:#1a1a1a; }
+  </style>
 </head>
-<body class="bg-light">
-<div class="container py-5" style="max-width:700px;">
-  <div class="d-flex justify-content-between mb-3">
-    <h5 class="fw-bold">Report {{ report.reference_number }}</h5>
-    <a href="{% url 'trafficking:dashboard' %}" class="btn btn-sm btn-outline-secondary">← Dashboard</a>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>Report {{ report.reference_number }}</h1>
+    <div style="font-size:.74rem;opacity:.75;">{{ partner.organisation }}</div>
   </div>
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <p><strong>Status:</strong> {{ report.get_status_display }}</p>
-      <p><strong>Type:</strong> {{ report.get_report_type_display }}</p>
-      <p><strong>County:</strong> {{ report.county_of_origin|default:"Not specified" }}</p>
-      <p><strong>Urgent:</strong> {% if report.is_urgent %}🚨 Yes{% else %}No{% endif %}</p>
-      <p><strong>Created:</strong> {{ report.created_at }}</p>
-      <hr>
-      <p class="text-muted small">Full detail view with story, suspects and actions coming in Chunk 4.</p>
+  <div class="d-flex gap-2">
+    <a href="{% url 'trafficking:report_pdf' report.pk %}" class="btn btn-sm btn-light">⬇ Download</a>
+    <a href="{% url 'trafficking:dashboard' %}" class="btn btn-sm btn-outline-light">← Dashboard</a>
+  </div>
+</div>
+
+<div class="container py-3" style="max-width:860px;">
+
+  <!-- Urgent banner -->
+  {% if report.is_urgent %}
+  <div class="urgent-banner">
+    <strong style="color:#dc3545;">🚨 URGENT — Victim May Currently Be Held</strong><br>
+    <span style="font-size:.85rem;">This report was flagged as urgent. Take immediate action.<br>
+    DCI Anti-HT Unit: <strong>0800 722 203</strong> &nbsp;|&nbsp; HAART Kenya: <strong>+254 738 506 264</strong></span>
+  </div>
+  {% endif %}
+
+  <!-- Alias match banner -->
+  {% if alias_alerts %}
+  <div class="alias-match-banner">
+    <strong style="color:#7a4200;">⚠️ Alias Match Detected</strong>
+    <p class="mb-1 mt-1" style="font-size:.85rem;">
+      One or more suspect aliases in this report also appear in other reports.
+      This may indicate the same trafficker operating in multiple areas.
+    </p>
+    {% for alert in alias_alerts %}
+    <div style="font-size:.82rem;margin-top:.4rem;">
+      &nbsp;•&nbsp; <strong>"{{ alert.alias }}"</strong>
+      ({{ alert.get_match_type_display }}) —
+      {% if alert.report_new == report %}
+        also in
+        <a href="{% url 'trafficking:report_detail' alert.report_previous.pk %}">
+          {{ alert.report_previous.reference_number }}
+        </a>
+        ({{ alert.report_previous.county_of_origin }},
+        {{ alert.report_previous.created_at|date:"d M Y" }})
+      {% else %}
+        also in
+        <a href="{% url 'trafficking:report_detail' alert.report_new.pk %}">
+          {{ alert.report_new.reference_number }}
+        </a>
+        ({{ alert.report_new.county_of_origin }},
+        {{ alert.report_new.created_at|date:"d M Y" }})
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Meta -->
+  <div class="card-section">
+    <div class="meta-row mb-2">
+      <div><div class="section-label">Reference</div><strong>{{ report.reference_number }}</strong></div>
+      <div><div class="section-label">Submitted</div><strong>{{ report.created_at|date:"d M Y, H:i" }} UTC</strong></div>
+      <div><div class="section-label">County</div><strong>{{ report.county_of_origin|default:"Not specified" }}</strong></div>
+      <div><div class="section-label">Approx. date</div><strong>{{ report.approximate_date|default:"—" }}</strong></div>
+    </div>
+    <div class="meta-row">
+      <div><div class="section-label">Type</div><strong>{{ report.get_report_type_display }}</strong></div>
+      <div><div class="section-label">Recruitment</div><strong>{{ report.get_recruitment_method_display }}</strong></div>
+      <div><div class="section-label">Victim profile</div><strong>{{ report.get_victim_profile_display }}</strong></div>
+      <div><div class="section-label">Destination</div><strong>{{ report.destination|default:"Unknown" }}</strong></div>
+    </div>
+    {% if indicators %}
+    <div class="mt-2">
+      <div class="section-label">Indicators</div>
+      {% for ind in indicators %}
+        <span class="indicator-chip">{{ ind }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Reporter contact (only if permitted) -->
+  {% if show_contact and report.reporter_contact %}
+  <div class="card-section">
+    <div class="section-label">Reporter Contact</div>
+    <div class="contact-box">
+      📞 {{ report.reporter_contact }}
     </div>
   </div>
+  {% elif not show_contact and not report.is_anonymous %}
+  <div class="card-section">
+    <div class="section-label">Reporter Contact</div>
+    <div class="text-muted small">Contact details not shown for this access tier.</div>
+  </div>
+  {% endif %}
+
+  <!-- Suspects / aliases -->
+  {% if suspects %}
+  <div class="card-section">
+    <div class="section-label">Suspects / Aliases ({{ suspects|length }})</div>
+    {% for s in suspects %}
+    <div style="padding:.5rem 0;border-bottom:1px solid #f3f3f3;">
+      <span class="alias-badge">{{ s.alias }}</span>
+      <span style="font-size:.78rem;color:#888;">
+        {{ s.get_alias_type_display }}
+        {% if s.county_context %} — {{ s.county_context }}{% endif %}
+        &nbsp;|&nbsp; confidence: {{ s.confidence }}
+      </span>
+      {% if s.linked_to.exists %}
+      <span style="font-size:.75rem;background:#fff3cd;color:#7a4200;padding:.1em .5em;border-radius:8px;margin-left:.3rem;">
+        ⚠️ linked to {{ s.linked_to.count }} other report{% if s.linked_to.count != 1 %}s{% endif %}
+      </span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Raw story -->
+  <div class="card-section">
+    <div class="section-label">Raw Story (as submitted)</div>
+    <div class="story-text">{{ report.story_raw }}</div>
+  </div>
+
+  <!-- Formal report EN -->
+  {% if report.formal_report_en %}
+  <div class="card-section">
+    <div class="section-label">Formal Report — English (AI-generated)</div>
+    <div class="formal-text">{{ report.formal_report_en }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Formal report SW -->
+  {% if report.formal_report_sw %}
+  <div class="card-section">
+    <div class="section-label">Formal Report — Swahili (AI-generated)</div>
+    <div class="formal-text">{{ report.formal_report_sw }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Status + notes -->
+  {% if can_update %}
+  <div class="card-section">
+    <div class="section-label">Update Status</div>
+    {% if report.reviewed_by %}
+    <p class="text-muted small mb-2">
+      Last updated by <strong>{{ report.reviewed_by }}</strong>
+      {% if report.reviewed_at %}on {{ report.reviewed_at|date:"d M Y, H:i" }} UTC{% endif %}
+      {% if report.status_note %}<br>Note: {{ report.status_note }}{% endif %}
+    </p>
+    {% endif %}
+    <form method="post" action="{% url 'trafficking:update_status' report.pk %}">
+      {% csrf_token %}
+      <div class="row g-2">
+        <div class="col-md-4">
+          <select name="status" class="form-select form-select-sm">
+            {% for val, label in status_choices %}
+            <option value="{{ val }}" {% if report.status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <input type="text" name="status_note" class="form-control form-control-sm"
+                 placeholder="Optional note (action taken, referral made, etc.)"
+                 value="{{ report.status_note }}">
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-dark btn-sm w-100">Update</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+
 </div>
 </body>
 </html>

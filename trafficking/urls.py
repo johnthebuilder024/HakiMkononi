@@ -1,8 +1,8 @@
 """
 URL configuration for the trafficking app.
 
-All URLs are prefixed with /trafficking/ or /report-trafficking/
-in sheria_ai/urls.py — nothing here is linked from the main site yet.
+All URLs are prefixed with /report-trafficking/
+in sheria_ai/urls.py — nothing linked from main site yet.
 """
 
 from django.urls import path
@@ -12,21 +12,18 @@ app_name = 'trafficking'
 
 urlpatterns = [
     # ── Public (no login) ────────────────────────────────────────────────────
-    # Report submission form — the main entry point
-    path('report/',           views.submit_report,    name='submit_report'),
-    # Confirmation page after submission (shows reference number)
-    path('report/submitted/', views.report_submitted, name='report_submitted'),
+    path('report/',           views.submit_report,     name='submit_report'),
+    path('report/submitted/', views.report_submitted,  name='report_submitted'),
 
-    # ── Partner dashboard (requires access key) ───────────────────────────────
-    # Login with access key
-    path('dashboard/login/',  views.dashboard_login,  name='dashboard_login'),
-    path('dashboard/logout/', views.dashboard_logout, name='dashboard_logout'),
-    # Main dashboard
-    path('dashboard/',        views.dashboard,        name='dashboard'),
-    # Single report detail
-    path('dashboard/report/<int:pk>/', views.report_detail, name='report_detail'),
+    # ── Partner dashboard ────────────────────────────────────────────────────
+    path('dashboard/login/',               views.dashboard_login,   name='dashboard_login'),
+    path('dashboard/logout/',              views.dashboard_logout,  name='dashboard_logout'),
+    path('dashboard/',                     views.dashboard,         name='dashboard'),
+    path('dashboard/report/<int:pk>/',     views.report_detail,     name='report_detail'),
+    path('dashboard/report/<int:pk>/update-status/', views.update_status, name='update_status'),
+    path('dashboard/report/<int:pk>/pdf/', views.report_pdf,        name='report_pdf'),
+    path('dashboard/stats/',               views.researcher_stats,  name='researcher_stats'),
 
-    # ── API (internal, called by JS polling) ─────────────────────────────────
-    # Poll for AI processing status
-    path('api/status/<int:pk>/', views.report_status_api, name='report_status_api'),
+    # ── Internal API ─────────────────────────────────────────────────────────
+    path('api/status/<int:pk>/',           views.report_status_api, name='report_status_api'),
 ]
