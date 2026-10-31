@@ -57,6 +57,10 @@ urlpatterns = [
     path("fees/",                                   fee_schedule,       name="fee_schedule"),
     path("admin/",     admin.site.urls),
     path("api/",   include("cases.urls")),
+    # ── Anti-trafficking module (separate app, no navbar link yet) ────────────
+    # /report-trafficking/   → public report form
+    # /trafficking/dashboard/ → partner dashboard (police/NGO/researcher)
+    path("report-trafficking/", include("trafficking.urls", namespace="trafficking")),
 ]
 
 # Serve static and media files in development

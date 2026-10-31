@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'cases',
+    'trafficking.apps.TraffickingConfig',  # anti-trafficking module
 ]
 
 # ─── Middleware ───────────────────────────────────────────────────────────────
