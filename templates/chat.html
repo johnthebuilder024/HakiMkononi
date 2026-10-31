@@ -1097,6 +1097,19 @@
 
   function resetInput(){sendBtn.disabled=chatInput.value.trim().length<3;clearInterval(pollTimer);pollTimer=null;}
 
+  // ── Quick action bar — shown after every answer in the follow-up nudge ──────
+  // Fix #8: mid-chat county picker  Fix #10: start fresh shortcut
+  function _quickActionBar(){
+    var counties=["Baringo","Bomet","Bungoma","Busia","Elgeyo Marakwet","Embu","Garissa","Homa Bay","Isiolo","Kajiado","Kakamega","Kericho","Kiambu","Kilifi","Kirinyaga","Kisii","Kisumu","Kitui","Kwale","Laikipia","Lamu","Machakos","Makueni","Mandera","Marsabit","Meru","Migori","Mombasa","Muranga","Nairobi","Nakuru","Nandi","Narok","Nyandarua","Nyamira","Nyeri","Samburu","Siaya","Taita Taveta","Tana River","Tharaka Nithi","Trans Nzoia","Turkana","Uasin Gishu","Vihiga","Wajir","West Pokot"];
+    var cur=countySelect.value||'';
+    var opts='<option value="">'+(LANG==='sw'?'Kenya Yote':'All Kenya')+'</option>';
+    counties.forEach(function(c){opts+='<option value="'+c+'"'+(cur===c?' selected':'')+'>'+c+'</option>';});
+    return '<div style="margin-top:.6rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">'+
+      '<select onchange="countySelect.value=this.value" style="font-size:.75rem;padding:.2em .5em;border-radius:20px;border:1px solid #ddd;background:#fff;color:#444;outline:none;cursor:pointer;">'+opts+'</select>'+
+      '<button onclick="newChat()" style="font-size:.75rem;padding:.2em .65em;border-radius:20px;border:1px solid #ddd;background:#fff;color:#666;cursor:pointer;">🗑️ '+(LANG==='sw'?'Anza Upya':'Start Fresh')+'</button>'+
+      '</div>';
+  }
+
   function parseMarkdown(text){if(!text)return'';if(window.marked)return marked.parse(text);return text.replace(/\n/g,'<br>');}
 
   function boldCitations(div){
@@ -1342,21 +1355,58 @@
         if(letter&&(letter.indexOf('[YOUR NAME]')!==-1||letter.indexOf('[JINA LAKO]')!==-1)){
           setTimeout(function(){
             addBotBubble(LANG==='sw'
-              ?'✏️ Bonyeza <strong>[NAFASI YOYOTE]</strong> kwenye barua ili kuihariri moja kwa moja.<br><br>❓ Una swali lingine? Andika hapa chini.'
-              :'✏️ Tap any <strong>[PLACEHOLDER]</strong> in the letter above to fill it in directly.<br><br>❓ Have another question? Type it below.');
+              ?'✏️ Bonyeza <strong>[NAFASI YOYOTE]</strong> kwenye barua ili kuihariri moja kwa moja.<br><br>❓ Una swali lingine? Andika hapa chini.'+_quickActionBar()
+              :'✏️ Tap any <strong>[PLACEHOLDER]</strong> in the letter above to fill it in directly.<br><br>❓ Have another question? Type it below.'+_quickActionBar());
           },1400);
         } else {
           setTimeout(function(){
-            addBotBubble(LANG==='sw'
-              ?'❓ Una swali lingine? Andika hapa chini.'
-              :'❓ Have another question? Type it below.');
+            addBotBubble((LANG==='sw'?'❓ Una swali lingine? Andika hapa chini.':'❓ Have another question? Type it below.')+_quickActionBar());
           },1400);
+        }
+        // Save prompt — show ONCE per session (not after every answer)
+        if(!sessionStorage.getItem('haki_save_shown')){
+          sessionStorage.setItem('haki_save_shown','1');
+          var _jid=currentJobId;
+          setTimeout(function(){
+            var waText=encodeURIComponent((LANG==='sw'?'Angalia jibu langu la kisheria:':'Check my legal answer: ')+location.origin+'/?job='+_jid);
+            addBotBubble(
+              '💾 <strong>'+(LANG==='sw'?'Hifadhi jibu lako:':'Save your answer:')+'</strong> '+
+              '<button onclick="shareAnswer('+_jid+')" style="background:var(--haki-green);color:#fff;border:none;border-radius:20px;padding:.2em .7em;font-size:.78rem;cursor:pointer;margin-left:.3rem;">'+
+              (LANG==='sw'?'📲 Nakili kiungo':'📲 Copy link')+'</button> '+
+              '<a href="https://wa.me/?text='+waText+'" target="_blank" rel="noopener" style="background:#25d366;color:#fff;border-radius:20px;padding:.2em .7em;font-size:.78rem;text-decoration:none;margin-left:.3rem;">'+
+              '📲 '+(LANG==='sw'?'Tuma WhatsApp':'Send WhatsApp')+'</a>'
+            );
+          }, 2200);
         }
       }else if(d.status==='error'){
         clearInterval(pollTimer);
-        addError('❌ '+(d.message||(LANG==='sw'?'Kuna tatizo. Jaribu tena.':'An error occurred. Please try again.')));
+        // Error with retry button (Fix #9)
+        var errMsg=d.message||(LANG==='sw'?'Kuna tatizo. Jaribu tena.':'An error occurred. Please try again.');
+        var errStory=currentStory;
+        removeThinking();
+        var row=document.createElement('div'); row.className='msg-row bot';
+        row.innerHTML=avatarHTML()+
+          '<div class="error-msg">❌ '+errMsg+
+          '<br><br><button onclick="chatInput.value=\''+errStory.replace(/'/g,"\\'").slice(0,200)+'\';'+
+          'chatInput.dispatchEvent(new Event(\'input\'));sendMessage();" '+
+          'style="margin-top:.4rem;background:#dc3545;color:#fff;border:none;border-radius:20px;padding:.25em .8em;font-size:.78rem;cursor:pointer;">'+
+          '🔄 '+(LANG==='sw'?'Jaribu tena':'Try again')+'</button></div>';
+        messagesEl.appendChild(row); scrollDown(); resetInput();
       }
-    }).catch(function(){});
+    }).catch(function(){
+      clearInterval(pollTimer);
+      // Network error with retry button
+      var errStory=currentStory;
+      removeThinking();
+      var row=document.createElement('div'); row.className='msg-row bot';
+      row.innerHTML=avatarHTML()+
+        '<div class="error-msg">❌ '+(LANG==='sw'?'Tatizo la muunganisho. Angalia intaneti yako.':'Connection error. Check your internet.')+
+        '<br><br><button onclick="chatInput.value=\''+errStory.replace(/'/g,"\\'").slice(0,200)+'\';'+
+        'chatInput.dispatchEvent(new Event(\'input\'));sendMessage();" '+
+        'style="margin-top:.4rem;background:#dc3545;color:#fff;border:none;border-radius:20px;padding:.25em .8em;font-size:.78rem;cursor:pointer;">'+
+        '🔄 '+(LANG==='sw'?'Jaribu tena':'Try again')+'</button></div>';
+      messagesEl.appendChild(row); scrollDown(); resetInput();
+    });
   }
 
   // ════════════════════════════════════════════════════════════════

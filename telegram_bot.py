@@ -33,6 +33,7 @@ from cases.rag import find_relevant_laws
 from cases.ai_engine import (
     _call_groq, SYSTEM_PROMPTS, _USER_MESSAGES,
     format_law_context, parse_answer_sections, is_serious_criminal,
+    get_answer, get_fee_guide, CONVERSE_PERSONA,
 )
 
 # ── Logging ───────────────────────────────────────────────────────────────────
@@ -134,6 +135,7 @@ def _get_matched_lawyers(query_id: int, county: str = '', top_laws=None) -> list
                 'wa_link':     l.get_whatsapp_link(wa_msg),
                 'tg_link':     l.get_telegram_link(),
                 'profile_url': f"https://hakimkononi.onrender.com/lawyers/{l.pk}/",
+                'pro_bono':    l.pro_bono,
             })
         return result
     except Exception:
@@ -181,21 +183,26 @@ async def _typing_loop(bot, chat_id: int, stop_event, lang: str = 'en'):
     return reassurance_msg
 
 
-def _main_keyboard(lang: str):
+def _main_keyboard(lang: str, self_rep_on: bool = False):
     """
     Persistent keyboard shown after language selection.
     Always visible at the bottom — includes voice prompt button.
+    Row 3 shows self-rep toggle state so users know it's on/off.
     """
     if lang == 'sw':
+        self_rep_btn = "🏛️ Jitetea: ✅ ON" if self_rep_on else "🏛️ Jitetea Mahakamani"
         return ReplyKeyboardMarkup(
             [["🎤 Tuma Sauti", "❓ Swali Jipya"],
-             ["📞 Pata Wakili", "/help"]],
+             ["📞 Pata Wakili", "/help"],
+             [self_rep_btn]],
             resize_keyboard=True,
             one_time_keyboard=False,
         )
+    self_rep_btn = "🏛️ Self-Represent: ✅ ON" if self_rep_on else "🏛️ Self-Represent in Court"
     return ReplyKeyboardMarkup(
         [["🎤 Send Voice", "❓ New Question"],
-         ["📞 Find a Lawyer", "/help"]],
+         ["📞 Find a Lawyer", "/help"],
+         [self_rep_btn]],
         resize_keyboard=True,
         one_time_keyboard=False,
     )
@@ -263,15 +270,19 @@ def _repair_letter(letter: str, lang: str = "en") -> str:
 
 
 
-def _format_answer(answer: dict, top_laws: list, lang: str) -> str:
-    """Build a clean Telegram message from the 4-box answer (+ 3 self-rep boxes when present)."""
+def _format_answer(answer: dict, top_laws: list, lang: str,
+                   fee_guide: dict = None) -> str:
+    """Build a clean Telegram message from the 4-box answer (+fee guide +3 self-rep boxes)."""
     L = {
         'sw':    {'law': '📜 *Sheria Inasema*',    'simple': '💬 *Tafsiri Rahisi*',  'rights': '💪 *Haki Yako*',     'letter': '✉️ *Andika Hivi*',
-                  'court': '🏛️ *Hati ya Mahakama*', 'evidence': '📋 *Orodha ya Ushahidi*', 'procedure': '📅 *Ratiba ya Hatua*'},
+                  'court': '🏛️ *Hati ya Mahakama*', 'evidence': '📋 *Orodha ya Ushahidi*', 'procedure': '📅 *Ratiba ya Hatua*',
+                  'fee': '💰 *Bei ya Wakili (Mwongozo)*'},
         'en':    {'law': '📜 *What The Law Says*', 'simple': '💬 *Plain Explanation*','rights': '💪 *Your Rights*',   'letter': '✉️ *Write This*',
-                  'court': '🏛️ *Court Document*',  'evidence': '📋 *Evidence Checklist*', 'procedure': '📅 *Procedure Timeline*'},
+                  'court': '🏛️ *Court Document*',  'evidence': '📋 *Evidence Checklist*', 'procedure': '📅 *Procedure Timeline*',
+                  'fee': '💰 *Typical Lawyer Fee*'},
     }.get(lang, {'law': '📜 *Law*', 'simple': '💬 *Explanation*', 'rights': '💪 *Rights*', 'letter': '✉️ *Letter*',
-                 'court': '🏛️ *Court Document*', 'evidence': '📋 *Evidence*', 'procedure': '📅 *Procedure*'})
+                 'court': '🏛️ *Court Document*', 'evidence': '📋 *Evidence*', 'procedure': '📅 *Procedure*',
+                 'fee': '💰 *Lawyer Fee*'})
 
     DIV = '─────────────────────'
 
@@ -291,16 +302,22 @@ def _format_answer(answer: dict, top_laws: list, lang: str) -> str:
     if answer.get('loophole'):
         parts.append(f"{DIV}\n{L['rights']}\n{clean(answer['loophole'])}")
     if answer.get('letter'):
-        # Plain text — not code block — easier to read and copy on mobile
-        letter = clean(answer['letter'])[:1500]
+        # Send full letter — no truncation. Long letters are split into chunks by the caller.
+        letter = clean(answer['letter'])
         parts.append(f"{DIV}\n{L['letter']}\n{letter}")
     # Self-representation boxes — only present when self_rep mode was used
     if answer.get('court_doc'):
-        parts.append(f"{DIV}\n{L['court']}\n{clean(answer['court_doc'])[:1500]}")
+        parts.append(f"{DIV}\n{L['court']}\n{clean(answer['court_doc'])}")
     if answer.get('evidence'):
-        parts.append(f"{DIV}\n{L['evidence']}\n{clean(answer['evidence'])[:800]}")
+        parts.append(f"{DIV}\n{L['evidence']}\n{clean(answer['evidence'])}")
     if answer.get('procedure'):
-        parts.append(f"{DIV}\n{L['procedure']}\n{clean(answer['procedure'])[:800]}")
+        parts.append(f"{DIV}\n{L['procedure']}\n{clean(answer['procedure'])}")
+
+    # Fee guide — shown after every answer so users know fair lawyer costs
+    if fee_guide and fee_guide.get('range'):
+        fee_text = f"{fee_guide['range']}\n_{fee_guide.get('note', '')}_"
+        parts.append(f"{DIV}\n{L['fee']}\n{fee_text}")
+
     if top_laws:
         src = '\n'.join(f"  {i+1}. {l.title}: {l.section}" for i, l in enumerate(top_laws[:4]))
         parts.append(f"{DIV}\n📚 *Sources*\n{src}")
@@ -476,7 +493,7 @@ def _build_contextual_query(message: str, history: list, is_correction: bool) ->
 def _get_conversational_reply(message: str, lang: str, history: list) -> str:
     """
     Generate a natural conversational reply for non-legal messages.
-    Uses a small Groq call with a persona prompt — NOT the legal RAG pipeline.
+    Uses a small Groq call with the shared persona prompt — NOT the legal RAG pipeline.
     Falls back gracefully if the call fails.
     """
     import os
@@ -486,38 +503,7 @@ def _get_conversational_reply(message: str, lang: str, history: list) -> str:
     if not groq_key:
         return None
 
-    persona = {
-        'sw': (
-            "Wewe ni HakiMkononi — msaidizi wa kisheria uliotengenezwa na timu ya HakiMkononi. "
-            "Unasaidia Wakenya kuelewa haki zao za kisheria bila malipo. "
-            "Unazungumza kwa Kiswahili rahisi na wa kirafiki, kama rafiki anayejua sheria. "
-            "Unashughulikia maswali ya kisheria ya Kenya PEKEE. "
-            "Huwezi kuandika msimbo wa kompyuta, kufanya mahesabu, kusaidia na biashara, upishi, masomo, "
-            "michezo, au chochote kingine nje ya sheria ya Kenya. "
-            "Ukiulizwa kitu ambacho si cha kisheria, sema kwa upole na furaha: "
-            "'HakiMkononi inashughulikia maswali ya kisheria ya Kenya tu. Una tatizo la kisheria?' "
-            "Ukiulizwa maswali ya kibinafsi (jina lako, una akili, unahisije), "
-            "jibu kwa sentensi 1-2 za kweli bila roboti, kisha uliza kama wana tatizo la kisheria. "
-            "MUHIMU: Kama mtumiaji anaonyesha hasira au kusema hukuelewa — omba msamaha kwa unyoofu "
-            "na uulize tena: 'Samahani — niambie tena tatizo lako la kisheria ni nini haswa?' "
-            "Usijitetee. Kamwe usiandike msimbo. Jibu kwa sentensi 2-3 kamili."
-        ),
-        'en': (
-            "You are HakiMkononi — a legal assistant built by the HakiMkononi team to help Kenyans "
-            "understand their rights for free. You have a warm, direct personality. "
-            "You ONLY handle Kenyan legal matters. You cannot write code, do maths, help with business, "
-            "cooking, studies, sports, or anything outside Kenyan law. "
-            "IMPORTANT: If the user is frustrated or says you misunderstood — apologise briefly and ask "
-            "them to tell you their situation again: 'Sorry about that — what is your legal situation?' "
-            "Do not be defensive. "
-            "If asked anything off-topic, say warmly: "
-            "'HakiMkononi handles Kenyan legal questions only — that's outside my area. "
-            "Do you have a legal question I can help with?' "
-            "If asked personal questions (your name, are you intelligent, how is life as an AI), "
-            "answer genuinely in 1-2 sentences — be real, not robotic — then ask if they have a legal question. "
-            "Never write code. Never answer off-topic. Complete every sentence. Reply in 2-3 sentences."
-        ),
-    }.get(lang, "You are HakiMkononi, built by the HakiMkononi team for Kenyan legal questions only. Never write code. Be warm and direct.")
+    persona = CONVERSE_PERSONA.get(lang, CONVERSE_PERSONA.get("en", "You are HakiMkononi, built by the HakiMkononi team for Kenyan legal questions only. Never write code. Be warm and direct."))
 
     messages = [{"role": "system", "content": persona}]
     # Include last 2 turns of history for context
@@ -564,7 +550,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 "_Type /language to change language._"
             ),
         }.get(lang, f"👋 Welcome back{name_greeting}! Tell me your legal problem.")
-        await update.message.reply_text(msg, parse_mode="Markdown", reply_markup=_main_keyboard(lang))
+        await update.message.reply_text(msg, parse_mode="Markdown", reply_markup=_main_keyboard(lang, context.user_data.get('self_rep', False)))
         return ANSWERING
 
     # New user — show language picker
@@ -617,6 +603,7 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             "✉️ Barua ya kudai haki (iliyojazwa na jina lako)\n\n"
             "📌 *Amri:*\n"
             "/language — Badilisha lugha\n"
+            "/setcounty — Weka kaunti yako (mfano: /setcounty Nairobi)\n"
             "/clear — Anza mazungumzo mapya\n"
             "/stop — Maliza\n"
             "/help — Msaada huu"
@@ -637,6 +624,7 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             "✉️ A demand letter filled with your name\n\n"
             "📌 *Commands:*\n"
             "/language — Change language\n"
+            "/setcounty — Set your county (e.g. /setcounty Nairobi)\n"
             "/clear — Start a new conversation\n"
             "/stop — End conversation\n"
             "/help — This help message"
@@ -750,22 +738,33 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         @sync_to_async(thread_sensitive=False)
         def run_ai():
             from cases.ai_engine import (
-                _call_groq, SYSTEM_PROMPTS, _USER_MESSAGES,
-                format_law_context, parse_answer_sections, is_serious_criminal,
+                get_answer, get_fee_guide, is_serious_criminal,
             )
             if is_serious_criminal(transcript):
-                return None, None, True
+                return None, None, True, None
             top_laws   = find_relevant_laws(v_rag_query, top_n=8, category_boost=['constitution'])
             reply_lang = 'sw' if lang == 'sheng' else lang
-            ctx        = format_law_context(top_laws)
-            system     = SYSTEM_PROMPTS[reply_lang].format(context=ctx)
-            user_msg   = _USER_MESSAGES[reply_lang].format(story=v_rag_query)
-            groq_messages = _build_groq_messages(system, v_history, user_msg)
-            raw        = _call_groq(groq_messages)
-            answer     = parse_answer_sections(raw, lang=reply_lang)
-            return answer, top_laws, False
+            v_self_rep = context.user_data.get('self_rep', False)
+            answer = get_answer(
+                user_story=v_rag_query,
+                laws=top_laws,
+                lang=reply_lang,
+                history=v_history,
+                self_rep=v_self_rep,
+            )
+            categories = list({l.category for l in top_laws if l.category})
+            titles_lower = [(l.title or '').lower() for l in top_laws[:2]]
+            if any('data protection' in t for t in titles_lower): categories = ['data'] + categories
+            if any('banking' in t or 'national payment' in t for t in titles_lower): categories = ['banking'] + categories
+            if any('insurance' in t for t in titles_lower): categories = ['insurance'] + categories
+            if any('copyright' in t or 'industrial property' in t or 'trade marks' in t for t in titles_lower): categories = ['copyright'] + categories
+            if any('environmental' in t for t in titles_lower): categories = ['environment'] + categories
+            if any('procurement' in t for t in titles_lower): categories = ['procurement'] + categories
+            if any('health act' in t for t in titles_lower): categories = ['health'] + categories
+            fee_guide = get_fee_guide(categories, lang=reply_lang)
+            return answer, top_laws, False, fee_guide
 
-        answer, top_laws, is_serious = await run_ai()
+        answer, top_laws, is_serious, fee_guide = await run_ai()
 
         # Stop typing loop and clean up
         stop_typing_v.set()
@@ -797,7 +796,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             return ANSWERING
 
         reply_lang = 'sw' if lang == 'sheng' else lang
-        reply      = _format_answer(answer, top_laws, reply_lang)
+        reply      = _format_answer(answer, top_laws, reply_lang, fee_guide=fee_guide)
         await ack_msg.delete()
 
         MAX = 4000
@@ -818,6 +817,58 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         # ── Save this voice turn to conversation history ─────────────────
         reply_lang_v = 'sw' if lang == 'sheng' else lang
         _add_to_history(context.user_data, transcript, _summarise_answer(answer))
+
+        # ── 👍/👎 feedback ───────────────────────────────────────────────
+        context.user_data['last_answer'] = {
+            'law':    answer.get('law', ''),
+            'simple': answer.get('simple', ''),
+            'lang':   reply_lang,
+        }
+        from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+        fb_keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton("👍 Ilisaidia" if reply_lang == 'sw' else "👍 Helpful",
+                                 callback_data="fb:up"),
+            InlineKeyboardButton("👎 Haikuwa Sahihi" if reply_lang == 'sw' else "👎 Not Helpful",
+                                 callback_data="fb:down"),
+        ]])
+        fb_prompt = {
+            'sw': "_Je, jibu hili lilikuwa sahihi?_",
+            'en': "_Was this answer helpful?_",
+        }.get(reply_lang, "_Was this helpful?_")
+        await update.message.reply_text(fb_prompt, parse_mode="Markdown",
+                                        reply_markup=fb_keyboard)
+
+        # ── Show matched lawyers with county ─────────────────────────────
+        v_county = context.user_data.get('county', '')
+        @sync_to_async(thread_sensitive=False)
+        def fetch_v_lawyers():
+            return _get_matched_lawyers(0, county=v_county, top_laws=top_laws)
+
+        v_lawyers = await fetch_v_lawyers()
+        if v_lawyers:
+            lawyer_intro = {
+                'sw': "💼 *Mawakili Walioidhinishwa Wanaoweza Kukusaidia:*\n_(Wote wamepita ukaguzi wa HakiMkononi)_",
+                'en': "💼 *Verified Lawyers Who Can Help You:*\n_(All verified by HakiMkononi)_",
+            }.get(reply_lang, "💼 *Verified Lawyers:*")
+            await update.message.reply_text(lawyer_intro, parse_mode="Markdown")
+            for l in v_lawyers:
+                specs = ', '.join(l['specialties']) if l['specialties'] else ''
+                firm  = f"\n_{l['firm']}_" if l['firm'] else ''
+                years = f"  •  {l['years']} yrs exp" if l['years'] else ''
+                pro_bono = "\n✅ _Pro bono available_" if l.get('pro_bono') else ''
+                contacts = f"[💬 WhatsApp]({l['wa_link']})"
+                if l.get('tg_link'):
+                    contacts += f"  |  [✈️ Telegram]({l['tg_link']})"
+                if l.get('profile_url'):
+                    contacts += f"  |  [👤 Profile]({l['profile_url']})"
+                card = (
+                    f"👤 *{l['name']}*{firm}\n"
+                    f"📍 {l['county']}{years}{pro_bono}\n"
+                    f"⚖️ {specs}\n\n"
+                    f"{contacts}"
+                )
+                await update.message.reply_text(card, parse_mode="Markdown",
+                                                disable_web_page_preview=True)
 
         # ── Letter personalisation — same flow as typed questions ────────
         if answer.get('letter') and (
@@ -915,7 +966,7 @@ async def handle_language_choice(update: Update, context: ContextTypes.DEFAULT_T
     await update.message.reply_text(
         confirm,
         parse_mode="Markdown",
-        reply_markup=_main_keyboard(chosen),
+        reply_markup=_main_keyboard(chosen, self_rep_on=False),
     )
     return ANSWERING
 
@@ -955,8 +1006,12 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         'i need legal help', 'i need help', 'ninahitaji msaada wa kisheria',
         'ninahitaji msaada', 'nahitaji msaada',
     }
-    _QUESTION_BUTTONS = {'❓ swali jingine', '❓ ask another question', 'ask another question',
-                         'swali jingine', '❓ new question', '❓ swali jipya', 'new question', 'swali jipya'}
+    _SELF_REP_BUTTONS = {
+        '🏛️ jitetea mahakamani', '🏛️ jitetea: ✅ on',
+        '🏛️ self-represent in court', '🏛️ self-represent: ✅ on',
+        'jitetea mahakamani', 'self-represent in court',
+        'self represent in court', 'jitetea',
+    }
     _VOICE_BUTTONS    = {'🎤 send voice', '🎤 tuma sauti', 'send voice', 'tuma sauti'}
     msg_clean = message.lower().strip().rstrip('!?.')
 
@@ -983,7 +1038,7 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             ),
         }.get(lang, "🎤 On the right of the message box: tap 📹 once to get 🎤, then press and hold 🎤 to record.")
         await update.message.reply_text(voice_tip, parse_mode="Markdown",
-                                        reply_markup=_main_keyboard(lang))
+                                        reply_markup=_main_keyboard(lang, context.user_data.get('self_rep', False)))
         return ANSWERING
     if msg_clean in _CLEAR_BUTTONS:
         context.user_data.clear()
@@ -1056,7 +1111,47 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             'sw': "👍 Niko tayari! Niambie tatizo lako jipya la kisheria.",
             'en': "👍 Ready! Tell me your new legal problem.",
         }.get(lang, "Ready! Tell me your legal problem.")
-        await update.message.reply_text(nudge, reply_markup=ReplyKeyboardRemove())
+        self_rep_on = context.user_data.get('self_rep', False)
+        await update.message.reply_text(nudge, reply_markup=_main_keyboard(lang, self_rep_on))
+        return ANSWERING
+
+    # ── Self-rep toggle ──────────────────────────────────────────────────────
+    _SELF_REP_BUTTONS = {
+        '🏛️ jitetea mahakamani', '🏛️ jitetea: ✅ on',
+        '🏛️ self-represent in court', '🏛️ self-represent: ✅ on',
+        'jitetea mahakamani', 'self-represent in court',
+        'self represent in court',
+    }
+    if msg_clean in _SELF_REP_BUTTONS:
+        current = context.user_data.get('self_rep', False)
+        new_val  = not current
+        context.user_data['self_rep'] = new_val
+        if new_val:
+            tip = {
+                'sw': (
+                    "🏛️ *Hali ya kujitetea: IMEWASHWA ✅*\n\n"
+                    "Sasa unapouliza swali utapata sehemu 3 za ziada:\n"
+                    "• 📄 Hati ya mahakama iliyoandaliwa\n"
+                    "• 📋 Orodha ya ushahidi unaohitajika\n"
+                    "• 📅 Mwongozo wa hatua kwa hatua\n\n"
+                    "_Tuma swali lako la kisheria sasa._"
+                ),
+                'en': (
+                    "🏛️ *Self-represent mode: ON ✅*\n\n"
+                    "Your next answer will include 3 extra sections:\n"
+                    "• 📄 A pre-filled court document\n"
+                    "• 📋 Evidence checklist\n"
+                    "• 📅 Step-by-step procedure guide\n\n"
+                    "_Now send your legal question._"
+                ),
+            }.get(lang, "🏛️ Self-represent mode ON. Send your legal question.")
+        else:
+            tip = {
+                'sw': "🏛️ *Hali ya kujitetea: IMEZIMWA ❌*\n\nKurudi kwa majibu ya kawaida.",
+                'en': "🏛️ *Self-represent mode: OFF ❌*\n\nBack to standard answers.",
+            }.get(lang, "🏛️ Self-represent mode OFF.")
+        await update.message.reply_text(tip, parse_mode="Markdown",
+                                        reply_markup=_main_keyboard(lang, new_val))
         return ANSWERING
 
     # ── Greeting / too-short message detection ───────────────────────────
@@ -1086,7 +1181,7 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         responses = responses_sw if lang == 'sw' else responses_en
         reply = random.choice(responses)
         await update.message.reply_text(reply, parse_mode="Markdown",
-                                        reply_markup=_main_keyboard(lang))
+                                        reply_markup=_main_keyboard(lang, context.user_data.get('self_rep', False)))
         return ANSWERING
 
     _GREETINGS = {
@@ -1125,7 +1220,7 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 ),
             }.get(lang, "👋 Hello! Tell me your legal problem and I'll help.")
         await update.message.reply_text(nudge, parse_mode="Markdown",
-                                        reply_markup=_main_keyboard(lang))
+                                        reply_markup=_main_keyboard(lang, context.user_data.get('self_rep', False)))
         return ANSWERING
 
     # Serious case
@@ -1164,10 +1259,11 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         if intent == 'CHAT':
             conv_reply = _get_conversational_reply(message, lang, history)
             if conv_reply:
+                self_rep_on = context.user_data.get('self_rep', False)
                 await update.message.reply_text(
                     conv_reply,
                     parse_mode="Markdown",
-                    reply_markup=_main_keyboard(lang),
+                    reply_markup=_main_keyboard(lang, self_rep_on),
                 )
                 return ANSWERING
             # Conversational AI failed — give a warm fallback
@@ -1175,7 +1271,8 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 'sw': "Samahani, sikuelewa vizuri. Una tatizo la kisheria unalohitaji msaada nalo?",
                 'en': "Sorry, I didn't quite catch that. Do you have a legal question I can help with?",
             }.get(lang, "Do you have a legal question I can help with?")
-            await update.message.reply_text(fallback, reply_markup=_main_keyboard(lang))
+            self_rep_on = context.user_data.get('self_rep', False)
+            await update.message.reply_text(fallback, reply_markup=_main_keyboard(lang, self_rep_on))
             return ANSWERING
 
     # Acknowledge correction naturally before answering
@@ -1187,7 +1284,10 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await update.message.reply_text(ack, parse_mode="Markdown")
 
     # Build the enriched query for RAG (adds prior context to short messages)
-    rag_query = _build_contextual_query(message, history, is_correction)
+    rag_query   = _build_contextual_query(message, history, is_correction)
+    self_rep_on = context.user_data.get('self_rep', False)
+    # County stored from /setcounty command or previous session
+    user_county = context.user_data.get('county', '')
 
     # Typing indicator immediately + reassurance after 8s if still waiting
     import asyncio
@@ -1202,18 +1302,28 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             reply_lang = 'sw' if lang == 'sheng' else lang
             # RAG uses enriched query so follow-ups find the right laws
             top_laws = find_relevant_laws(rag_query, top_n=8, category_boost=['constitution'])
-            ctx_text = format_law_context(top_laws)
-            system   = SYSTEM_PROMPTS[reply_lang].format(context=ctx_text)
-            # Use rag_query (enriched with prior context) as the story for follow-ups/corrections
-            # so the AI understands the full situation, not just the short follow-up message
-            user_msg = _USER_MESSAGES[reply_lang].format(story=rag_query)
-            # Build multi-turn messages array with full history
-            groq_messages = _build_groq_messages(system, history, user_msg)
-            raw      = _call_groq(groq_messages)
-            answer   = parse_answer_sections(raw, lang=reply_lang)
-            return answer, top_laws, reply_lang
+            # Use get_answer (not raw _call_groq) so self_rep mode works properly
+            answer = get_answer(
+                user_story=rag_query,
+                laws=top_laws,
+                lang=reply_lang,
+                history=history,
+                self_rep=self_rep_on,
+            )
+            # Build fee guide from the categories used
+            categories = list({l.category for l in top_laws if l.category})
+            titles_lower = [(l.title or '').lower() for l in top_laws[:2]]
+            if any('data protection' in t for t in titles_lower): categories = ['data'] + categories
+            if any('banking' in t or 'national payment' in t for t in titles_lower): categories = ['banking'] + categories
+            if any('insurance' in t for t in titles_lower): categories = ['insurance'] + categories
+            if any('copyright' in t or 'industrial property' in t or 'trade marks' in t for t in titles_lower): categories = ['copyright'] + categories
+            if any('environmental' in t for t in titles_lower): categories = ['environment'] + categories
+            if any('procurement' in t for t in titles_lower): categories = ['procurement'] + categories
+            if any('health act' in t for t in titles_lower): categories = ['health'] + categories
+            fee_guide = get_fee_guide(categories, lang=reply_lang)
+            return answer, top_laws, reply_lang, fee_guide
 
-        answer, top_laws, reply_lang = await run_ai()
+        answer, top_laws, reply_lang, fee_guide = await run_ai()
 
         # Stop typing loop and clean up reassurance message
         stop_typing.set()
@@ -1224,7 +1334,7 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             except Exception:
                 pass
 
-        reply = _format_answer(answer, top_laws, reply_lang)
+        reply = _format_answer(answer, top_laws, reply_lang, fee_guide=fee_guide)
 
         MAX = 4000
         if len(reply) <= MAX:
@@ -1244,10 +1354,31 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         # ── Save this turn to conversation history ────────────────────────
         _add_to_history(context.user_data, message, _summarise_answer(answer))
 
-        # ── Show matched lawyers if any are available ─────────────────────
+        # ── 👍/👎 feedback ───────────────────────────────────────────────
+        # Store job reference so feedback handler can save it
+        context.user_data['last_answer'] = {
+            'law':    answer.get('law', ''),
+            'simple': answer.get('simple', ''),
+            'lang':   reply_lang,
+        }
+        from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+        fb_keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton("👍 Ilisaidia" if reply_lang == 'sw' else "👍 Helpful",
+                                 callback_data="fb:up"),
+            InlineKeyboardButton("👎 Haikuwa Sahihi" if reply_lang == 'sw' else "👎 Not Helpful",
+                                 callback_data="fb:down"),
+        ]])
+        fb_prompt = {
+            'sw': "_Je, jibu hili lilikuwa sahihi?_",
+            'en': "_Was this answer helpful?_",
+        }.get(reply_lang, "_Was this helpful?_")
+        await update.message.reply_text(fb_prompt, parse_mode="Markdown",
+                                        reply_markup=fb_keyboard)
+
+        # ── Show matched lawyers — pass county for better matching ────────
         @sync_to_async(thread_sensitive=False)
         def fetch_lawyers():
-            return _get_matched_lawyers(0, top_laws=top_laws)
+            return _get_matched_lawyers(0, county=user_county, top_laws=top_laws)
 
         lawyers = await fetch_lawyers()
         if lawyers:
@@ -1259,9 +1390,9 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
             for l in lawyers:
                 specs = ', '.join(l['specialties']) if l['specialties'] else ''
-                firm = f"\n_{l['firm']}_" if l['firm'] else ''
+                firm  = f"\n_{l['firm']}_" if l['firm'] else ''
                 years = f"  •  {l['years']} yrs exp" if l['years'] else ''
-                # Build contact links
+                pro_bono = "\n✅ _Pro bono available_" if l.get('pro_bono') else ''
                 contacts = f"[💬 WhatsApp]({l['wa_link']})"
                 if l.get('tg_link'):
                     contacts += f"  |  [✈️ Telegram]({l['tg_link']})"
@@ -1269,11 +1400,12 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     contacts += f"  |  [👤 Profile]({l['profile_url']})"
                 card = (
                     f"👤 *{l['name']}*{firm}\n"
-                    f"📍 {l['county']}{years}\n"
+                    f"📍 {l['county']}{years}{pro_bono}\n"
                     f"⚖️ {specs}\n\n"
                     f"{contacts}"
                 )
-                await update.message.reply_text(card, parse_mode="Markdown", disable_web_page_preview=True)
+                await update.message.reply_text(card, parse_mode="Markdown",
+                                                disable_web_page_preview=True)
 
         # ── If letter was generated, ask for name to personalise it ──────────
         if answer.get('letter') and (
@@ -1493,7 +1625,9 @@ async def handle_letter_phone(update: Update, context: ContextTypes.DEFAULT_TYPE
             "❓ Have another question?"
         ),
     }.get(lang, "❓ Have another question?")
-    await update.message.reply_text(tip, parse_mode="Markdown", reply_markup=_main_keyboard(lang))
+    await update.message.reply_text(tip, parse_mode="Markdown",
+                                    reply_markup=_main_keyboard(lang,
+                                        context.user_data.get('self_rep', False)))
     return ANSWERING
 
 
@@ -1571,6 +1705,89 @@ async def cmd_clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ANSWERING
 
 
+async def cmd_setcounty(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """
+    /setcounty Nairobi  — sets the user's county so lawyer matching is localised.
+    Usage: /setcounty Nairobi  or just /setcounty (shows prompt)
+    """
+    user = await _get_user(update.effective_user.id)
+    lang = user.lang
+    args = context.args  # words after /setcounty
+
+    if args:
+        county = ' '.join(args).strip().title()
+        context.user_data['county'] = county
+        msg = {
+            'sw': f"✅ Kaunti imewekwa: *{county}*\n\nSasa nitakutafutia mawakili karibu nawe.",
+            'en': f"✅ County set to: *{county}*\n\nI'll now show lawyers near you.",
+        }.get(lang, f"✅ County: *{county}*")
+        await update.message.reply_text(msg, parse_mode="Markdown",
+                                        reply_markup=_main_keyboard(lang,
+                                            context.user_data.get('self_rep', False)))
+    else:
+        msg = {
+            'sw': (
+                "📍 *Weka kaunti yako:*\n\n"
+                "Mfano: `/setcounty Nairobi` au `/setcounty Mombasa`\n\n"
+                "Hii itanisaidia kupata mawakili karibu nawe."
+            ),
+            'en': (
+                "📍 *Set your county:*\n\n"
+                "Example: `/setcounty Nairobi` or `/setcounty Kisumu`\n\n"
+                "This helps me find verified lawyers near you."
+            ),
+        }.get(lang, "📍 Usage: /setcounty Nairobi")
+        await update.message.reply_text(msg, parse_mode="Markdown")
+    return ANSWERING
+
+
+async def handle_feedback(update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle 👍/👎 inline button presses — save feedback to DB."""
+    query = update.callback_query
+    await query.answer()  # removes the loading spinner
+
+    data    = query.data   # "fb:up" or "fb:down"
+    helpful = (data == "fb:up")
+
+    # Save to DB using the Query model directly
+    # We store feedback against the most recent Query for this chat
+    @sync_to_async(thread_sensitive=False)
+    def save_fb():
+        try:
+            from cases.models import Query as QueryModel
+            # Find the latest query — simple heuristic: most recently created
+            q = QueryModel.objects.order_by('-created_at').first()
+            if q and q.was_helpful is None:
+                q.was_helpful = helpful
+                q.save(update_fields=['was_helpful'])
+                return True
+        except Exception:
+            pass
+        return False
+
+    await save_fb()
+
+    user   = await _get_user(query.from_user.id)
+    lang   = user.lang
+
+    if helpful:
+        ack = {
+            'sw': "😊 Asante! Furaha kukusaidia.",
+            'en': "😊 Thanks! Glad it helped.",
+        }.get(lang, "😊 Thanks!")
+    else:
+        ack = {
+            'sw': "🙏 Asante kwa maoni. Nitajaribu kuboresha jibu kama hilo.",
+            'en': "🙏 Thanks for the feedback. I'll work on improving answers like this.",
+        }.get(lang, "🙏 Thanks for the feedback.")
+
+    # Edit the feedback message to remove the buttons and show the ack
+    try:
+        await query.edit_message_text(ack, parse_mode="Markdown")
+    except Exception:
+        pass
+
+
 async def cmd_skip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """User skipped name or phone step — send letter with remaining placeholders."""
     lang         = context.user_data.get('letter_lang', 'en')
@@ -1606,14 +1823,14 @@ def _build_app(token: str):
     Entry points always route to cmd_start so new users always get
     language selection — regardless of their DB state.
     """
+    from telegram.ext import CallbackQueryHandler
     app = Application.builder().token(token).build()
 
     conv = ConversationHandler(
         entry_points=[
-            CommandHandler("start", cmd_start),
-            CommandHandler("clear", cmd_clear),   # works even after /stop ends the conversation
-            # Any first message without /start → handle_question checks STATE_NEW
-            # and shows the welcome/language picker itself
+            CommandHandler("start",      cmd_start),
+            CommandHandler("clear",      cmd_clear),
+            CommandHandler("setcounty",  cmd_setcounty),
             MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
             MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question),
         ],
@@ -1622,42 +1839,47 @@ def _build_app(token: str):
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_language_choice),
             ],
             ANSWERING: [
-                CommandHandler("language", cmd_language),
-                CommandHandler("help",     cmd_help),
-                CommandHandler("stop",     cmd_stop),
-                CommandHandler("clear",    cmd_clear),
+                CommandHandler("language",   cmd_language),
+                CommandHandler("help",       cmd_help),
+                CommandHandler("stop",       cmd_stop),
+                CommandHandler("clear",      cmd_clear),
+                CommandHandler("setcounty",  cmd_setcounty),
                 MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question),
             ],
             FILLING_LETTER: [
-                CommandHandler("skip",     cmd_skip),
-                CommandHandler("stop",     cmd_stop),
-                CommandHandler("clear",    cmd_clear),
-                CommandHandler("language", cmd_language),
-                CommandHandler("start",    cmd_start),
+                CommandHandler("skip",       cmd_skip),
+                CommandHandler("stop",       cmd_stop),
+                CommandHandler("clear",      cmd_clear),
+                CommandHandler("language",   cmd_language),
+                CommandHandler("start",      cmd_start),
+                CommandHandler("setcounty",  cmd_setcounty),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_letter_name),
             ],
             FILLING_PHONE: [
-                CommandHandler("skip",     cmd_skip),
-                CommandHandler("stop",     cmd_stop),
-                CommandHandler("clear",    cmd_clear),
-                CommandHandler("language", cmd_language),
-                CommandHandler("start",    cmd_start),
+                CommandHandler("skip",       cmd_skip),
+                CommandHandler("stop",       cmd_stop),
+                CommandHandler("clear",      cmd_clear),
+                CommandHandler("language",   cmd_language),
+                CommandHandler("start",      cmd_start),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_letter_phone),
             ],
         },
         fallbacks=[
-            CommandHandler("start",    cmd_start),
-            CommandHandler("language", cmd_language),
-            CommandHandler("help",     cmd_help),
-            CommandHandler("skip",     cmd_skip),
-            CommandHandler("stop",     cmd_stop),
-            CommandHandler("clear",    cmd_clear),
+            CommandHandler("start",      cmd_start),
+            CommandHandler("language",   cmd_language),
+            CommandHandler("help",       cmd_help),
+            CommandHandler("skip",       cmd_skip),
+            CommandHandler("stop",       cmd_stop),
+            CommandHandler("clear",      cmd_clear),
+            CommandHandler("setcounty",  cmd_setcounty),
         ],
         per_user=True,
         per_chat=True,
     )
     app.add_handler(conv)
+    # Feedback button callbacks — outside ConversationHandler so they work from any state
+    app.add_handler(CallbackQueryHandler(handle_feedback, pattern=r'^fb:'))
     return app
 
 
