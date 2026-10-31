@@ -992,10 +992,52 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return CHOOSING_LANG
 
     # ── Handle quick-reply keyboard button taps ─────────────────────────
+    msg_clean = message.lower().strip().rstrip('!?.')
+
+    # ── Self-rep toggle FIRST — must be checked before anything else ─────
+    # Button labels (lowercased): "🏛️ self-represent in court",
+    #                             "🏛️ self-represent: ✅ on",
+    #                             "🏛️ jitetea mahakamani", "🏛️ jitetea: ✅ on"
+    _SELF_REP_BUTTONS = {
+        '🏛️ jitetea mahakamani', '🏛️ jitetea: ✅ on',
+        '🏛️ self-represent in court', '🏛️ self-represent: ✅ on',
+        'jitetea mahakamani', 'self-represent in court',
+        'self represent in court',
+    }
+    if msg_clean in _SELF_REP_BUTTONS:
+        current = context.user_data.get('self_rep', False)
+        new_val  = not current
+        context.user_data['self_rep'] = new_val
+        if new_val:
+            tip = {
+                'sw': (
+                    "🏛️ *Hali ya kujitetea: IMEWASHWA ✅*\n\n"
+                    "Sasa unapouliza swali utapata sehemu 3 za ziada:\n"
+                    "• 📄 Hati ya mahakama iliyoandaliwa\n"
+                    "• 📋 Orodha ya ushahidi unaohitajika\n"
+                    "• 📅 Mwongozo wa hatua kwa hatua\n\n"
+                    "_Tuma swali lako la kisheria sasa._"
+                ),
+                'en': (
+                    "🏛️ *Self-represent mode: ON ✅*\n\n"
+                    "Your next answer will include 3 extra sections:\n"
+                    "• 📄 A pre-filled court document\n"
+                    "• 📋 Evidence checklist\n"
+                    "• 📅 Step-by-step procedure guide\n\n"
+                    "_Now send your legal question._"
+                ),
+            }.get(lang, "🏛️ Self-represent mode ON. Send your legal question.")
+        else:
+            tip = {
+                'sw': "🏛️ *Hali ya kujitetea: IMEZIMWA ❌*\n\nKurudi kwa majibu ya kawaida.",
+                'en': "🏛️ *Self-represent mode: OFF ❌*\n\nBack to standard answers.",
+            }.get(lang, "🏛️ Self-represent mode OFF.")
+        await update.message.reply_text(tip, parse_mode="Markdown",
+                                        reply_markup=_main_keyboard(lang, new_val))
+        return ANSWERING
+
     _CLEAR_BUTTONS    = {'🗑️ anza upya', '🗑️ start fresh', 'start fresh', 'anza upya'}
     _LAWYER_BUTTONS   = {
-        # Keyboard buttons (exact matches after lowercase)
-        '📞 pata wakili', '📞 find a lawyer', 'find a lawyer', 'pata wakili',
         # Natural language — want a lawyer
         'i need a lawyer', 'i want a lawyer', 'help me find a lawyer',
         'connect me to a lawyer', 'get me a lawyer', 'find me a lawyer',
@@ -1006,14 +1048,7 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         'i need legal help', 'i need help', 'ninahitaji msaada wa kisheria',
         'ninahitaji msaada', 'nahitaji msaada',
     }
-    _SELF_REP_BUTTONS = {
-        '🏛️ jitetea mahakamani', '🏛️ jitetea: ✅ on',
-        '🏛️ self-represent in court', '🏛️ self-represent: ✅ on',
-        'jitetea mahakamani', 'self-represent in court',
-        'self represent in court', 'jitetea',
-    }
     _VOICE_BUTTONS    = {'🎤 send voice', '🎤 tuma sauti', 'send voice', 'tuma sauti'}
-    msg_clean = message.lower().strip().rstrip('!?.')
 
     # Voice prompt button
     if msg_clean in _VOICE_BUTTONS:
@@ -1113,45 +1148,6 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         }.get(lang, "Ready! Tell me your legal problem.")
         self_rep_on = context.user_data.get('self_rep', False)
         await update.message.reply_text(nudge, reply_markup=_main_keyboard(lang, self_rep_on))
-        return ANSWERING
-
-    # ── Self-rep toggle ──────────────────────────────────────────────────────
-    _SELF_REP_BUTTONS = {
-        '🏛️ jitetea mahakamani', '🏛️ jitetea: ✅ on',
-        '🏛️ self-represent in court', '🏛️ self-represent: ✅ on',
-        'jitetea mahakamani', 'self-represent in court',
-        'self represent in court',
-    }
-    if msg_clean in _SELF_REP_BUTTONS:
-        current = context.user_data.get('self_rep', False)
-        new_val  = not current
-        context.user_data['self_rep'] = new_val
-        if new_val:
-            tip = {
-                'sw': (
-                    "🏛️ *Hali ya kujitetea: IMEWASHWA ✅*\n\n"
-                    "Sasa unapouliza swali utapata sehemu 3 za ziada:\n"
-                    "• 📄 Hati ya mahakama iliyoandaliwa\n"
-                    "• 📋 Orodha ya ushahidi unaohitajika\n"
-                    "• 📅 Mwongozo wa hatua kwa hatua\n\n"
-                    "_Tuma swali lako la kisheria sasa._"
-                ),
-                'en': (
-                    "🏛️ *Self-represent mode: ON ✅*\n\n"
-                    "Your next answer will include 3 extra sections:\n"
-                    "• 📄 A pre-filled court document\n"
-                    "• 📋 Evidence checklist\n"
-                    "• 📅 Step-by-step procedure guide\n\n"
-                    "_Now send your legal question._"
-                ),
-            }.get(lang, "🏛️ Self-represent mode ON. Send your legal question.")
-        else:
-            tip = {
-                'sw': "🏛️ *Hali ya kujitetea: IMEZIMWA ❌*\n\nKurudi kwa majibu ya kawaida.",
-                'en': "🏛️ *Self-represent mode: OFF ❌*\n\nBack to standard answers.",
-            }.get(lang, "🏛️ Self-represent mode OFF.")
-        await update.message.reply_text(tip, parse_mode="Markdown",
-                                        reply_markup=_main_keyboard(lang, new_val))
         return ANSWERING
 
     # ── Greeting / too-short message detection ───────────────────────────
@@ -1303,13 +1299,36 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             # RAG uses enriched query so follow-ups find the right laws
             top_laws = find_relevant_laws(rag_query, top_n=8, category_boost=['constitution'])
             # Use get_answer (not raw _call_groq) so self_rep mode works properly
-            answer = get_answer(
-                user_story=rag_query,
-                laws=top_laws,
-                lang=reply_lang,
-                history=history,
-                self_rep=self_rep_on,
-            )
+            # If self_rep causes a timeout, fall back to standard 4-box answer
+            try:
+                answer = get_answer(
+                    user_story=rag_query,
+                    laws=top_laws,
+                    lang=reply_lang,
+                    history=history,
+                    self_rep=self_rep_on,
+                )
+            except Exception as e:
+                if self_rep_on:
+                    # Self-rep timed out — retry without it so user still gets an answer
+                    logger.warning(f"[run_ai] self_rep=True failed ({e}), retrying without self_rep")
+                    answer = get_answer(
+                        user_story=rag_query,
+                        laws=top_laws,
+                        lang=reply_lang,
+                        history=history,
+                        self_rep=False,
+                    )
+                    # Attach a note so the user knows self-rep was skipped
+                    answer['law'] = (answer.get('law') or '') + (
+                        "\n\n_(🏛️ Self-represent sections could not be generated this time — "
+                        "please try again in a minute.)_"
+                        if reply_lang == 'en' else
+                        "\n\n_(🏛️ Sehemu za kujitetea hazikuweza kutengenezwa sasa — "
+                        "jaribu tena baada ya dakika moja.)_"
+                    )
+                else:
+                    raise
             # Build fee guide from the categories used
             categories = list({l.category for l in top_laws if l.category})
             titles_lower = [(l.title or '').lower() for l in top_laws[:2]]
@@ -1446,6 +1465,7 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     except Exception as e:
         # Stop typing loop and clean up on error
         stop_typing.set()
+        logger.error(f"[handle_question] Exception for user {update.effective_user.id}: {e}", exc_info=True)
         try:
             reassurance = await typing_task
             if reassurance:
