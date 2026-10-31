@@ -150,3 +150,9 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL  = os.getenv('DEFAULT_FROM_EMAIL', 'HakiMkononi <noreply@hakimkononi.co.ke>')
 ADMIN_EMAIL         = os.getenv('ADMIN_EMAIL', '')   # extra recipient for KYC alerts
+
+# ─── Anti-Trafficking alert recipients ───────────────────────────────────────
+# Set these in Render env vars once you have partner emails confirmed.
+# Currently uses console backend so alerts print to Render logs.
+DCI_ALERT_EMAIL   = os.getenv('DCI_ALERT_EMAIL', '')    # DCI Anti-HT Unit
+HAART_ALERT_EMAIL = os.getenv('HAART_ALERT_EMAIL', '')  # HAART Kenya
