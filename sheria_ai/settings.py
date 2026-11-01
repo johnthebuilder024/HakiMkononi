@@ -58,6 +58,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Anti-trafficking security headers (only on /report-trafficking/ URLs)
+    'trafficking.middleware.TraffickingSecurityMiddleware',
 ]
 
 # Allow all origins in development — tighten this in production

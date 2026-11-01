@@ -166,13 +166,16 @@ def submit_report(request):
 
         if not errors:
             is_anonymous = not bool(form_data['reporter_contact'])
+            # Encrypt reporter contact before storing
+            from .encryption import encrypt_field
+            contact_to_store = encrypt_field(form_data['reporter_contact'])
             report = TraffickingReport.objects.create(
                 story_raw        = form_data['story'],
                 story_lang       = lang,
                 county_of_origin = form_data['county'],
                 approximate_date = form_data['approximate_date'],
                 is_urgent        = form_data['is_urgent'],
-                reporter_contact = form_data['reporter_contact'],
+                reporter_contact = contact_to_store,
                 is_anonymous     = is_anonymous,
                 status           = TraffickingReport.STATUS_PROCESS,
                 ip_hash          = ip_hash,
@@ -354,14 +357,21 @@ def report_detail(request, pk):
         or (partner.tier == TraffickingAccessKey.TIER_NGO and not report.is_anonymous)
     )
 
+    # Decrypt contact for display (if encrypted)
+    contact_display = ''
+    if show_contact and report.reporter_contact:
+        from .encryption import decrypt_field
+        contact_display = decrypt_field(report.reporter_contact)
+
     return render(request, 'trafficking/report_detail.html', {
-        'partner':      partner,
-        'report':       report,
-        'suspects':     suspects,
-        'alias_alerts': alias_alerts,
-        'show_contact': show_contact,
-        'indicators':   report.get_indicators_display_list(),
-        'can_update':   partner.can_update_status,
+        'partner':        partner,
+        'report':         report,
+        'suspects':       suspects,
+        'alias_alerts':   alias_alerts,
+        'show_contact':   show_contact,
+        'contact_display': contact_display,
+        'indicators':     report.get_indicators_display_list(),
+        'can_update':     partner.can_update_status,
         'status_choices': TraffickingReport.STATUS_CHOICES,
     })
 
@@ -422,6 +432,14 @@ def report_pdf(request, pk):
         or (partner.tier == TraffickingAccessKey.TIER_NGO and not report.is_anonymous)
     )
 
+    # Decrypt contact
+    from .encryption import decrypt_field
+    contact_text = (
+        decrypt_field(report.reporter_contact)
+        if (show_contact and report.reporter_contact)
+        else '[Anonymous — contact not available]'
+    )
+
     suspects_text = '\n'.join(
         f"  • {s.alias} ({s.get_alias_type_display()}, confidence: {s.confidence})"
         + (f" — {s.county_context}" if s.county_context else '')
@@ -433,7 +451,8 @@ def report_pdf(request, pk):
     ) or '  None identified'
 
     contact_text = (
-        report.reporter_contact if (show_contact and report.reporter_contact)
+        decrypt_field(report.reporter_contact)
+        if (show_contact and report.reporter_contact)
         else '[Anonymous — contact not available]'
     )
 

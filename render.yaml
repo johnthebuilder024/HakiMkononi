@@ -46,3 +46,10 @@ services:
         sync: false
       - key: ALLOWED_HOSTS
         sync: false
+      # ── Anti-trafficking (add these once you have partner emails confirmed) ──
+      - key: TRAFFICKING_ENCRYPTION_KEY
+        sync: false   # generate: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+      - key: DCI_ALERT_EMAIL
+        sync: false
+      - key: HAART_ALERT_EMAIL
+        sync: false
