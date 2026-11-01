@@ -14,6 +14,7 @@ urlpatterns = [
     # ── Public (no login) ────────────────────────────────────────────────────
     path('report/',           views.submit_report,     name='submit_report'),
     path('report/submitted/', views.report_submitted,  name='report_submitted'),
+    path('',                  views.resource_page,     name='resource_page'),
 
     # ── Partner dashboard ────────────────────────────────────────────────────
     path('dashboard/login/',               views.dashboard_login,   name='dashboard_login'),

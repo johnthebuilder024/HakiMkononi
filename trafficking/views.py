@@ -133,6 +133,15 @@ def _filter_reports_for_partner(partner):
 # Public: Report form
 # ─────────────────────────────────────────────────────────────────────────────
 
+def resource_page(request):
+    """
+    Public resource page — what is trafficking, warning signs, who to call.
+    No login needed. This is the page that gets shared publicly eventually.
+    Currently only accessible via direct URL (no navbar link yet).
+    """
+    return render(request, 'trafficking/resource_page.html')
+
+
 def submit_report(request):
     lang = request.GET.get('lang') or request.POST.get('lang') or 'en'
     if lang not in ('sw', 'en'):
