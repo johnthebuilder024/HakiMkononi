@@ -432,6 +432,17 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
     is_employment = any(k in story_lower for k in _emp_en + _emp_sw + db_slang.get('employment', []))
     is_land       = any(k in story_lower for k in _land_en + _land_sw + db_slang.get('land', []))
     is_tenant     = any(k in story_lower for k in _tenant_en + _tenant_sw)  # rental disputes specifically
+
+    # Land sub-type detection — mirrors the ai_engine classifier
+    _land_tx_signals = [
+        'buy land', 'buying land', 'kununua ardhi', 'kununua shamba', 'kununua plot',
+        'nataka kununua', 'sell land', 'sale agreement', 'title check', 'title deed check',
+        'ardhisasa', 'stamp duty', 'conveyancing', 'land control board', 'lcb',
+        'land search', 'title search', 'before buying', 'before paying', 'due diligence',
+        'hati ni ya kweli', 'ardhi safi', 'angalia hati', 'mkataba wa kuuza',
+        'kuuza ardhi', 'kuuza shamba',
+    ]
+    is_land_transaction = is_land and any(k in story_lower for k in _land_tx_signals)
     is_criminal   = any(k in story_lower for k in _criminal_en + _criminal_sw + db_slang.get('criminal', []))
     is_family     = any(k in story_lower for k in _family_en + _family_sw + db_slang.get('family', []))
     is_data       = any(k in story_lower for k in _data_en + _data_sw + db_slang.get('other', []))
@@ -693,6 +704,19 @@ def find_relevant_laws(user_story: str, top_n: int = 5, category_boost: list = N
             for k in ['land act', 'land registration']
         ):
             score += 0.10   # extra push so Land Act beats generic Constitution rights
+
+        # Land transaction: boost Land Control Act, Stamp Duty, Land Registration
+        # These contain the rules about consent, transfer, registration that buyers need
+        if is_land_transaction and entry['category'] == 'land' and any(
+            k in (entry['title'] or '').lower()
+            for k in ['land control', 'stamp duty', 'land registration', 'land act']
+        ):
+            score += 0.18   # strong boost — conveyancing Acts must surface for buyers
+        # Suppress purely criminal/employment sections for transaction queries
+        if is_land_transaction and not is_employment and entry['category'] == 'employment':
+            score -= 0.15
+        if is_land_transaction and entry['category'] == 'criminal_procedure':
+            score -= 0.10
 
         scored.append((score, entry))
 

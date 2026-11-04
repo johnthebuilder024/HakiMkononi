@@ -209,6 +209,8 @@ class AnswerJob(models.Model):
     lang    = models.CharField(max_length=10, default="sw")
     status  = models.CharField(max_length=10, default=STATUS_PENDING)
     self_rep = models.BooleanField(default=False)  # self-representation mode
+    # Land intelligence: 'dispute' | 'transaction' | 'general' | '' (non-land)
+    land_subtype = models.CharField(max_length=15, blank=True, default='')
 
     # Filled in when status = done
     answer_law      = models.TextField(blank=True)

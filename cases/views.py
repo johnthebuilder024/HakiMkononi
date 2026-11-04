@@ -123,15 +123,28 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
         job = AnswerJob.objects.get(pk=job_id)
         # Use enriched RAG query when available (for follow-ups/corrections)
         search_story = rag_query or job.story
+
+        # Auto-detect land subtype if not already set by the client
+        # The client sends land_subtype from its own keyword detection,
+        # but if empty we detect server-side as a fallback
+        effective_land_subtype = job.land_subtype
+        if not effective_land_subtype:
+            from cases.ai_engine import _is_land_query, classify_land_subtype
+            if _is_land_query(search_story):
+                effective_land_subtype = classify_land_subtype(search_story)
+                # Save it so the response includes it
+                AnswerJob.objects.filter(pk=job_id).update(land_subtype=effective_land_subtype)
+
         top_laws = find_relevant_laws(
             user_story=search_story, top_n=5, category_boost=["constitution"]
         )
         answer = get_answer(
-            user_story=search_story,  # enriched query so AI has full context for follow-ups
+            user_story=search_story,
             laws=top_laws,
             lang=job.lang,
             history=history or [],
             self_rep=job.self_rep,
+            land_subtype=effective_land_subtype,
         )
 
         query = Query.objects.create(
@@ -244,6 +257,7 @@ def submit_job(request):
         is_correction = bool(body.get("is_correction", False))
         is_followup   = bool(body.get("is_followup", False))
         self_rep      = bool(body.get("self_rep", False))
+        land_subtype  = body.get("land_subtype", "").strip()  # 'transaction'|'dispute'|'general'|''
     except (json.JSONDecodeError, TypeError):
         return JsonResponse({"error": "Invalid JSON."}, status=400)
 
@@ -269,7 +283,8 @@ def submit_job(request):
     # Build enriched RAG query for follow-ups and corrections
     rag_query = _build_rag_query(story, history, is_correction) if (is_correction or is_followup) else story
 
-    job = AnswerJob.objects.create(story=story, county=county, lang=lang, self_rep=self_rep)
+    job = AnswerJob.objects.create(story=story, county=county, lang=lang,
+                                    self_rep=self_rep, land_subtype=land_subtype)
 
     # Fire and forget — Django response returns while thread works
     t = threading.Thread(
@@ -336,10 +351,11 @@ def job_status(request, job_id):
     summary = _job_summaries.pop(job.pk, "")
 
     return JsonResponse({
-        "status":    "done",
-        "query_id":  job.query_id,
-        "is_serious": job.is_serious,
-        "self_rep":  job.self_rep,
+        "status":       "done",
+        "query_id":     job.query_id,
+        "is_serious":   job.is_serious,
+        "self_rep":     job.self_rep,
+        "land_subtype": job.land_subtype,
         "answer": {
             "sheria_inasema": job.answer_law,
             "tafsiri_rahisi": job.answer_simple,

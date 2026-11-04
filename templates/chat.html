@@ -848,7 +848,9 @@
     'pollution','environmental','factory waste','contaminated water','noise pollution','air pollution','nema','emca','dumping waste',
     'tender','procurement','government contract','bid rigging','contractor unpaid','government unpaid','ppra',
     'hospital refused','denied treatment','emergency treatment','medical negligence','health rights','maternal health',
-    'will','probate','letters of administration','intestate','deceased','next of kin','beneficiary','executor','disinherited','challenge a will'];
+    'will','probate','letters of administration','intestate','deceased','next of kin','beneficiary','executor','disinherited','challenge a will',
+    'buy land','buying land','buy a plot','purchase land','sale agreement','title check','is this title genuine','clean title',
+    'due diligence','ardhisasa','land control board','stamp duty','conveyancing','land search','title search','before buying','verify this title'];
   var LEGAL_KW_SW=['kufukuzwa','kufukuzwa kazi','mwajiri','mfanyakazi','mshahara','kulipwa','hakulipwa','hajalipa','hajalipwa','malipo','kazi','likizo','unyanyasaji','ubaguzi','notisi','mkataba','landlord','mpangaji','kodi','kukimbiwa','kufukuzwa nyumba','nyumba','amana','ardhi','shamba','hati','urithi','mali','polisi','kukamatwa','kukamatwa bila','dhamana','mahakama','jaji','wizi','kuibiwa','kupigwa','taarifa','shtaka','jela','korti','riswa','rushwa','talaka','matunzo','ulezi','watoto','mtoto','mke','mume','ndoa','mahari','unyanyasaji wa nyumbani','kudanganywa','kuibiwa','ulaghai','deni','mkopo','kurudisha','bidhaa','kasoro','kulazimishwa','haki zangu','haki zake','haki yake','haki yangu','kisheria','madai','barua ya kudai','fidia','ushahidi','katiba','haramu','ukiukwaji','rufaa','kesi','wakili','mahakamani','alinifukuza','hakulipa','alinishambulia','ananisumbua','wameniambia','wananitaka','wananilazimisha','wananidhulumu',
     'kudanganywa mtandaoni','ulaghai wa mpesa','akaunti yangu','simu iliibwa','sim kubadilishwa','udukuzi','waliiba pesa zangu','picha zangu','vitisho vya mtandao','sim swap','pesa zilienda','waliingia akaunti','simu yangu ilidukuliwa',
     'facebook yangu','instagram yangu','whatsapp iliibwa','wanajifanya mimi','wanatumia picha zangu','till number bandia',
@@ -858,6 +860,8 @@
     'kanjo','county askari','kaounti','kibanda changu','wamechukua mali','wamefunga duka','leseni ya biashara',
     'hire purchase','nilijeruhiwa kazini','mwajiri hana bima',
     'wosia','mirathi','marehemu','msimamizi wa mali','kupinga wosia','mrithi',
+    'kununua ardhi','kununua shamba','kununua plot','nataka kununua','kuuza ardhi','kuuza shamba',
+    'ardhisasa','ardhi safi','angalia hati','mkataba wa kuuza','hati ni ya kweli',
     'benki imefunga akaunti','akaunti imezuiwa','wakala wa mpesa','wakala akadanganya',
     'bima ilikataa','madai ya bima','bima ya gari','bima ya afya','nhif ilikataa',
     'haki ya kunakili','nyimbo zangu','nembo yangu','jina la biashara langu','wanapiga nakala',
@@ -905,6 +909,30 @@
     for(var i=0;i<LEGAL_KW_EN.length;i++){ if(t.indexOf(LEGAL_KW_EN[i])!==-1) return true; }
     for(var i=0;i<LEGAL_KW_SW.length;i++){ if(t.indexOf(LEGAL_KW_SW[i])!==-1) return true; }
     return false;
+  }
+
+  // ── Land sub-type detection (client-side Stage 1) ─────────────────────────
+  // Mirrors ai_engine.py classify_land_subtype() keywords.
+  // Returns 'transaction', 'dispute', or '' (non-land / let server decide).
+  var LAND_TX_KW=['buy land','buying land','buy a plot','purchase land','sale agreement',
+    'title check','is this title genuine','clean title','check this title','verify this title',
+    'ardhisasa','stamp duty','conveyancing','land control board','due diligence',
+    'before buying','before paying','land search','title search','about to pay',
+    'kununua ardhi','kununua shamba','kununua plot','nataka kununua','kuuza ardhi','kuuza shamba',
+    'ardhi safi','angalia hati','hati ni ya kweli','mkataba wa kuuza','ardhisasa'];
+  var LAND_DX_KW=['grabbed my land','took my land','stolen my land','land grabbing',
+    'fake title','forged title','double allocation','boundary dispute','encroachment',
+    'squatter','land fraud','caution on title','caveat on my land','land case',
+    'wamenibia ardhi','wamechukua ardhi','hati bandia','mpaka wa ardhi',
+    'kesi ya ardhi','waingilizi','ugomvi wa mirathi'];
+
+  function detectLandSubtype(text) {
+    var t = text.toLowerCase();
+    var isTx = LAND_TX_KW.some(function(k){ return t.indexOf(k) !== -1; });
+    var isDx = LAND_DX_KW.some(function(k){ return t.indexOf(k) !== -1; });
+    if(isTx && !isDx) return 'transaction';
+    if(isDx && !isTx) return 'dispute';
+    return '';  // ambiguous — let server decide
   }
 
   // Route message: LEGAL → legal pipeline, CHAT → conversational AI
@@ -1447,8 +1475,9 @@
     routeMessage(story, isCorrection, isFollowup,
       function(){ // LEGAL — full RAG + law pipeline
         addThinking(); startTime=Date.now();
+        var landSubtype = detectLandSubtype(story);
         fetch('/api/submit/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
-          body:JSON.stringify({story:story,county:currentCounty,lang:LANG,history:history,is_correction:isCorrection,is_followup:isFollowup,self_rep:document.getElementById('selfRepToggle').checked})})
+          body:JSON.stringify({story:story,county:currentCounty,lang:LANG,history:history,is_correction:isCorrection,is_followup:isFollowup,self_rep:document.getElementById('selfRepToggle').checked,land_subtype:landSubtype})})
         .then(function(r){return r.json();})
         .then(function(d){
           if(!d.job_id){addError('❌ '+(d.error||'Submission failed.'));return;}

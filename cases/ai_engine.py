@@ -419,6 +419,239 @@ SERIOUS_CRIMINAL_KEYWORDS = [
     "manslaughter", "kuua bila kukusudia",
 ]
 
+# ─── Land sub-type classification ────────────────────────────────────────────
+# Called AFTER classify_intent() already determined the message is LEGAL
+# and land keywords are present. Returns 'transaction', 'dispute', or 'general'.
+#
+# TRANSACTION: someone is buying/selling land, checking a title, due diligence
+# DISPUTE:     someone's land was grabbed, fake title, neighbour encroachment, etc.
+# GENERAL:     asking how land process works — route to explanation + ask clarifying Q
+
+_LAND_TRANSACTION_KW_EN = {
+    'buy land', 'buying land', 'buying a plot', 'purchase land', 'purchasing land',
+    'buy a plot', 'want to buy', 'i want to buy', 'looking to buy',
+    'interested in buying', 'thinking of buying',
+    'sell land', 'selling land', 'selling my plot', 'selling my shamba',
+    'want to sell', 'i want to sell',
+    'check this title', 'verify this title', 'is this title genuine',
+    'is this title real', 'is this title clean', 'clean title', 'title check',
+    'is the title', 'check the title deed', 'title deed check',
+    'is this land clean', 'check this land', 'verify this land',
+    'sale agreement', 'agreement for sale', 'transfer of land', 'land transfer',
+    'stamp duty', 'conveyancing', 'conveyance', 'land control board',
+    'land control', 'lcb consent', 'consent to transfer',
+    'land rates', 'rates clearance', 'ardhisasa', 'land registry search',
+    'search the land', 'land search', 'title search',
+    'due diligence', 'before buying', 'before i buy', 'before paying',
+    'check before', 'is the seller', 'seller genuine',
+    'pay deposit', 'paid deposit', 'about to pay', 'about to sign',
+    'deposit for land', 'down payment land',
+    'land agent', 'land broker', 'property agent', 'real estate agent',
+    'survey plan', 'beacon', 'beacons', 'survey map', 'plot measurements',
+}
+
+_LAND_TRANSACTION_KW_SW = {
+    'kununua ardhi', 'kununua kiwanja', 'kununua shamba', 'kununua plot',
+    'nataka kununua', 'ninataka kununua', 'ninataka kuuza',
+    'kuuza ardhi', 'kuuza shamba', 'kuuza kiwanja', 'kuuza plot',
+    'angalia hati', 'thibitisha hati', 'hati ni ya kweli',
+    'hati halisi', 'ardhi safi', 'angalia ardhi', 'hati ya ardhi',
+    'hati iko safi', 'kuchunguza hati',
+    'mkataba wa kuuza', 'kukabidhi ardhi', 'kubadilisha hati',
+    'bodi ya udhibiti wa ardhi', 'ruhusa ya ardhi', 'ruhusa ya transfer',
+    'ushuru wa stempu', 'usajili wa ardhi',
+    'kabla ya kununua', 'kabla sijalipa', 'kabla ya kulipa',
+    'angalia kwanza', 'muuzaji ni wa kweli',
+    'lipa amana', 'nililipa amana', 'karibu kulipa', 'amana ya ardhi',
+    'wakala wa ardhi', 'dalali wa ardhi',
+    'ardhisasa', 'tafuta ardhi', 'utafutaji wa ardhi',
+}
+
+_LAND_DISPUTE_KW_EN = {
+    'grabbed my land', 'someone grabbed', 'took my land', 'taking my land',
+    'stolen my land', 'stealing my land', 'land grabbing', 'land grab',
+    'fake title', 'forged title', 'title is fake', 'false title',
+    'double allocation', 'duplicate title', 'title fraud', 'land fraud',
+    'two titles', 'two owners', 'same land sold twice',
+    'encroachment', 'encroaching', 'boundary dispute', 'boundary moved',
+    'fence dispute', 'building on my land', 'someone built on',
+    'land case', 'court order on land', 'environment and land court', 'elc',
+    'squatter', 'squatters on my land', 'trespass', 'trespassing',
+    'inheritance dispute', 'family land dispute', 'fighting over land',
+    'caution on title', 'caution on my land', 'caveat on my land',
+    'someone put caution', 'restriction on title', 'blocked my title',
+    'evicted from my land', 'evicting me from my land',
+}
+
+_LAND_DISPUTE_KW_SW = {
+    'wamenibia ardhi', 'wamenibia shamba', 'walichukua ardhi yangu',
+    'wamechukua shamba', 'kuibia ardhi', 'wameiba ardhi', 'kunyakua ardhi',
+    'hati bandia', 'hati ya ulaghai', 'hati ya uongo', 'hati mbili',
+    'ardhi iliuzwa mara mbili',
+    'mpaka wa ardhi', 'mshindano wa mipaka', 'jirani amevuka mipaka',
+    'wamejenga ardhi yangu', 'kuingia ardhi yangu',
+    'kesi ya ardhi', 'amri ya mahakama ya ardhi', 'tribunal ya ardhi',
+    'wasumbufu', 'waingilizi',
+    'ugomvi wa mirathi', 'kupigana kwa ardhi', 'ardhi ya familia',
+    'caution kwenye hati', 'kizuizi kwenye ardhi',
+}
+
+
+def classify_land_subtype(message: str) -> str:
+    """
+    Called when a message is already classified as LEGAL and contains land keywords.
+    Returns: 'transaction' | 'dispute' | 'general'
+
+    Stage 1: keyword scan (instant, free) — handles ~85% of cases
+    Stage 2: Groq mini-call for genuinely ambiguous messages
+    """
+    msg_lower = message.lower()
+
+    is_transaction = any(kw in msg_lower for kw in _LAND_TRANSACTION_KW_EN | _LAND_TRANSACTION_KW_SW)
+    is_dispute     = any(kw in msg_lower for kw in _LAND_DISPUTE_KW_EN | _LAND_DISPUTE_KW_SW)
+
+    if is_transaction and not is_dispute:
+        logger.debug("[LandIntent] Stage1=TRANSACTION: %s", message[:60])
+        return 'transaction'
+    if is_dispute and not is_transaction:
+        logger.debug("[LandIntent] Stage1=DISPUTE: %s", message[:60])
+        return 'dispute'
+
+    # Stage 2 — Groq mini-call for ambiguous cases
+    groq_key = os.getenv('GROQ_API_KEY', '').strip()
+    if not groq_key:
+        if any(w in msg_lower for w in ['buy', 'sell', 'purchase', 'title', 'kununua', 'kuuza']):
+            return 'transaction'
+        return 'dispute'
+
+    prompt = (
+        "You are classifying a Kenyan land query. Reply with exactly one word.\n\n"
+        "TRANSACTION = person wants to buy, sell, verify a title deed, or do due diligence\n"
+        "DISPUTE     = person has a legal problem: land grabbed, fake title, boundary dispute, inheritance fight\n"
+        "GENERAL     = asking how land process works in general\n\n"
+        "Reply: TRANSACTION, DISPUTE, or GENERAL only.\n\n"
+        f"Query: {message}"
+    )
+    try:
+        r = http_requests.post(
+            GROQ_URL,
+            headers=_groq_headers(),
+            json={
+                'model': GROQ_MODEL,
+                'messages': [{'role': 'user', 'content': prompt}],
+                'temperature': 0.0,
+                'max_tokens': 5,
+            },
+            timeout=(5, 15),
+        )
+        r.raise_for_status()
+        result = r.json()['choices'][0]['message']['content'].strip().upper()
+        if 'TRANSACTION' in result:
+            return 'transaction'
+        if 'GENERAL' in result:
+            return 'general'
+        return 'dispute'
+    except Exception as exc:
+        logger.warning("[LandIntent] Groq sub-classifier failed (%s) — defaulting to dispute", exc)
+        return 'dispute'
+
+
+def _is_land_query(message: str) -> bool:
+    """Quick check: does this message contain any land-related keyword?"""
+    land_signals = {
+        'land', 'plot', 'shamba', 'ardhi', 'title deed', 'hati', 'acre',
+        'kiwanja', 'property', 'inherit', 'urithi', 'kununua ardhi',
+        'kuuza ardhi', 'ardhisasa', 'conveyancing', 'survey plan',
+        'title check', 'buy land', 'sell land',
+    }
+    msg = message.lower()
+    return any(s in msg for s in land_signals)
+
+
+# ─── Land transaction system prompts ──────────────────────────────────────────
+LAND_TRANSACTION_PROMPTS = {
+    "en": """You are HakiMkononi, a Kenyan land due diligence assistant.
+
+This person is buying, selling, or verifying land in Kenya — NOT a legal dispute.
+Your job: guide them through the verification process step by step.
+
+RULES:
+- Be conversational and helpful, like a knowledgeable friend
+- Always ask what county and land type if not already stated
+- Give specific Kenya guidance: Ardhisasa, Land Control Board, LR numbers, kenyalaw.org LSK register
+- Be honest about what they can do themselves vs what needs a conveyancing advocate
+- Do NOT generate a demand letter — they need a checklist and guidance, not a letter
+
+OUTPUT FORMAT — use these exact headers:
+
+## WHAT TO CHECK
+Numbered list of specific verification steps for their situation.
+Always include: Ardhisasa search, LR number verification, Land Control Board requirement,
+advocate check on LSK register, rates clearance, survey beacon check.
+
+## HOW TO DO IT STEP BY STEP
+For Ardhisasa: exact URL, exact steps, what each result means (clean / caution / charge / caveat)
+For Land Control Board: which land types need consent (agricultural = always, Nairobi town plots = not required)
+For LSK check: go to kenyalaw.org → LSK Register → search advocate name
+For rates clearance: go to county government offices or their online portal
+
+## RED FLAGS — STOP AND INVESTIGATE
+Specific warning signs for their transaction type:
+- Seller pressuring quick payment before search
+- Title format wrong for the county or era (pre-2012 green card vs post-2012 blue)
+- No Land Control Board consent for agricultural land
+- Advocate name not on LSK register
+- Two people claiming same parcel
+- Caution or charge already registered
+
+## YOUR NEXT STEP RIGHT NOW
+ONE specific action before paying anything.
+
+---
+LAND LAW CONTEXT (use only if directly relevant to their question):
+{context}""",
+
+    "sw": """Wewe ni HakiMkononi, msaidizi wa ukaguzi wa ardhi nchini Kenya.
+
+Mtu huyu anataka kununua, kuuza, au kuthibitisha ardhi — SI tatizo la kisheria.
+Kazi yako: mwongoze hatua kwa hatua katika mchakato wa uthibitisho.
+
+SHERIA ZA KUFUATA:
+- Zungumza kwa urafiki, kama rafiki mwenye ujuzi, si kama wakili wa mahakama
+- Uliza kaunti na aina ya ardhi kama hawakusema
+- Toa mwongozo mahususi wa Kenya: Ardhisasa, Bodi ya Udhibiti wa Ardhi, nambari za LR
+- Kuwa mkweli: waambie kinachoweza kufanywa wenyewe na kinachohitaji wakili wa ardhi
+- USITOE barua ya kudai — wanahitaji orodha ya hatua za ukaguzi, si barua
+
+MUUNDO — tumia vichwa hivi:
+
+## UNACHOHITAJI KUCHUNGUZA
+Orodha yenye nambari ya hatua mahususi za uthibitisho.
+Jumuisha: utafutaji wa Ardhisasa, nambari ya LR, Bodi ya Udhibiti wa Ardhi,
+ukaguzi wa wakili, cheti cha kodi, ukaguzi wa alama za upimaji.
+
+## JINSI YA KUFANYA HATUA KWA HATUA
+Kwa Ardhisasa: URL sahihi, hatua sahihi, maana ya kila jibu (safi / caution / charge)
+Kwa Bodi ya Udhibiti: aina gani zinahitaji ruhusa (kilimo = lazima, viwanja vya Nairobi = si lazima)
+Kwa ukaguzi wa wakili: nenda kenyalaw.org → LSK Register → tafuta jina la wakili
+
+## ISHARA ZA HATARI — SIMAMA UCHUNGUZE
+Ishara mahususi za onyo:
+- Muuzaji anakusukuma kulipa haraka kabla ya utafutaji
+- Umbizo la hati halifai kwa kaunti au wakati husika
+- Hakuna ruhusa ya Bodi ya Udhibiti kwa ardhi ya kilimo
+- Jina la wakili halionekani kwenye orodha ya LSK
+- Watu wawili wanachukua shamba moja
+- Caution au charge tayari imesajiliwa
+
+## HATUA YAKO SASA HIVI
+Hatua MOja mahususi kabla ya kulipa chochote.
+
+---
+MUKTADHA WA SHERIA YA ARDHI (tumia tu kama inafaa moja kwa moja):
+{context}""",
+}
+
 # ─── LSK Fee Guide (Remuneration Order 2014 + 2023 gazette) ──────────────────
 # Approximate ranges for common case types so Wanjiku knows if she's
 # being overcharged. These are GUIDANCE, not fixed prices.
@@ -1409,17 +1642,20 @@ def stream_answer(user_story: str, laws: list, lang: str = "sw"):
 # ─── Public synchronous entry point ──────────────────────────────────────────
 
 def get_answer(user_story: str, laws: list, lang: str = "sw",
-               history: list = None, self_rep: bool = False) -> dict:
+               history: list = None, self_rep: bool = False,
+               land_subtype: str = '') -> dict:
     """
     Main entry point for the background job thread.
     Returns a dict with the 4-box answer (+ 3 self-rep boxes when self_rep=True).
 
-    history  — optional list of prior {role, content} turns from the web chat.
-    self_rep — when True, extends the prompt with court document, evidence
-               checklist, and procedure timeline sections.
+    history      — optional list of prior {role, content} turns from the web chat.
+    self_rep     — when True, extends the prompt with court document, evidence
+                   checklist, and procedure timeline sections.
+    land_subtype — 'transaction' | 'dispute' | 'general' | ''
+                   When 'transaction', uses LAND_TRANSACTION_PROMPTS instead of
+                   the standard 4-box prompt.
     """
     lang = lang if lang in SYSTEM_PROMPTS else "sw"
-    # Sheng is understood as input but we reply in Kiswahili
     if lang == "sheng":
         lang = "sw"
 
@@ -1428,6 +1664,41 @@ def get_answer(user_story: str, laws: list, lang: str = "sw",
         return {"law": msg, "simple": "", "loophole": "", "letter": "",
                 "court_doc": "", "evidence": "", "procedure": "",
                 "raw": msg, "is_serious": True}
+
+    context = format_law_context(laws)
+
+    # ── Land transaction mode — use the due diligence prompt ──────────────────
+    if land_subtype == 'transaction':
+        tx_prompt = LAND_TRANSACTION_PROMPTS.get(lang, LAND_TRANSACTION_PROMPTS["en"])
+        system = tx_prompt.format(context=context)
+        user_msg = (
+            f"My land situation: {user_story}\n\n"
+            "Guide me through what to check and how to do it."
+            if lang == 'en' else
+            f"Hali yangu ya ardhi: {user_story}\n\n"
+            "Niongoze ninachohitaji kukagua na jinsi ya kufanya."
+        )
+        messages = [{"role": "system", "content": system}]
+        if history:
+            messages.extend(history[-(8):])
+        messages.append({"role": "user", "content": user_msg})
+        try:
+            raw = _call_with_fallback(messages, lang=lang)
+        except RuntimeError as exc:
+            return {"law": str(exc), "simple": "", "loophole": "", "letter": "",
+                    "court_doc": "", "evidence": "", "procedure": "",
+                    "raw": str(exc), "is_serious": False, "api_error": True,
+                    "land_subtype": "transaction"}
+        sections = parse_answer_sections(raw, lang=lang)
+        # For transaction mode, map the land-specific headers into existing boxes
+        # so the frontend renders them without any UI changes
+        if not sections.get('law'):
+            # Parse the land-specific format into the 4 standard boxes
+            sections = _parse_land_transaction_sections(raw, lang)
+        sections["raw"]          = raw
+        sections["is_serious"]   = False
+        sections["land_subtype"] = "transaction"
+        return sections
 
     context = format_law_context(laws)
 
@@ -1481,4 +1752,58 @@ def get_answer(user_story: str, laws: list, lang: str = "sw",
     sections = parse_answer_sections(raw, lang=lang)
     sections["raw"]        = raw
     sections["is_serious"] = False
+    return sections
+
+
+def _parse_land_transaction_sections(raw: str, lang: str) -> dict:
+    """
+    Parse the land transaction prompt's output into the standard 4-box format
+    so the existing frontend renders it without any UI changes.
+
+    Maps:
+      WHAT TO CHECK   → law box     (📜 — shows as "What The Law Says / Sheria Inasema")
+      HOW TO DO IT    → simple box  (💬 — shows as "Plain Explanation / Tafsiri Rahisi")
+      RED FLAGS       → loophole    (💪 — shows as "Your Rights / Haki Yako")
+      NEXT STEP       → letter box  (✉️ — shows as action item, no actual letter)
+    """
+    sections = {"law": "", "simple": "", "loophole": "", "letter": "",
+                "court_doc": "", "evidence": "", "procedure": ""}
+
+    marker_sets_en = [
+        ["## WHAT TO CHECK", "## HOW TO DO IT STEP BY STEP",
+         "## RED FLAGS — STOP AND INVESTIGATE", "## YOUR NEXT STEP RIGHT NOW"],
+        ["## WHAT TO CHECK", "## HOW TO DO IT",
+         "## RED FLAGS", "## YOUR NEXT STEP"],
+    ]
+    marker_sets_sw = [
+        ["## UNACHOHITAJI KUCHUNGUZA", "## JINSI YA KUFANYA HATUA KWA HATUA",
+         "## ISHARA ZA HATARI — SIMAMA UCHUNGUZE", "## HATUA YAKO SASA HIVI"],
+        ["## UNACHOHITAJI KUCHUNGUZA", "## JINSI YA KUFANYA",
+         "## ISHARA ZA HATARI", "## HATUA YAKO SASA"],
+    ]
+
+    all_sets = (marker_sets_sw if lang == 'sw' else marker_sets_en) + \
+               (marker_sets_en if lang == 'sw' else marker_sets_sw)
+
+    keys      = ["law", "simple", "loophole", "letter"]
+    raw_upper = raw.upper()
+
+    for marker_set in all_sets:
+        markers_upper = [m.upper() for m in marker_set]
+        if not any(m in raw_upper for m in markers_upper):
+            continue
+        for i, key in enumerate(keys):
+            start = raw_upper.find(markers_upper[i])
+            if start == -1:
+                continue
+            start += len(markers_upper[i])
+            end = raw_upper.find(markers_upper[i + 1]) if i + 1 < len(keys) else len(raw)
+            if end == -1:
+                end = len(raw)
+            sections[key] = raw[start:end].strip()
+        break
+
+    if not any(sections[k] for k in keys):
+        sections["law"] = raw.strip()
+
     return sections
