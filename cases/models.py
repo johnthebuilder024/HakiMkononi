@@ -569,3 +569,95 @@ class LawyerReport(models.Model):
     def __str__(self):
         return f"Report #{self.pk} — {self.lawyer.full_name} — {'✅ Reviewed' if self.reviewed else '⏳ Pending'}"
 
+
+class LandDueDiligenceSession(models.Model):
+    """
+    Persists the state of a land due diligence conversation.
+
+    When a user is checking land (land_subtype='transaction'), this model
+    stores context: county, LR number, stage, checks done, issues found.
+    Follow-up questions always have full context without the user repeating.
+    """
+
+    STAGE_SEARCHING  = 'searching'
+    STAGE_FOUND      = 'found'
+    STAGE_CHECKING   = 'checking'
+    STAGE_PAID       = 'paid'
+    STAGE_COMPLETED  = 'completed'
+    STAGE_CHOICES = [
+        (STAGE_SEARCHING,  '🔍 Searching for land'),
+        (STAGE_FOUND,      '📍 Found land, not yet checked'),
+        (STAGE_CHECKING,   '🔎 Currently doing due diligence'),
+        (STAGE_PAID,       '💸 Already paid'),
+        (STAGE_COMPLETED,  '✅ Checks completed'),
+    ]
+
+    VERDICT_GREEN = 'green'
+    VERDICT_AMBER = 'amber'
+    VERDICT_RED   = 'red'
+    VERDICT_CHOICES = [
+        (VERDICT_GREEN, '🟢 Green — no issues found'),
+        (VERDICT_AMBER, '⚠️ Amber — some concerns, investigate'),
+        (VERDICT_RED,   '🔴 Red — serious problems, do not pay'),
+    ]
+
+    session_key     = models.CharField(max_length=100, blank=True)
+    county          = models.CharField(max_length=100, blank=True)
+    land_type       = models.CharField(max_length=50, blank=True,
+                          help_text="agricultural / residential / commercial / unknown")
+    lr_number       = models.CharField(max_length=200, blank=True)
+    title_number    = models.CharField(max_length=200, blank=True)
+    seller_name     = models.CharField(max_length=200, blank=True)
+    asking_price    = models.CharField(max_length=100, blank=True)
+    stage           = models.CharField(max_length=15, choices=STAGE_CHOICES, default=STAGE_SEARCHING)
+    checks_completed = models.JSONField(default=list)
+    issues_found    = models.JSONField(default=list)
+    verdict         = models.CharField(max_length=10, choices=VERDICT_CHOICES, blank=True, default='')
+    answer_job      = models.ForeignKey(
+                          'AnswerJob', null=True, blank=True,
+                          on_delete=models.SET_NULL, related_name='land_sessions')
+    created_at      = models.DateTimeField(auto_now_add=True)
+    updated_at      = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = 'Land Due Diligence Session'
+        verbose_name_plural = 'Land Due Diligence Sessions'
+
+    def __str__(self):
+        parts = [f"Session {self.pk}"]
+        if self.county:
+            parts.append(self.county)
+        if self.lr_number:
+            parts.append(self.lr_number)
+        if self.verdict:
+            parts.append(self.verdict.upper())
+        return ' — '.join(parts)
+
+    def add_check(self, check_code: str):
+        checks = list(self.checks_completed or [])
+        if check_code not in checks:
+            checks.append(check_code)
+            self.checks_completed = checks
+            self.save(update_fields=['checks_completed', 'updated_at'])
+
+    def add_issue(self, issue: str):
+        issues = list(self.issues_found or [])
+        if issue not in issues:
+            issues.append(issue)
+            self.issues_found = issues
+            self.save(update_fields=['issues_found', 'updated_at'])
+
+    def compute_verdict(self) -> str:
+        issues = self.issues_found or []
+        red_words = ['fake', 'forged', 'caution', 'charge', 'restriction',
+                     'owner mismatch', 'caveat', 'court order', 'fraud']
+        red_flags = [i for i in issues if any(w in i.lower() for w in red_words)]
+        if red_flags:
+            self.verdict = self.VERDICT_RED
+        elif issues:
+            self.verdict = self.VERDICT_AMBER
+        else:
+            self.verdict = self.VERDICT_GREEN
+        self.save(update_fields=['verdict', 'updated_at'])
+        return self.verdict

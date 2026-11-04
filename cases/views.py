@@ -135,11 +135,63 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
                 # Save it so the response includes it
                 AnswerJob.objects.filter(pk=job_id).update(land_subtype=effective_land_subtype)
 
+        # ── Mode switch detection: transaction → dispute ──────────────────
+        # If someone was in transaction mode but now describes being defrauded
+        # or having already paid with problems, switch to dispute mode
+        if effective_land_subtype == 'transaction':
+            _dispute_switch_signals = [
+                'already paid', 'i paid', 'i have paid', 'nililipa', 'nimelipa',
+                'seller disappeared', 'muuzaji amepotea', 'disappeared with my money',
+                'won\'t give title', 'refused to give title', 'anakataa kutoa hati',
+                'he ran away', 'she ran away', 'amekimbia', 'alitoweka',
+                'took my money', 'aliiba pesa', 'waliiba pesa', 'stolen my deposit',
+                'frauded me', 'defrauded', 'alinidanganya', 'walinidanganya',
+            ]
+            if any(s in search_story.lower() for s in _dispute_switch_signals):
+                effective_land_subtype = 'dispute'
+                AnswerJob.objects.filter(pk=job_id).update(land_subtype='dispute')
+                logger.info(f"[LandMode] Job {job_id} switched from transaction to dispute")
+
         top_laws = find_relevant_laws(
             user_story=search_story, top_n=5, category_boost=["constitution"]
         )
+
+        # ── For land transaction queries, enrich context with court search ─
+        # If we can detect an LR number in the story, search kenyalaw.org
+        extra_context = ''
+        if effective_land_subtype == 'transaction':
+            try:
+                import re as _re
+                lr_match = _re.search(
+                    r'(?:LR|L\.R\.?|TITLE)\s*(?:NO\.?|NUMBER|NAMBARI)?\s*'
+                    r'([A-Z][A-Z\s]+/[\d]+(?:/[\d]+)*)',
+                    search_story.upper()
+                )
+                # Also try plain LR number patterns
+                if not lr_match:
+                    lr_match = _re.search(
+                        r'\b([A-Z]{3,}/(?:[A-Z\s]+/)?[\d]{1,4}/[\d]+)\b',
+                        search_story.upper()
+                    )
+                if lr_match:
+                    lr_num = lr_match.group(1).strip()
+                    from cases.land_court_search import (
+                        search_land_in_courts, format_court_results_for_ai
+                    )
+                    court_results = search_land_in_courts(lr_num, max_results=3)
+                    extra_context = format_court_results_for_ai(
+                        court_results, lr_num, lang=job.lang
+                    )
+            except Exception as e:
+                logger.debug(f"[LandSearch] Court search skipped: {e}")
+        # Enrich story with court context for land transactions
+        enriched_story = (
+            search_story + '\n\n' + extra_context
+            if extra_context else search_story
+        )
+
         answer = get_answer(
-            user_story=search_story,
+            user_story=enriched_story,
             laws=top_laws,
             lang=job.lang,
             history=history or [],
@@ -1912,7 +1964,7 @@ def extract_text(request):
             text_parts = []
             with pdfplumber.open(io.BytesIO(data)) as pdf:
                 for i, page in enumerate(pdf.pages):
-                    if i >= 20:  # cap at 20 pages to avoid huge prompts
+                    if i >= 20:
                         text_parts.append("[... document truncated at 20 pages ...]")
                         break
                     page_text = page.extract_text()
@@ -1921,10 +1973,50 @@ def extract_text(request):
             extracted = '\n\n'.join(text_parts).strip()
             if not extracted:
                 return JsonResponse({"error": "Could not extract text from this PDF. It may be a scanned image."}, status=422)
-            # Truncate to keep prompt manageable
+
+            # ── Land document analysis ────────────────────────────────────
+            # Detect if this looks like a title deed or land sale agreement
+            _land_doc_signals = [
+                'registered proprietor', 'land reference', 'lr no', 'lr.',
+                'certificate of title', 'certificate of ownership',
+                'land registration', 'land act', 'title deed',
+                'caution', 'charge', 'encumbrance', 'transfer',
+                'sale agreement', 'agreement for sale',
+                'stamp duty', 'land control',
+            ]
+            extracted_lower = extracted.lower()
+            is_land_doc = sum(1 for s in _land_doc_signals if s in extracted_lower) >= 3
+
+            land_analysis = None
+            court_cases   = []
+            if is_land_doc:
+                try:
+                    from cases.land_document_analysis import analyse_land_document
+                    lang_hint_clean = lang_hint or 'en'
+                    land_analysis = analyse_land_document(extracted, lang=lang_hint_clean)
+                    # Search courts for this LR number
+                    if land_analysis.get('lr_number'):
+                        from cases.land_court_search import search_land_in_courts
+                        court_cases = search_land_in_courts(land_analysis['lr_number'], max_results=3)
+                except Exception as e:
+                    print(f"[ExtractText] Land analysis error: {e}")
+
+            # Truncate raw text for prompt
             if len(extracted) > 4000:
                 extracted = extracted[:4000] + '\n[... document truncated ...]'
-            return JsonResponse({"text": extracted, "type": "pdf", "filename": filename})
+
+            response_data = {
+                "text":        extracted,
+                "type":        "pdf",
+                "filename":    filename,
+                "is_land_doc": is_land_doc,
+            }
+            if land_analysis:
+                response_data["land_analysis"]  = land_analysis['context_for_ai']
+                response_data["lr_number"]       = land_analysis['lr_number']
+                response_data["has_red_flags"]   = land_analysis['has_red_flags']
+                response_data["court_cases"]     = court_cases
+            return JsonResponse(response_data)
         except Exception as e:
             print(f"[ExtractText] PDF error: {e}")
             return JsonResponse({"error": "Could not read this PDF. Please describe the document in your question instead."}, status=422)

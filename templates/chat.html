@@ -1475,7 +1475,9 @@
     routeMessage(story, isCorrection, isFollowup,
       function(){ // LEGAL — full RAG + law pipeline
         addThinking(); startTime=Date.now();
-        var landSubtype = detectLandSubtype(story);
+        var landSubtype = chatInput.dataset.landSubtype || detectLandSubtype(story);
+        // Clear the dataset flag after reading it
+        chatInput.dataset.landSubtype = '';
         fetch('/api/submit/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
           body:JSON.stringify({story:story,county:currentCounty,lang:LANG,history:history,is_correction:isCorrection,is_followup:isFollowup,self_rep:document.getElementById('selfRepToggle').checked,land_subtype:landSubtype})})
         .then(function(r){return r.json();})
@@ -1599,13 +1601,47 @@
         setTimeout(function(){ micStatus.textContent = ''; }, 6000);
       } else {
         var label = file.name.length > 30 ? file.name.slice(0,28)+'…' : file.name;
-        var prefix = '[' + (LANG==='sw' ? 'Kutoka kwa hati' : 'From attached file') + ': ' + label + ']\n' + d.text + '\n\n';
-        // Prepend to existing input (so user can still type their question after)
-        chatInput.value = prefix + chatInput.value;
-        chatInput.dispatchEvent(new Event('input'));
-        chatInput.focus();
-        micStatus.textContent = LANG==='sw' ? '✅ Faili imesomwa!' : '✅ File attached!';
-        setTimeout(function(){ micStatus.textContent = ''; }, 3000);
+
+        // ── Land document detected — show analysis + set land_subtype ──────
+        if(d.is_land_doc){
+          var landPrompt = (LANG==='sw'
+            ? 'Nimepakia hati ya ardhi. Hapa ni taarifa zilizotolewa:\n\n'
+            : 'I uploaded a land document. Here are the extracted details:\n\n')
+            + (d.land_analysis || '') + '\n\n'
+            + (LANG==='sw'
+              ? 'Tafadhali niambie ni nini kinahitajika kukaguliwa na vidokezo vya hatari ulivyogundua.'
+              : 'Please tell me what needs to be checked and any red flags you found.');
+
+          // Show court cases if found
+          if(d.court_cases && d.court_cases.length > 0){
+            var courtWarning = '\n\n⚠️ ' + (LANG==='sw'
+              ? 'Kesi za mahakama zilizopatikana kwa nambari hii ya LR:'
+              : 'Court cases found for this LR number:');
+            d.court_cases.forEach(function(c){
+              courtWarning += '\n• ' + c.case_name + (c.date ? ' (' + c.date + ')' : '');
+            });
+            landPrompt += courtWarning;
+          }
+
+          chatInput.value = landPrompt;
+          // Force land_subtype to transaction for this submission
+          chatInput.dataset.landSubtype = 'transaction';
+          chatInput.dispatchEvent(new Event('input'));
+          chatInput.focus();
+          var flagMsg = d.has_red_flags
+            ? (LANG==='sw' ? '⚠️ Hati ya ardhi — vidokezo vya hatari vimepatikana!' : '⚠️ Land document — red flags found!')
+            : (LANG==='sw' ? '✅ Hati ya ardhi imesomwa' : '✅ Land document read');
+          micStatus.textContent = flagMsg;
+          setTimeout(function(){ micStatus.textContent = ''; }, 5000);
+        } else {
+          // Non-land document — standard handling
+          var prefix = '[' + (LANG==='sw' ? 'Kutoka kwa hati' : 'From attached file') + ': ' + label + ']\n' + d.text + '\n\n';
+          chatInput.value = prefix + chatInput.value;
+          chatInput.dispatchEvent(new Event('input'));
+          chatInput.focus();
+          micStatus.textContent = LANG==='sw' ? '✅ Faili imesomwa!' : '✅ File attached!';
+          setTimeout(function(){ micStatus.textContent = ''; }, 3000);
+        }
       }
     } catch(e) {
       micStatus.textContent = LANG==='sw' ? '❌ Hitilafu ya muunganisho.' : '❌ Connection error.';
