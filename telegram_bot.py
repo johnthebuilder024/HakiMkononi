@@ -271,18 +271,49 @@ def _repair_letter(letter: str, lang: str = "en") -> str:
 
 
 def _format_answer(answer: dict, top_laws: list, lang: str,
-                   fee_guide: dict = None) -> str:
-    """Build a clean Telegram message from the 4-box answer (+fee guide +3 self-rep boxes)."""
+                   fee_guide: dict = None, land_subtype: str = '') -> str:
+    """Build a clean Telegram message from the 4-box answer (+fee guide +3 self-rep boxes).
+    When land_subtype='transaction' the section labels switch to due diligence labels.
+    """
     L = {
-        'sw':    {'law': '📜 *Sheria Inasema*',    'simple': '💬 *Tafsiri Rahisi*',  'rights': '💪 *Haki Yako*',     'letter': '✉️ *Andika Hivi*',
-                  'court': '🏛️ *Hati ya Mahakama*', 'evidence': '📋 *Orodha ya Ushahidi*', 'procedure': '📅 *Ratiba ya Hatua*',
-                  'fee': '💰 *Bei ya Wakili (Mwongozo)*'},
-        'en':    {'law': '📜 *What The Law Says*', 'simple': '💬 *Plain Explanation*','rights': '💪 *Your Rights*',   'letter': '✉️ *Write This*',
-                  'court': '🏛️ *Court Document*',  'evidence': '📋 *Evidence Checklist*', 'procedure': '📅 *Procedure Timeline*',
-                  'fee': '💰 *Typical Lawyer Fee*'},
-    }.get(lang, {'law': '📜 *Law*', 'simple': '💬 *Explanation*', 'rights': '💪 *Rights*', 'letter': '✉️ *Letter*',
-                 'court': '🏛️ *Court Document*', 'evidence': '📋 *Evidence*', 'procedure': '📅 *Procedure*',
-                 'fee': '💰 *Lawyer Fee*'})
+        'sw': {
+            'law':      '📜 *Sheria Inasema*',
+            'simple':   '💬 *Tafsiri Rahisi*',
+            'rights':   '💪 *Haki Yako*',
+            'letter':   '✉️ *Andika Hivi*',
+            'court':    '🏛️ *Hati ya Mahakama*',
+            'evidence': '📋 *Orodha ya Ushahidi*',
+            'procedure':'📅 *Ratiba ya Hatua*',
+            'fee':      '💰 *Bei ya Wakili (Mwongozo)*',
+            # Land transaction mode labels
+            'land_check':    '🔍 *Unachohitaji Kukagua*',
+            'land_how':      '📋 *Jinsi ya Kufanya*',
+            'land_redflags': '⚠️ *Ishara za Hatari*',
+            'land_next':     '➡️ *Hatua Yako Sasa Hivi*',
+        },
+        'en': {
+            'law':      '📜 *What The Law Says*',
+            'simple':   '💬 *Plain Explanation*',
+            'rights':   '💪 *Your Rights*',
+            'letter':   '✉️ *Write This*',
+            'court':    '🏛️ *Court Document*',
+            'evidence': '📋 *Evidence Checklist*',
+            'procedure':'📅 *Procedure Timeline*',
+            'fee':      '💰 *Typical Lawyer Fee*',
+            # Land transaction mode labels
+            'land_check':    '🔍 *What To Check*',
+            'land_how':      '📋 *How To Do It*',
+            'land_redflags': '⚠️ *Red Flags — Stop And Investigate*',
+            'land_next':     '➡️ *Your Next Step Right Now*',
+        },
+    }.get(lang, {
+        'law': '📜 *Law*', 'simple': '💬 *Explanation*',
+        'rights': '💪 *Rights*', 'letter': '✉️ *Letter*',
+        'court': '🏛️ *Court Document*', 'evidence': '📋 *Evidence*',
+        'procedure': '📅 *Procedure*', 'fee': '💰 *Lawyer Fee*',
+        'land_check': '🔍 *What To Check*', 'land_how': '📋 *How To Do It*',
+        'land_redflags': '⚠️ *Red Flags*', 'land_next': '➡️ *Next Step*',
+    })
 
     DIV = '─────────────────────'
 
@@ -295,16 +326,43 @@ def _format_answer(answer: dict, top_laws: list, lang: str,
         return text.strip()
 
     parts = []
+
+    # Land transaction mode — use due diligence labels and add a mode banner
+    is_land_tx = (land_subtype == 'transaction')
+
+    if is_land_tx:
+        # Banner so user knows they're in due diligence mode
+        mode_banner = {
+            'sw': '🏠 *Ukaguzi wa Ardhi — Kabla ya Kulipa*',
+            'en': '🏠 *Land Due Diligence Mode*',
+        }.get(lang, '🏠 *Land Due Diligence*')
+        parts.append(f"{DIV}\n{mode_banner}")
+        # Map boxes to land labels
+        label_map = {
+            'law':     L['land_check'],
+            'simple':  L['land_how'],
+            'loophole': L['land_redflags'],
+            'letter':  L['land_next'],
+        }
+    else:
+        label_map = {
+            'law':     L['law'],
+            'simple':  L['simple'],
+            'loophole': L['rights'],
+            'letter':  L['letter'],
+        }
+
     if answer.get('law'):
-        parts.append(f"{DIV}\n{L['law']}\n{clean(answer['law'])}")
+        parts.append(f"{DIV}\n{label_map['law']}\n{clean(answer['law'])}")
     if answer.get('simple'):
-        parts.append(f"{DIV}\n{L['simple']}\n{clean(answer['simple'])}")
+        parts.append(f"{DIV}\n{label_map['simple']}\n{clean(answer['simple'])}")
     if answer.get('loophole'):
-        parts.append(f"{DIV}\n{L['rights']}\n{clean(answer['loophole'])}")
+        parts.append(f"{DIV}\n{label_map['loophole']}\n{clean(answer['loophole'])}")
     if answer.get('letter'):
-        # Send full letter — no truncation. Long letters are split into chunks by the caller.
         letter = clean(answer['letter'])
-        parts.append(f"{DIV}\n{L['letter']}\n{letter}")
+        # In land transaction mode the "letter" box is the next step, not an actual letter
+        # so we don't trigger the name/phone personalisation flow
+        parts.append(f"{DIV}\n{label_map['letter']}\n{letter}")
     # Self-representation boxes — only present when self_rep mode was used
     if answer.get('court_doc'):
         parts.append(f"{DIV}\n{L['court']}\n{clean(answer['court_doc'])}")
@@ -745,12 +803,50 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             top_laws   = find_relevant_laws(v_rag_query, top_n=8, category_boost=['constitution'])
             reply_lang = 'sw' if lang == 'sheng' else lang
             v_self_rep = context.user_data.get('self_rep', False)
+
+            # ── Land sub-classification for voice messages ───────────────
+            from cases.ai_engine import _is_land_query, classify_land_subtype
+            v_land_subtype = context.user_data.get('land_subtype', '')
+            if not v_land_subtype and _is_land_query(v_rag_query):
+                v_land_subtype = classify_land_subtype(v_rag_query)
+                # Store for follow-ups (context.user_data is thread-safe in PTB)
+                context.user_data['land_subtype'] = v_land_subtype
+
+            # Mode switch
+            if v_land_subtype == 'transaction':
+                _sw = ['already paid','nililipa','nimelipa','seller disappeared',
+                       'won\'t give title','he ran away','amekimbia','aliiba pesa']
+                if any(s in v_rag_query.lower() for s in _sw):
+                    v_land_subtype = 'dispute'
+                    context.user_data['land_subtype'] = 'dispute'
+
+            # Court search for voice queries with LR number
+            import re as _re
+            v_extra = ''
+            if v_land_subtype == 'transaction':
+                lr_m = _re.search(
+                    r'\b([A-Z]{3,}/(?:[A-Z\s]+/)?[\d]{1,4}/[\d]+)\b',
+                    v_rag_query.upper()
+                )
+                if lr_m:
+                    try:
+                        from cases.land_court_search import (
+                            search_land_in_courts, format_court_results_for_ai
+                        )
+                        ct = search_land_in_courts(lr_m.group(1), max_results=3)
+                        v_extra = format_court_results_for_ai(ct, lr_m.group(1), lang=reply_lang)
+                    except Exception:
+                        pass
+
+            v_enriched = v_rag_query + ('\n\n' + v_extra if v_extra else '')
+
             answer = get_answer(
-                user_story=v_rag_query,
+                user_story=v_enriched,
                 laws=top_laws,
                 lang=reply_lang,
                 history=v_history,
                 self_rep=v_self_rep,
+                land_subtype=v_land_subtype,
             )
             categories = list({l.category for l in top_laws if l.category})
             titles_lower = [(l.title or '').lower() for l in top_laws[:2]]
@@ -796,7 +892,9 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             return ANSWERING
 
         reply_lang = 'sw' if lang == 'sheng' else lang
-        reply      = _format_answer(answer, top_laws, reply_lang, fee_guide=fee_guide)
+        reply      = _format_answer(answer, top_laws, reply_lang,
+                                    fee_guide=fee_guide,
+                                    land_subtype=context.user_data.get('land_subtype', ''))
         await ack_msg.delete()
 
         MAX = 4000
@@ -1085,7 +1183,6 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         }.get(lang, "Starting fresh. Tell me your new legal problem.")
         await update.message.reply_text(reply, parse_mode="Markdown", reply_markup=ReplyKeyboardRemove())
         return ANSWERING
-
     # ── Detect lawyer-seeking intent in free text ─────────────────────────
     _LAWYER_INTENT_EN = {
         'need a lawyer', 'want a lawyer', 'find a lawyer', 'get a lawyer',
@@ -1300,28 +1397,71 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             reply_lang = 'sw' if lang == 'sheng' else lang
             # RAG uses enriched query so follow-ups find the right laws
             top_laws = find_relevant_laws(rag_query, top_n=8, category_boost=['constitution'])
-            # Use get_answer (not raw _call_groq) so self_rep mode works properly
-            # If self_rep causes a timeout, fall back to standard 4-box answer
+
+            # ── Land sub-classification (mirrors views.py _run_job) ──────────
+            from cases.ai_engine import (
+                _is_land_query, classify_land_subtype,
+            )
+            land_subtype = context.user_data.get('land_subtype', '')
+            if not land_subtype and _is_land_query(rag_query):
+                land_subtype = classify_land_subtype(rag_query)
+                context.user_data['land_subtype'] = land_subtype
+
+            # Mode switch: transaction → dispute if already paid with problems
+            if land_subtype == 'transaction':
+                _dispute_switch = [
+                    'already paid', 'i paid', 'nililipa', 'nimelipa',
+                    'seller disappeared', 'muuzaji amepotea',
+                    'won\'t give title', 'anakataa kutoa hati',
+                    'he ran away', 'amekimbia', 'alitoweka',
+                    'took my money', 'aliiba pesa', 'alinidanganya',
+                ]
+                if any(s in rag_query.lower() for s in _dispute_switch):
+                    land_subtype = 'dispute'
+                    context.user_data['land_subtype'] = 'dispute'
+
+            # Court case search for transaction queries with an LR number
+            import re as _re
+            extra_ctx = ''
+            if land_subtype == 'transaction':
+                lr_m = _re.search(
+                    r'\b([A-Z]{3,}/(?:[A-Z\s]+/)?[\d]{1,4}/[\d]+)\b',
+                    rag_query.upper()
+                )
+                if lr_m:
+                    try:
+                        from cases.land_court_search import (
+                            search_land_in_courts, format_court_results_for_ai
+                        )
+                        ct = search_land_in_courts(lr_m.group(1), max_results=3)
+                        extra_ctx = format_court_results_for_ai(ct, lr_m.group(1), lang=reply_lang)
+                    except Exception:
+                        pass
+
+            enriched = rag_query + ('\n\n' + extra_ctx if extra_ctx else '')
+
+            # Use get_answer (not raw _call_groq) so self_rep + land modes work
             try:
                 answer = get_answer(
-                    user_story=rag_query,
+                    user_story=enriched,
                     laws=top_laws,
                     lang=reply_lang,
                     history=history,
                     self_rep=self_rep_on,
+                    land_subtype=land_subtype,
                 )
             except Exception as e:
                 if self_rep_on:
                     # Self-rep timed out — retry without it so user still gets an answer
                     logger.warning(f"[run_ai] self_rep=True failed ({e}), retrying without self_rep")
                     answer = get_answer(
-                        user_story=rag_query,
+                        user_story=enriched,
                         laws=top_laws,
                         lang=reply_lang,
                         history=history,
                         self_rep=False,
+                        land_subtype=land_subtype,
                     )
-                    # Attach a note so the user knows self-rep was skipped
                     answer['law'] = (answer.get('law') or '') + (
                         "\n\n_(🏛️ Self-represent sections could not be generated this time — "
                         "please try again in a minute.)_"
@@ -1355,7 +1495,9 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             except Exception:
                 pass
 
-        reply = _format_answer(answer, top_laws, reply_lang, fee_guide=fee_guide)
+        reply = _format_answer(answer, top_laws, reply_lang,
+                               fee_guide=fee_guide,
+                               land_subtype=context.user_data.get('land_subtype', ''))
 
         MAX = 4000
         if len(reply) <= MAX:
@@ -1429,9 +1571,10 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                                                 disable_web_page_preview=True)
 
         # ── If letter was generated, ask for name to personalise it ──────────
+        # Skip for land transaction mode — "letter" box is next-step action, not a demand letter
         if answer.get('letter') and (
             '[YOUR NAME]' in answer['letter'] or '[JINA LAKO]' in answer['letter']
-        ):
+        ) and context.user_data.get('land_subtype') != 'transaction':
             # Repair letter before storing so it's always complete
             repaired = _repair_letter(answer['letter'], reply_lang)
             context.user_data['pending_letter'] = repaired
