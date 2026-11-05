@@ -706,7 +706,460 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ANSWERING
 
 
-# ── Conversation handlers ─────────────────────────────────────────────────────
+async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """
+    Handle documents sent to the bot (PDF, Word, images sent as files).
+
+    Mirrors the website's /api/extract-text/ endpoint:
+    - PDF  → pdfplumber extraction + land document analysis + court search
+    - Audio file → Groq Whisper transcription (same as voice notes)
+    - Image file → polite rejection (tell them to describe or send PDF)
+    - Other      → polite rejection
+    """
+    user = await _get_user(update.effective_user.id)
+
+    if user.state == WhatsAppUser.STATE_NEW:
+        await update.message.reply_text(
+            "👋 *Karibu HakiMkononi!*\n\nChagua lugha kwanza:\n1️⃣  Kiswahili\n2️⃣  English",
+            parse_mode="Markdown",
+            reply_markup=_lang_keyboard(),
+        )
+        return CHOOSING_LANG
+
+    lang = user.lang
+    doc  = update.message.document
+
+    if not doc:
+        return ANSWERING
+
+    filename  = doc.file_name or ''
+    ext       = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+    mime      = (doc.mime_type or '').lower()
+    file_size = doc.file_size or 0
+
+    # 20 MB cap (Telegram Bot API limit for getFile is 20 MB)
+    MAX_BYTES = 20 * 1024 * 1024
+    if file_size > MAX_BYTES:
+        too_big = {
+            'sw': "❌ Faili ni kubwa sana (zaidi ya 20 MB). Tuma faili ndogo au eleza tatizo kwa maandishi.",
+            'en': "❌ File too large (over 20 MB). Please send a smaller file or describe your situation in text.",
+        }.get(lang, "❌ File too large. Please describe your situation in text.")
+        await update.message.reply_text(too_big)
+        return ANSWERING
+
+    # ── Determine file type ───────────────────────────────────────────────────
+    PDF_EXTS   = {'pdf'}
+    AUDIO_EXTS = {'mp3', 'm4a', 'wav', 'ogg', 'webm', 'aac', 'flac', 'oga'}
+    IMAGE_EXTS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'heic', 'heif'}
+
+    is_pdf   = ext in PDF_EXTS   or 'pdf'   in mime
+    is_audio = ext in AUDIO_EXTS or 'audio' in mime
+    is_image = ext in IMAGE_EXTS or 'image' in mime
+
+    if is_image:
+        # Images not supported — polite rejection matching website behaviour
+        image_msg = {
+            'sw': (
+                "📄 *Picha haziwezi kusomwa moja kwa moja.*\n\n"
+                "Unaweza:\n"
+                "• Tuma kama *PDF* badala yake\n"
+                "• Au *eleza* unachohitaji kujua kuhusu hati hiyo kwa maandishi\n\n"
+                "_Mfano: 'Hati yangu inaonyesha caution — inamaanisha nini?'_"
+            ),
+            'en': (
+                "📄 *Image text extraction is not supported.*\n\n"
+                "You can:\n"
+                "• Send the document as a *PDF* instead\n"
+                "• Or *describe* what you need to know about the document in text\n\n"
+                "_Example: 'My title deed shows a caution — what does it mean?'_"
+            ),
+        }.get(lang, "📄 Please send a PDF or describe the document in text.")
+        await update.message.reply_text(image_msg, parse_mode="Markdown",
+                                        reply_markup=_main_keyboard(lang, context.user_data.get('self_rep', False)))
+        return ANSWERING
+
+    if not is_pdf and not is_audio:
+        unsupported = {
+            'sw': f"❌ Aina ya faili hii ({ext or mime or 'isiyojulikana'}) haiwezi kusomwa.\n\nTuma PDF au faili ya sauti (MP3, WAV, M4A).",
+            'en': f"❌ This file type ({ext or mime or 'unknown'}) is not supported.\n\nPlease send a PDF or audio file (MP3, WAV, M4A).",
+        }.get(lang, "❌ Unsupported file type. Please send a PDF or audio file.")
+        await update.message.reply_text(unsupported)
+        return ANSWERING
+
+    # ── Download the file ─────────────────────────────────────────────────────
+    ack_text = {
+        True:  {'sw': '📄 Inasoma PDF yako…',          'en': 'Reading your PDF…'},
+        False: {'sw': '🎵 Inatafsiri faili ya sauti…', 'en': 'Transcribing audio file…'},
+    }[is_pdf].get(lang, 'Reading file…')
+
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action="typing" if is_pdf else "record_voice"
+    )
+    ack_msg = await update.message.reply_text(ack_text)
+
+    try:
+        tg_file    = await context.bot.get_file(doc.file_id)
+        import io
+        buf = io.BytesIO()
+        await tg_file.download_to_memory(buf)
+        file_bytes = buf.getvalue()
+
+        # ── Route by type ─────────────────────────────────────────────────────
+        if is_audio:
+            # Re-use the audio transcription path from handle_voice
+            @sync_to_async(thread_sensitive=False)
+            def do_transcribe_doc():
+                import requests as _req, os
+                groq_key = os.environ.get('GROQ_API_KEY', '').strip()
+                data = {'model': 'whisper-large-v3', 'response_format': 'verbose_json', 'temperature': '0'}
+                lang_map = {'sw': 'sw', 'en': 'en'}
+                if lang in lang_map:
+                    data['language'] = lang_map[lang]
+                content_type = mime or 'audio/mpeg'
+                r = _req.post(
+                    'https://api.groq.com/openai/v1/audio/transcriptions',
+                    headers={'Authorization': f'Bearer {groq_key}'},
+                    files={'file': (filename or f'audio.{ext}', file_bytes, content_type)},
+                    data=data, timeout=60,
+                )
+                if r.status_code != 200:
+                    return '', ''
+                result = r.json()
+                return result.get('text', '').strip(), result.get('language', '')
+
+            transcript, _ = await do_transcribe_doc()
+            if not transcript:
+                await ack_msg.edit_text(
+                    '❌ ' + ('Sikuweza kuelewa faili ya sauti. Jaribu tena au andika swali lako.' if lang == 'sw'
+                              else 'Could not understand the audio file. Try again or type your question.')
+                )
+                return ANSWERING
+
+            await ack_msg.edit_text(
+                f"🎵 {'Nilisikia' if lang == 'sw' else 'I heard'}: _{transcript[:120]}_",
+                parse_mode="Markdown"
+            )
+            # Hand off to voice pipeline
+            context.user_data['_doc_transcript'] = transcript
+            # Simulate the rest of handle_voice by re-using the question pipeline
+            fake_message = update.message
+            # Store transcript and trigger the AI pipeline
+            from telegram_bot import _detect_correction, _detect_followup, _build_contextual_query
+            v_history  = context.user_data.get('history', [])
+            v_corr     = _detect_correction(transcript)
+            v_followup = _detect_followup(transcript, v_history)
+            v_rag      = _build_contextual_query(transcript, v_history, v_corr)
+
+            import asyncio, re as _re
+            stop_ev = asyncio.Event()
+            typing_t = asyncio.create_task(
+                _typing_loop(context.bot, update.effective_chat.id, stop_ev, lang)
+            )
+
+            @sync_to_async(thread_sensitive=False)
+            def run_audio_ai():
+                from cases.ai_engine import (
+                    get_answer, get_fee_guide, is_serious_criminal,
+                    _is_land_query, classify_land_subtype,
+                )
+                if is_serious_criminal(transcript):
+                    return None, None, True, None
+                top_laws   = find_relevant_laws(v_rag, top_n=8, category_boost=['constitution'])
+                reply_lang = 'sw' if lang == 'sheng' else lang
+                v_self_rep = context.user_data.get('self_rep', False)
+                v_land     = context.user_data.get('land_subtype', '')
+                if not v_land and _is_land_query(v_rag):
+                    v_land = classify_land_subtype(v_rag)
+                    context.user_data['land_subtype'] = v_land
+                extra = ''
+                if v_land == 'transaction':
+                    lr_m = _re.search(r'\b([A-Z]{3,}/(?:[A-Z\s]+/)?[\d]{1,4}/[\d]+)\b', v_rag.upper())
+                    if lr_m:
+                        try:
+                            from cases.land_court_search import search_land_in_courts, format_court_results_for_ai
+                            ct = search_land_in_courts(lr_m.group(1), max_results=3)
+                            extra = format_court_results_for_ai(ct, lr_m.group(1), lang=reply_lang)
+                        except Exception:
+                            pass
+                enriched = v_rag + ('\n\n' + extra if extra else '')
+                ans = get_answer(user_story=enriched, laws=top_laws, lang=reply_lang,
+                                 history=v_history, self_rep=v_self_rep, land_subtype=v_land)
+                cats = list({l.category for l in top_laws if l.category})
+                tl   = [(l.title or '').lower() for l in top_laws[:2]]
+                if any('data protection' in t for t in tl): cats = ['data'] + cats
+                if any('banking' in t or 'national payment' in t for t in tl): cats = ['banking'] + cats
+                if any('insurance' in t for t in tl): cats = ['insurance'] + cats
+                fg = get_fee_guide(cats, lang=reply_lang)
+                return ans, top_laws, False, fg
+
+            answer, top_laws, is_serious, fee_guide = await run_audio_ai()
+            stop_ev.set()
+            r_msg = await typing_t
+            if r_msg:
+                try:
+                    await r_msg.delete()
+                except Exception:
+                    pass
+
+            if is_serious:
+                serious_msg = {
+                    'sw': "🚨 *Kesi Nyeti: Tafuta Wakili Haraka*\n\n📞 *NLAS (Bure):* 0800 720 120",
+                    'en': "🚨 *Serious Case: Get a Lawyer Urgently*\n\n📞 *NLAS (Free):* 0800 720 120",
+                }.get(lang, "🚨 Serious case. Contact NLAS: 0800 720 120")
+                await update.message.reply_text(serious_msg, parse_mode="Markdown")
+                return ANSWERING
+
+            reply_lang = 'sw' if lang == 'sheng' else lang
+            reply = _format_answer(answer, top_laws, reply_lang, fee_guide=fee_guide,
+                                   land_subtype=context.user_data.get('land_subtype', ''))
+            MAX = 4000
+            if len(reply) <= MAX:
+                await update.message.reply_text(reply, parse_mode="Markdown")
+            else:
+                chunks, current = [], ''
+                for block in reply.split('\n\n'):
+                    if len(current) + len(block) + 2 <= MAX:
+                        current = (current + '\n\n' + block).strip()
+                    else:
+                        if current: chunks.append(current)
+                        current = block
+                if current: chunks.append(current)
+                for chunk in chunks:
+                    await update.message.reply_text(chunk, parse_mode="Markdown")
+
+            _add_to_history(context.user_data, transcript, _summarise_answer(answer))
+            await update.message.reply_text(
+                '❓ ' + ('Una swali lingine?' if lang == 'sw' else 'Have another question?'),
+                reply_markup=_main_keyboard(lang, context.user_data.get('self_rep', False))
+            )
+            return ANSWERING
+
+        # ── PDF processing ────────────────────────────────────────────────────
+        @sync_to_async(thread_sensitive=False)
+        def process_pdf():
+            import pdfplumber, io as _io, re as _re
+            text_parts = []
+            try:
+                with pdfplumber.open(_io.BytesIO(file_bytes)) as pdf:
+                    for i, page in enumerate(pdf.pages):
+                        if i >= 20:
+                            text_parts.append("[... document truncated at 20 pages ...]")
+                            break
+                        pt = page.extract_text()
+                        if pt:
+                            text_parts.append(pt.strip())
+            except Exception as e:
+                return None, None, str(e)
+
+            extracted = '\n\n'.join(text_parts).strip()
+            if not extracted:
+                return None, None, "Could not extract text — may be a scanned image"
+
+            # Land document detection (mirrors views.py)
+            _land_signals = [
+                'registered proprietor', 'land reference', 'lr no', 'lr.',
+                'certificate of title', 'certificate of ownership',
+                'land registration', 'land act', 'title deed',
+                'caution', 'charge', 'encumbrance', 'transfer',
+                'sale agreement', 'agreement for sale', 'stamp duty',
+            ]
+            ext_lower = extracted.lower()
+            is_land_doc = sum(1 for s in _land_signals if s in ext_lower) >= 3
+
+            land_result = None
+            court_cases = []
+            if is_land_doc:
+                try:
+                    from cases.land_document_analysis import analyse_land_document
+                    land_result = analyse_land_document(extracted, lang=lang)
+                    if land_result.get('lr_number'):
+                        from cases.land_court_search import search_land_in_courts
+                        court_cases = search_land_in_courts(land_result['lr_number'], max_results=3)
+                except Exception:
+                    pass
+
+            return extracted[:4000], (land_result, court_cases, is_land_doc), None
+
+        extracted, land_data, error = await process_pdf()
+
+        if error or not extracted:
+            err_msg = {
+                'sw': "❌ Sikuweza kusoma PDF hii. Inawezekana ni picha iliyoscaniwa.\nEleza tatizo lako kwa maandishi badala yake.",
+                'en': "❌ Could not read this PDF. It may be a scanned image.\nPlease describe your situation in text instead.",
+            }.get(lang, "❌ Could not read PDF. Please describe in text.")
+            await ack_msg.edit_text(err_msg)
+            return ANSWERING
+
+        land_analysis, court_cases, is_land_doc = land_data
+
+        # Build the user story from the PDF content
+        reply_lang = 'sw' if lang == 'sheng' else lang
+
+        if is_land_doc and land_analysis:
+            # Land document — set transaction mode and build context
+            context.user_data['land_subtype'] = 'transaction'
+            analysis_ctx = land_analysis.get('context_for_ai', '')
+            lr_num = land_analysis.get('lr_number', '')
+            has_flags = land_analysis.get('has_red_flags', False)
+
+            # Format court cases
+            court_text = ''
+            if court_cases:
+                court_text = (
+                    f"\n\n⚠️ {'Kesi za mahakama zilizopatikana' if reply_lang == 'sw' else 'Court cases found'} "
+                    f"{'kwa' if reply_lang == 'sw' else 'for'} {lr_num}:\n"
+                )
+                for c in court_cases:
+                    court_text += f"• {c['case_name']}" + (f" ({c['date']})" if c['date'] else '') + '\n'
+
+            # Show extracted summary to user immediately
+            summary_lines = []
+            if lr_num:
+                summary_lines.append(f"📋 LR: `{lr_num}`")
+            if land_analysis.get('fields', {}).get('proprietor_name'):
+                summary_lines.append(f"👤 Proprietor: {land_analysis['fields']['proprietor_name']}")
+            if land_analysis.get('fields', {}).get('county'):
+                summary_lines.append(f"📍 County: {land_analysis['fields']['county']}")
+            if land_analysis.get('fields', {}).get('encumbrances'):
+                enc_list = land_analysis['fields']['encumbrances']
+                summary_lines.append(f"⚠️ Encumbrances: {len(enc_list)} found")
+            if has_flags:
+                summary_lines.append(f"🔴 Red flags detected!")
+
+            summary_msg = (
+                (f"📄 *{'Hati ya Ardhi Imesomwa' if reply_lang == 'sw' else 'Land Document Read'}*\n\n"
+                 + '\n'.join(summary_lines))
+                if summary_lines else
+                (f"📄 *{'Hati imesomwa' if reply_lang == 'sw' else 'Document read'}*")
+            )
+            await ack_msg.edit_text(summary_msg, parse_mode="Markdown")
+
+            # Build the story for the AI
+            story = (
+                f"{'Nimepakia hati ya ardhi. Hapa ni taarifa zilizotolewa' if reply_lang == 'sw' else 'I uploaded a land document. Here are the extracted details'}:\n\n"
+                f"{analysis_ctx}{court_text}\n\n"
+                f"{'Niambie ni nini kinahitajika kukaguliwa na vidokezo vya hatari ulivyogundua.' if reply_lang == 'sw' else 'Tell me what needs to be checked and any red flags you found.'}"
+            )
+        else:
+            # Non-land PDF — use extracted text as context for a regular question
+            story = (
+                f"{'Nimepakia hati. Hapa ni maudhui yake' if reply_lang == 'sw' else 'I uploaded a document. Here are its contents'}:\n\n"
+                f"{extracted}\n\n"
+                f"{'Nisaidie kuelewa hati hii na haki zangu.' if reply_lang == 'sw' else 'Help me understand this document and my rights.'}"
+            )
+            await ack_msg.edit_text(
+                f"📄 {'Hati imesomwa. Ninachunguza...' if reply_lang == 'sw' else 'Document read. Analysing...'}"
+            )
+
+        # Run through the full AI pipeline
+        import asyncio
+        stop_ev2 = asyncio.Event()
+        typing_t2 = asyncio.create_task(
+            _typing_loop(context.bot, update.effective_chat.id, stop_ev2, lang)
+        )
+
+        history = context.user_data.get('history', [])
+
+        @sync_to_async(thread_sensitive=False)
+        def run_pdf_ai():
+            from cases.ai_engine import get_answer, get_fee_guide
+            top_laws = find_relevant_laws(story, top_n=8, category_boost=['constitution'])
+            land_sub = context.user_data.get('land_subtype', '')
+            ans = get_answer(
+                user_story=story, laws=top_laws, lang=reply_lang,
+                history=history, self_rep=context.user_data.get('self_rep', False),
+                land_subtype=land_sub,
+            )
+            cats = list({l.category for l in top_laws if l.category})
+            tl   = [(l.title or '').lower() for l in top_laws[:2]]
+            if any('data protection' in t for t in tl): cats = ['data'] + cats
+            if any('banking' in t or 'national payment' in t for t in tl): cats = ['banking'] + cats
+            if any('insurance' in t for t in tl): cats = ['insurance'] + cats
+            fg = get_fee_guide(cats, lang=reply_lang)
+            return ans, top_laws, fg
+
+        answer, top_laws, fee_guide = await run_pdf_ai()
+
+        stop_ev2.set()
+        r2 = await typing_t2
+        if r2:
+            try:
+                await r2.delete()
+            except Exception:
+                pass
+
+        reply = _format_answer(answer, top_laws, reply_lang, fee_guide=fee_guide,
+                               land_subtype=context.user_data.get('land_subtype', ''))
+        MAX = 4000
+        if len(reply) <= MAX:
+            await update.message.reply_text(reply, parse_mode="Markdown")
+        else:
+            chunks, current = [], ''
+            for block in reply.split('\n\n'):
+                if len(current) + len(block) + 2 <= MAX:
+                    current = (current + '\n\n' + block).strip()
+                else:
+                    if current: chunks.append(current)
+                    current = block
+            if current: chunks.append(current)
+            for chunk in chunks:
+                await update.message.reply_text(chunk, parse_mode="Markdown")
+
+        _add_to_history(context.user_data, story[:200], _summarise_answer(answer))
+        await update.message.reply_text(
+            '❓ ' + ('Una swali lingine?' if lang == 'sw' else 'Have another question?'),
+            reply_markup=_main_keyboard(lang, context.user_data.get('self_rep', False))
+        )
+        return ANSWERING
+
+    except Exception as e:
+        logger.error(f"[handle_document] Exception: {e}", exc_info=True)
+        try:
+            await ack_msg.edit_text(
+                '❌ ' + ('Kuna tatizo la kiufundi. Jaribu tena.' if lang == 'sw'
+                          else 'A technical error occurred. Please try again.')
+            )
+        except Exception:
+            pass
+        return ANSWERING
+
+
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """
+    Handle photos sent to the bot.
+
+    The website also cannot process images (no OCR).
+    Give a clear, helpful rejection with guidance on what to do instead.
+    """
+    user = await _get_user(update.effective_user.id)
+    lang = user.lang
+
+    msg = {
+        'sw': (
+            "📷 *Picha haziwezi kusomwa moja kwa moja.*\n\n"
+            "Unaweza kufanya hivi badala yake:\n\n"
+            "• *Tuma PDF* — scan hati kama PDF kisha itume\n"
+            "• *Eleza kwa maandishi* — niambie unachohitaji kujua kuhusu hati hiyo\n"
+            "• *Andika tena nambari* — kama ni hati ya ardhi, niandikia nambari ya LR (mfano: KIAMBU/001/234)\n\n"
+            "_Mfano: 'Hati yangu ya ardhi inaonyesha caution. LR ni KIAMBU/001/234. Inamaanisha nini?'_"
+        ),
+        'en': (
+            "📷 *Images cannot be read directly.*\n\n"
+            "Here's what you can do instead:\n\n"
+            "• *Send a PDF* — scan the document as a PDF then send it\n"
+            "• *Describe in text* — tell me what you need to know about the document\n"
+            "• *Type the key numbers* — if it's a land document, type the LR number (e.g. KIAMBU/001/234)\n\n"
+            "_Example: 'My title deed shows a caution. LR number is KIAMBU/001/234. What does it mean?'_"
+        ),
+    }.get(lang, "📷 Please send a PDF or describe the document in text.")
+
+    await update.message.reply_text(
+        msg,
+        parse_mode="Markdown",
+        reply_markup=_main_keyboard(lang, context.user_data.get('self_rep', False))
+    )
+    return ANSWERING
 
 
 
@@ -1996,8 +2449,10 @@ def _build_app(token: str):
             CommandHandler("start",      cmd_start),
             CommandHandler("clear",      cmd_clear),
             CommandHandler("setcounty",  cmd_setcounty),
-            MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
-            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question),
+            MessageHandler(filters.VOICE | filters.AUDIO,   handle_voice),
+            MessageHandler(filters.Document.ALL,             handle_document),
+            MessageHandler(filters.PHOTO,                    handle_photo),
+            MessageHandler(filters.TEXT & ~filters.COMMAND,  handle_question),
         ],
         states={
             CHOOSING_LANG: [
@@ -2009,8 +2464,10 @@ def _build_app(token: str):
                 CommandHandler("stop",       cmd_stop),
                 CommandHandler("clear",      cmd_clear),
                 CommandHandler("setcounty",  cmd_setcounty),
-                MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question),
+                MessageHandler(filters.VOICE | filters.AUDIO,   handle_voice),
+                MessageHandler(filters.Document.ALL,             handle_document),
+                MessageHandler(filters.PHOTO,                    handle_photo),
+                MessageHandler(filters.TEXT & ~filters.COMMAND,  handle_question),
             ],
             FILLING_LETTER: [
                 CommandHandler("skip",       cmd_skip),
@@ -2019,7 +2476,9 @@ def _build_app(token: str):
                 CommandHandler("language",   cmd_language),
                 CommandHandler("start",      cmd_start),
                 CommandHandler("setcounty",  cmd_setcounty),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_letter_name),
+                MessageHandler(filters.Document.ALL,             handle_document),
+                MessageHandler(filters.PHOTO,                    handle_photo),
+                MessageHandler(filters.TEXT & ~filters.COMMAND,  handle_letter_name),
             ],
             FILLING_PHONE: [
                 CommandHandler("skip",       cmd_skip),
@@ -2027,7 +2486,9 @@ def _build_app(token: str):
                 CommandHandler("clear",      cmd_clear),
                 CommandHandler("language",   cmd_language),
                 CommandHandler("start",      cmd_start),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_letter_phone),
+                MessageHandler(filters.Document.ALL,             handle_document),
+                MessageHandler(filters.PHOTO,                    handle_photo),
+                MessageHandler(filters.TEXT & ~filters.COMMAND,  handle_letter_phone),
             ],
         },
         fallbacks=[
