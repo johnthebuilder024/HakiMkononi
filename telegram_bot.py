@@ -1856,9 +1856,22 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 _is_land_query, classify_land_subtype,
             )
             land_subtype = context.user_data.get('land_subtype', '')
+
+            # Guard: pure rental/tenant queries must NOT go through land pipeline
+            _is_rental_only = any(s in rag_query.lower() for s in [
+                'landlord', 'tenant', 'rent ', 'monthly rent', 'kodi', 'mpangaji',
+                'mwenye nyumba', 'pango', 'locked out', 'locked me out',
+                'amana ya nyumba',
+            ])
+            _has_land_ownership = any(s in rag_query.lower() for s in [
+                'title deed', 'hati', 'kununua', 'buy land', 'buy a plot',
+                'shamba', 'kiwanja', 'lr number', 'ardhisasa', 'land control',
+                'sale agreement', 'kuuza ardhi',
+            ])
             if not land_subtype and _is_land_query(rag_query):
-                land_subtype = classify_land_subtype(rag_query)
-                context.user_data['land_subtype'] = land_subtype
+                if not _is_rental_only or _has_land_ownership:
+                    land_subtype = classify_land_subtype(rag_query)
+                    context.user_data['land_subtype'] = land_subtype
 
             # Mode switch: transaction → dispute if already paid with problems
             if land_subtype == 'transaction':

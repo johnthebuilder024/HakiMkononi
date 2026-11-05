@@ -128,11 +128,27 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
         # The client sends land_subtype from its own keyword detection,
         # but if empty we detect server-side as a fallback
         effective_land_subtype = job.land_subtype
+
+        # Guard: pure tenant/rental queries should NOT go through land pipeline
+        # "landlord locked me out" is a rental dispute, not a land ownership case
+        _tenant_only_signals = [
+            'landlord', 'tenant', 'rent', 'rental', 'monthly rent', 'kodi',
+            'mpangaji', 'mwenye nyumba', 'pango', 'locked out', 'locked me out',
+            'evicted from my house', 'amana ya nyumba', 'deposit for house',
+        ]
+        _is_rental = any(s in search_story.lower() for s in _tenant_only_signals)
+        _has_land_ownership = any(s in search_story.lower() for s in [
+            'title deed', 'hati', 'kununua', 'buy land', 'buy a plot', 'shamba',
+            'kiwanja', 'lr number', 'ardhisasa', 'land control', 'sale agreement',
+            'kupata ardhi', 'kuuza ardhi', 'transfer of land',
+        ])
+
         if not effective_land_subtype:
             from cases.ai_engine import _is_land_query, classify_land_subtype
-            if _is_land_query(search_story):
+            # Only classify as land if it has land ownership signals
+            # OR if it's clearly not a pure rental dispute
+            if _is_land_query(search_story) and (not _is_rental or _has_land_ownership):
                 effective_land_subtype = classify_land_subtype(search_story)
-                # Save it so the response includes it
                 AnswerJob.objects.filter(pk=job_id).update(land_subtype=effective_land_subtype)
 
         # ── Mode switch detection: transaction → dispute ──────────────────
@@ -155,6 +171,17 @@ def _run_job(job_id: int, history: list = None, rag_query: str = None):
         top_laws = find_relevant_laws(
             user_story=search_story, top_n=5, category_boost=["constitution"]
         )
+
+        # For land dispute queries, boost land category explicitly
+        if effective_land_subtype == 'dispute':
+            top_laws_land = find_relevant_laws(
+                user_story=search_story, top_n=5,
+                category_boost=["constitution", "land", "fraud", "consumer"]
+            )
+            # Use land-boosted results if they actually contain land/fraud sections
+            land_cats = {l.category for l in top_laws_land}
+            if 'land' in land_cats or 'fraud' in land_cats:
+                top_laws = top_laws_land
 
         # ── For land transaction queries, enrich context with court search ─
         # If we can detect an LR number in the story, search kenyalaw.org

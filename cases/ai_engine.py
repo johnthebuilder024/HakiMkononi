@@ -1670,14 +1670,18 @@ def get_answer(user_story: str, laws: list, lang: str = "sw",
     # ── Land transaction mode — use the due diligence prompt ──────────────────
     if land_subtype == 'transaction':
         tx_prompt = LAND_TRANSACTION_PROMPTS.get(lang, LAND_TRANSACTION_PROMPTS["en"])
-        system = tx_prompt.format(context=context)
-        user_msg = (
-            f"My land situation: {user_story}\n\n"
-            "Guide me through what to check and how to do it."
-            if lang == 'en' else
-            f"Hali yangu ya ardhi: {user_story}\n\n"
-            "Niongoze ninachohitaji kukagua na jinsi ya kufanya."
-        )
+        # Use .replace() not .format() to avoid issues with curly braces in law content
+        system = tx_prompt.replace('{context}', context)
+        if lang == 'sw':
+            user_msg = (
+                f"Hali yangu ya ardhi: {user_story}\n\n"
+                "Niongoze ninachohitaji kukagua na jinsi ya kufanya."
+            )
+        else:
+            user_msg = (
+                f"My land situation: {user_story}\n\n"
+                "Guide me through what to check and how to do it."
+            )
         messages = [{"role": "system", "content": system}]
         if history:
             messages.extend(history[-(8):])
