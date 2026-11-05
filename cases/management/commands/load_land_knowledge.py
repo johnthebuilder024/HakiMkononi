@@ -342,7 +342,7 @@ class Command(BaseCommand):
 
         self.stdout.write(f"\n[load_land_knowledge] Loading {len(LAND_KNOWLEDGE)} land knowledge rows...")
 
-        for item in LAND_KNOWLEDGE:
+        for item in LAND_KNOWLEDGE + LAND_KNOWLEDGE_V2:
             exists = Law.objects.filter(
                 title=item['title'],
                 section=item['section'],
@@ -396,3 +396,68 @@ class Command(BaseCommand):
 
                 invalidate_law_cache()
                 self.stdout.write(f"[load_land_knowledge] ✅ Embedded {count} rows, cache reloaded")
+
+
+# ── Additional rows added after testing ──────────────────────────────────────
+LAND_KNOWLEDGE_V2 = [
+    {
+        "title": "Land Sale Deposit Fraud and Recovery Kenya",
+        "section": "What to do when seller takes deposit and disappears",
+        "content": (
+            "When you pay a deposit for land in Kenya and the seller disappears or refuses to give the title deed:"
+            "\n\nYOUR LEGAL POSITION:"
+            "\n- The sale agreement is a binding contract under the Law of Contract Act (Cap 23)"
+            "\n- The seller is in breach of contract"
+            "\n- You can sue for specific performance (force the seller to complete the sale)"
+            "\n- You can sue for refund of the deposit plus interest and damages"
+            "\n- If the seller acted with intent to defraud, this is a criminal offence under the Penal Code"
+            "\n\nIMPORTANT — if you paid without a proper sale agreement:"
+            "\n- You still have rights under unjust enrichment principles"
+            "\n- You can demand return of the deposit as money paid under a failed contract"
+            "\n\nSTEPS TO TAKE:"
+            "\n1. Send a formal demand letter to the seller giving 14 days to complete the sale or refund"
+            "\n2. File a complaint with the DCI (fraud) if the seller deliberately misrepresented the land"
+            "\n3. File a civil suit in the High Court (Environment and Land Court) for:"
+            "\n   a. Specific performance — court orders seller to transfer the land"
+            "\n   b. Refund of deposit plus damages"
+            "\n4. If the seller took your money knowing they could not deliver — file a criminal complaint for obtaining money by false pretences (Penal Code Section 317)"
+            "\n\nEVIDENCE TO KEEP:"
+            "\n- Your sale agreement or receipt"
+            "\n- Any M-Pesa or bank transfer records"
+            "\n- WhatsApp/SMS conversations with the seller"
+            "\n- Photos of the land"
+            "\n- Any witnesses to the payment"
+            "\n\nNEVER pay a full purchase price before the title is searched and transferred. "
+            "Always use a conveyancing advocate to hold deposit in escrow."
+        ),
+        "category": "land",
+        "source_url": "https://kenyalaw.org",
+    },
+    {
+        "title": "Contract Law — Deposit Recovery Kenya",
+        "section": "Refund of deposit when contract fails or seller breaches",
+        "content": (
+            "Under the Law of Contract Act (Cap 23) and general contract principles in Kenya:"
+            "\n\nWHEN YOU CAN RECOVER YOUR DEPOSIT:"
+            "\n- Seller fails to deliver what was promised (breach by seller)"
+            "\n- Sale does not proceed due to seller's default"
+            "\n- Misrepresentation — seller lied about the land"
+            "\n- Seller had no title to sell"
+            "\n\nLEGAL REMEDIES:"
+            "\n1. Rescission — cancel the contract and get your deposit back"
+            "\n2. Damages — sue for the deposit plus any losses caused by the breach"
+            "\n3. Specific performance — if you still want the land, court can order the seller to complete"
+            "\n\nWHERE TO FILE:"
+            "\n- Small Claims Court — if deposit is under KES 1 million"
+            "\n- Environment and Land Court — for land-specific disputes"
+            "\n- Magistrate Court — for smaller amounts"
+            "\n\nLIMITATION: You must file within 6 years of the breach under the Limitation of Actions Act."
+            "\n\nPRACTICAL STEPS:"
+            "\n1. Write a demand letter: give 14 days to refund or complete"
+            "\n2. Report to DCI if you believe you were deliberately defrauded"
+            "\n3. File in court if no response"
+        ),
+        "category": "land",
+        "source_url": "https://kenyalaw.org",
+    },
+]
