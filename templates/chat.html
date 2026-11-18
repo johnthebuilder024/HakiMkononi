@@ -361,15 +361,19 @@
 .chat-textarea-wrap {
   display: flex; align-items: flex-end; gap: .5rem;
   background: #f3f3f3; border-radius: 24px; border: 2px solid transparent;
-  padding: .45rem .45rem .45rem .85rem;
+  padding: .55rem .45rem .55rem .85rem;
   transition: border-color .2s, background .2s;
+  min-height: 52px;    /* ensures buttons are always vertically centred */
 }
 .chat-textarea-wrap:focus-within { background: #fff; border-color: var(--haki-green); }
 #chatInput {
   flex: 1; border: none; background: transparent; resize: none; outline: none;
-  font-size: .93rem; line-height: 1.5; max-height: 130px; overflow-y: auto;
+  font-size: .93rem; line-height: 1.5;
+  overflow: hidden;        /* never show a scrollbar — textarea grows instead */
   font-family: inherit;
-  min-height: 44px;  /* Comfortable touch target height */
+  min-height: 24px;        /* single line height */
+  height: 24px;            /* start at one line */
+  max-height: 200px;       /* cap at ~8 lines then stop growing */
 }
 .chat-send-btn {
   width: 44px; height: 44px; border-radius: 50%; border: none;
@@ -686,7 +690,7 @@
     // Clear current state
     clearInterval(pollTimer); pollTimer=null; currentJobId=null;
     reassuranceSent=false; pendingLetter=null; pendingLetterName=null;
-    chatInput.value=''; chatInput.style.height='auto'; sendBtn.disabled=true;
+    chatInput.value=''; resetTextarea(); sendBtn.disabled=true;
 
     // Set active
     activeConvId = id;
@@ -812,7 +816,7 @@
     messagesEl.innerHTML='';
     welcomeEl.style.display='flex';
     newChatBtn.style.display='none';
-    chatInput.value=''; chatInput.style.height='auto'; sendBtn.disabled=true;
+    chatInput.value=''; resetTextarea(); sendBtn.disabled=true;
     chatInput.placeholder="{{ ui.story_placeholder }}";
     pendingLetter=null; pendingLetterName=null; reassuranceSent=false;
     reassuranceEl=null;
@@ -973,7 +977,7 @@
 
   function sendConversational(story) {
     addUserMessage(story);
-    chatInput.value=''; chatInput.style.height='auto'; sendBtn.disabled=true;
+    chatInput.value=''; resetTextarea(); sendBtn.disabled=true;
     var history = loadHistory();
     addThinking();
     fetch('/api/converse/', {
@@ -1069,9 +1073,13 @@
   //  INPUT / SEND
   // ════════════════════════════════════════════════════════════════
   chatInput.addEventListener('input',function(){
-    this.style.height='auto';
-    this.style.height=Math.min(this.scrollHeight,130)+'px';
-    sendBtn.disabled=this.value.trim().length<3;
+    // Auto-grow: reset to auto first so scrollHeight reflects content, then set exact height
+    this.style.height = 'auto';
+    var newH = Math.min(this.scrollHeight, 200);  // cap at 200px (~8 lines)
+    this.style.height = newH + 'px';
+    // Keep overflow hidden so scrollbar never appears
+    this.style.overflow = newH >= 200 ? 'auto' : 'hidden';
+    sendBtn.disabled = this.value.trim().length < 3;
     // Character counter — show when >200 chars
     var len = this.value.length;
     var counter = document.getElementById('charCounter');
@@ -1087,7 +1095,12 @@
   sendBtn.addEventListener('click',sendMessage);
   window.fillChat=function(el){chatInput.value=el.textContent.trim();chatInput.dispatchEvent(new Event('input'));chatInput.focus();};
 
-  function scrollDown(){setTimeout(function(){chatWindow.scrollTo({top:chatWindow.scrollHeight,behavior:'smooth'});},60);}
+  function resetTextarea() {
+    chatInput.style.height = 'auto';
+    chatInput.style.height = '24px';
+    chatInput.style.overflow = 'hidden';
+  }
+  window.resetTextarea = resetTextarea;
 
   function addUserMessage(text){
     // Start a new conversation if none active
@@ -1441,19 +1454,19 @@
   // ════════════════════════════════════════════════════════════════
   function sendMessage(){
     var story=chatInput.value.trim(); if(story.length<3)return;
-    if(pendingLetter!==null){addUserMessage(story);chatInput.value='';chatInput.style.height='auto';sendBtn.disabled=true;handleLetterFlowInput(story);sendBtn.disabled=chatInput.value.trim().length<3;return;}
+    if(pendingLetter!==null){addUserMessage(story);chatInput.value='';resetTextarea();sendBtn.disabled=true;handleLetterFlowInput(story);sendBtn.disabled=chatInput.value.trim().length<3;return;}
 
     var history=loadHistory(), hasHistory=history.length>0;
     var msgLower=story.toLowerCase().trim().replace(/[!?.,:]+$/,'');
     var isCorrection=detectCorrection(story), isFollowup=detectFollowup(story,hasHistory);
 
     if(GREETINGS_SET.has(msgLower)||(story.trim().length<8&&!hasHistory)){
-      addUserMessage(story);chatInput.value='';chatInput.style.height='auto';sendBtn.disabled=true;
+      addUserMessage(story);chatInput.value='';resetTextarea();sendBtn.disabled=true;
       addBotBubble(hasHistory?(LANG==='sw'?'👋 Karibu tena! Una swali lingine la kisheria?':'👋 Hi again! Do you have another legal question?'):(LANG==='sw'?'👋 Habari!<br><br>Niambie tatizo lako la kisheria.<br><br><em>Mfano: Nilifukuzwa kazi bila notisi na mwajiri wangu.</em>':'👋 Hello!<br><br>Tell me your legal problem and I\'ll help you.<br><br><em>Example: My employer fired me without notice.</em>'));
       sendBtn.disabled=chatInput.value.trim().length<3; return;
     }
     if(THANKS_SET.has(msgLower)){
-      addUserMessage(story);chatInput.value='';chatInput.style.height='auto';sendBtn.disabled=true;
+      addUserMessage(story);chatInput.value='';resetTextarea();sendBtn.disabled=true;
       var sw=['😊 Karibu sana!<br><br>Nimefurahi kukusaidia. Ukiwa na swali lingine, niko hapa.','😊 Karibu!<br><br>Kazi yangu ni kuhakikisha Wakenya wanajua haki zao.','🙏 Karibu sana!<br><br>Shiriki HakiMkononi na wengine wanaohitaji msaada wa kisheria.'];
       var en=['😊 You\'re welcome!<br><br>Glad I could help. If you have another question, I\'m here.','😊 Happy to help!<br><br>No one should face a legal problem alone.','🙏 You\'re welcome!<br><br>Share HakiMkononi with others who might need legal help too.'];
       addBotBubble((LANG==='sw'?sw:en)[Math.floor(Math.random()*3)]);
@@ -1461,12 +1474,12 @@
     }
     var SERIOUS_KW=['murder','mauaji','rape','ubakaji','defilement','udhalilishaji','terrorism','ugaidi','robbery with violence','manslaughter','kuua'];
     if(SERIOUS_KW.some(function(kw){return story.toLowerCase().indexOf(kw)!==-1;})){
-      addUserMessage(story);chatInput.value='';chatInput.style.height='auto';sendBtn.disabled=true;
+      addUserMessage(story);chatInput.value='';resetTextarea();sendBtn.disabled=true;
       addBotBubble(LANG==='sw'?'🚨 <strong>Kesi Nyeti: Tafuta Wakili Haraka</strong><br><br>Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br>🌐 www.nlas.go.ke':'🚨 <strong>Serious Case: Get a Lawyer Urgently</strong><br><br>This situation needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br>🌐 www.nlas.go.ke');
       sendBtn.disabled=chatInput.value.trim().length<3; return;
     }
 
-    addUserMessage(story); chatInput.value=''; chatInput.style.height='auto'; sendBtn.disabled=true;
+    addUserMessage(story); chatInput.value=''; resetTextarea(); sendBtn.disabled=true;
     if(isCorrection&&hasHistory){addBotBubble('<em style="color:#888;">'+(LANG==='sw'?'Sawa, naelewa. Acha nirekebishe...':'Got it, let me correct that...')+'</em>');}
     currentStory=story; currentCounty=countySelect.value;
     reassuranceSent=false; reassuranceEl=null;
