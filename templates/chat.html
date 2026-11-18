@@ -407,6 +407,17 @@
 .chat-input-inner { max-width: 740px; margin: 0 auto; }
 .chat-disclaimer { font-size: .76rem; color: #bbb; }
 
+/* Self-represent pill — active state */
+#selfRepLabel.self-rep-on {
+  background: var(--haki-green);
+  border-color: var(--haki-green);
+  color: #fff;
+}
+/* Hide disclaimer on small screens to give self-rep pill room */
+@media (max-width: 480px) {
+  .chat-disclaimer { display: none; }
+}
+
 .chat-textarea-wrap {
   display: flex; align-items: flex-end; gap: .5rem;
   background: #f3f3f3; border-radius: 24px; border: 2px solid transparent;
@@ -579,8 +590,16 @@
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:.3rem 0 0;gap:.5rem;flex-wrap:wrap;">
           <span class="mic-status" id="micStatus" style="font-size:.76rem;color:#888;"></span>
-          <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.75rem;color:#666;" title="{% if lang == 'en' %}Get court document, evidence checklist and step-by-step filing guide{% else %}Pata hati ya mahakama, orodha ya ushahidi na mwongozo wa hatua kwa hatua{% endif %}">
-            <input type="checkbox" id="selfRepToggle" style="accent-color:var(--haki-green);width:13px;height:13px;">
+          <!-- Self-represent toggle — styled as a pill button for discoverability -->
+          <label id="selfRepLabel"
+                 style="display:flex;align-items:center;gap:.35rem;cursor:pointer;
+                        background:#f0f7f4;border:1.5px solid #b6d9c3;border-radius:20px;
+                        padding:.22em .75em;font-size:.77rem;font-weight:600;color:#1a7a3c;
+                        transition:background .15s,border-color .15s;user-select:none;"
+                 title="{% if lang == 'en' %}Get a pre-filled court document, evidence checklist and step-by-step filing guide{% else %}Pata hati ya mahakama, orodha ya ushahidi na mwongozo wa hatua kwa hatua{% endif %}"
+                 onclick="this.classList.toggle('self-rep-on')">
+            <input type="checkbox" id="selfRepToggle"
+                   style="accent-color:var(--haki-green);width:13px;height:13px;cursor:pointer;">
             🏛️ {% if lang == 'en' %}Self-represent in court{% else %}Jitetea mahakamani{% endif %}
           </label>
           <span id="charCounter" style="display:none;font-size:.72rem;color:#999;"></span>
@@ -649,17 +668,16 @@
   window.closeSidebar = function(){ sidebarEl.classList.remove('open'); backdrop.classList.remove('show'); };
 
   // ── Chat-page mobile nav setup ──────────────────────────────────────────
-  // 1. Mark <body> so CSS can target chat-page-specific nav overrides
   document.body.classList.add('chat-page-active');
 
-  // 2. Replace injected ☰ with a clean SVG panel icon (like Claude/ChatGPT)
-  //    and move lang pills to right slot so nav is: [icon] [LOGO] [EN|SW]
   (function injectMobileToggle(){
+    // Only inject on mobile/tablet — skip on desktop to avoid duplicates
+    if(window.innerWidth >= 992) return;
+
     // History panel toggle — left side
     var toggle = document.createElement('button');
     toggle.className = 'sidebar-toggle';
     toggle.setAttribute('aria-label', LANG==='sw'?'Fungua historia':'Open history');
-    // SVG: two-line panel icon (cleaner than ☰)
     toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
       '<line x1="3" y1="6" x2="21" y2="6"/>' +
       '<line x1="3" y1="12" x2="15" y2="12"/>' +
@@ -669,17 +687,18 @@
     var brand = document.querySelector('.navbar-brand');
     if(brand) brand.parentNode.insertBefore(toggle, brand);
 
-    // Lang pills — move into a right-slot div so they stay right on mobile
+    // Lang pills — clone into a right-slot AND hide the originals so no duplicates
     var langNav = document.querySelector('[aria-label="Language selector"]');
     if(langNav) {
       var rightSlot = document.createElement('div');
       rightSlot.className = 'chat-nav-right';
-      // Copy only the lang pills (not #newChatBtn which is already in navbar_extra)
       Array.from(langNav.querySelectorAll('.lang-pill')).forEach(function(pill) {
         rightSlot.appendChild(pill.cloneNode(true));
       });
       var navbar = document.querySelector('.navbar > .container');
       if(navbar) navbar.appendChild(rightSlot);
+      // Hide the original language nav on mobile so no duplicates
+      langNav.style.display = 'none';
     }
   })();
 
@@ -1166,6 +1185,15 @@
   sendBtn.addEventListener('click',sendMessage);
   window.fillChat=function(el){chatInput.value=el.textContent.trim();chatInput.dispatchEvent(new Event('input'));chatInput.focus();};
 
+  // Sync self-rep pill visual state whenever checkbox changes
+  (function(){
+    var tog = document.getElementById('selfRepToggle');
+    var lbl = document.getElementById('selfRepLabel');
+    if(tog && lbl) {
+      tog.addEventListener('change', function(){ lbl.classList.toggle('self-rep-on', this.checked); });
+    }
+  })();
+
   function resetTextarea() {
     chatInput.style.height = 'auto';
     chatInput.style.height = '24px';
@@ -1409,7 +1437,7 @@
           ? 'Washa kitufe "Jitetea mahakamani" kupata hati ya mahakama, orodha ya ushahidi, na ratiba ya hatua.'
           : 'Turn on "Self-represent in court" below to get a court document, evidence checklist, and step-by-step filing guide.') +
         '</span><br>' +
-        '<button onclick="document.getElementById(\'selfRepToggle\').checked=true;document.getElementById(\'selfRepNudge\').remove();chatInput.value=\'' +
+        '<button onclick="var t=document.getElementById(\'selfRepToggle\');t.checked=true;t.dispatchEvent(new Event(\'change\'));document.getElementById(\'selfRepNudge\').remove();chatInput.value=\'' +
           (LANG==='sw' ? 'Nionyeshe jinsi ya kujitetea mahakamani' : 'Show me how to represent myself in court') +
         '\';chatInput.dispatchEvent(new Event(\'input\'));sendMessage();" ' +
         'style="margin-top:.5rem;background:var(--haki-green);color:#fff;border:none;border-radius:20px;padding:.3em .9em;font-size:.8rem;cursor:pointer;">' +
