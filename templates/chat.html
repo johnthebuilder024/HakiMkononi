@@ -375,9 +375,12 @@
 .chat-input-inner { max-width: 740px; margin: 0 auto; }
 .chat-disclaimer { font-size: .76rem; color: #bbb; }
 
-/* Self-represent active state inside input bar */
-#selfRepLabel.self-rep-on { color: var(--haki-green) !important; }
-#selfRepLabel.self-rep-on span { opacity: 1; }
+/* Self-represent active state — pill turns solid green when ON */
+#selfRepLabel.self-rep-on {
+  background: var(--haki-green) !important;
+  border-color: var(--haki-green) !important;
+  color: #fff !important;
+}
 
 /* Hide disclaimer on very small screens */
 @media (max-width: 400px) {
@@ -527,17 +530,18 @@
     <div class="chat-input-bar">
       <div class="chat-input-inner">
         <div class="chat-textarea-wrap">
-          <!-- Self-represent toggle — inside input bar, always visible -->
+          <!-- Self-represent toggle — full label, always visible inside input bar -->
           <label id="selfRepLabel"
                  title="{% if lang == 'en' %}Get court document, evidence checklist and step-by-step filing guide{% else %}Pata hati ya mahakama, orodha ya ushahidi na mwongozo wa hatua kwa hatua{% endif %}"
-                 style="display:flex;align-items:center;gap:.25rem;cursor:pointer;
-                        color:#888;font-size:.78rem;font-weight:600;flex-shrink:0;
-                        padding:.2rem .3rem;border-radius:6px;transition:color .15s;
-                        white-space:nowrap;user-select:none;"
+                 style="display:flex;align-items:center;gap:.3rem;cursor:pointer;
+                        background:#f0f7f4;border:1.5px solid #b6d9c3;border-radius:20px;
+                        padding:.28em .8em;font-size:.76rem;font-weight:600;color:#1a7a3c;
+                        white-space:nowrap;user-select:none;flex-shrink:0;
+                        transition:background .15s,border-color .15s,color .15s;"
                  onclick="this.classList.toggle('self-rep-on')">
             <input type="checkbox" id="selfRepToggle"
-                   style="accent-color:var(--haki-green);width:14px;height:14px;cursor:pointer;flex-shrink:0;">
-            <span>🏛️</span>
+                   style="accent-color:var(--haki-green);width:13px;height:13px;cursor:pointer;flex-shrink:0;">
+            🏛️ {% if lang == 'en' %}Self-represent{% else %}Jitetea{% endif %}
           </label>
           <textarea id="chatInput" rows="1"
                     placeholder="{{ ui.story_placeholder }}"
