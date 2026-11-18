@@ -120,9 +120,9 @@
   flex-shrink: 0;
 }
 
-/* Mobile overlay toggle */
+/* Mobile overlay toggle — hidden on desktop, shown on mobile/tablet */
 .sidebar-toggle {
-  display: none;
+  display: none;                    /* hidden by default (desktop) */
   background: none; border: none;
   color: rgba(255,255,255,.9);
   cursor: pointer;
@@ -136,13 +136,21 @@
 .sidebar-toggle:hover { background: rgba(255,255,255,.12); }
 .sidebar-toggle svg { width: 22px; height: 22px; display: block; }
 
-/* ── Chat-page mobile nav overrides ─────────────────────────────── */
-/* On the chat page on mobile, the Bootstrap nav links + toggler     */
-/* are hidden — only the sidebar icon, logo and lang pills remain.   */
+/* ── Chat-page nav: clean on mobile/tablet, full on desktop ──────── */
+/* Mobile + tablet (< 992px):                                         */
+/*   - Bootstrap toggler + nav links hidden                           */
+/*   - [⬡ history]  [LOGO]  [EN|SW]                                  */
+/* Desktop (≥ 992px):                                                 */
+/*   - Full nav shows, sidebar-toggle hidden, nothing changes         */
 @media (max-width: 991px) {
-  .chat-page-active .navbar-toggler   { display: none !important; }
-  .chat-page-active #mainNav          { display: none !important; }
-  /* Centre the logo on mobile chat */
+  /* Show the history toggle */
+  .chat-page-active .sidebar-toggle { display: flex !important; }
+
+  /* Hide Bootstrap's right hamburger and collapsed nav */
+  .chat-page-active .navbar-toggler { display: none !important; }
+  .chat-page-active #mainNav        { display: none !important; }
+
+  /* Centre the logo */
   .chat-page-active .navbar > .container {
     position: relative;
     justify-content: center;
@@ -152,20 +160,26 @@
     left: 50%; transform: translateX(-50%);
     pointer-events: auto;
   }
-  /* Lang pills on the right */
+
+  /* Lang pills pinned to right */
   .chat-page-active .chat-nav-right {
     position: absolute; right: .5rem;
     display: flex; align-items: center; gap: .3rem;
   }
-  /* Shrink lang pills on small screens */
   .chat-page-active .lang-pill {
     padding: .15em .45em;
     font-size: .72rem;
   }
-  /* Sidebar toggle on the left */
+
+  /* History toggle pinned to left */
   .chat-page-active .sidebar-toggle {
-    position: absolute; left: 0;
+    position: absolute; left: .2rem;
   }
+}
+
+/* Desktop: sidebar toggle never shows, full nav always visible */
+@media (min-width: 992px) {
+  .chat-page-active .sidebar-toggle { display: none !important; }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -436,7 +450,6 @@
 
 /* ── Mobile sidebar overlay ──────────────────────────────────────── */
 @media (max-width: 768px) {
-  .sidebar-toggle { display: flex !important; }  /* override inline display:none */
   .chat-sidebar {    position: fixed; left: 0; top: 54px; bottom: 0;
     width: 280px; z-index: 500;
     transform: translateX(-100%);
