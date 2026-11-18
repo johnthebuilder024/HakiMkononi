@@ -1,0 +1,195 @@
+- generic [active] [ref=f3e1]:
+  - navigation [ref=f3e2]:
+    - generic [ref=f3e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f3e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f3e5]
+        - generic [ref=f3e6]: HakiMkononi
+      - generic [ref=f3e7]:
+        - list [ref=f3e8]:
+          - listitem [ref=f3e9]:
+            - link "Nyumbani" [ref=f3e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f3e11]:
+            - link "Kuhusu" [ref=f3e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f3e13]:
+            - link "⚖️ Mawakili" [ref=f3e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f3e15]:
+            - link "🎙️ Rekodi ya Mahakama" [ref=f3e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f3e17]:
+            - link "🔍 Tafuta Wakili" [ref=f3e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f3e19]:
+            - link "💰 Ada za Wakili" [ref=f3e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f3e21]:
+          - link "Kiswahili" [ref=f3e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/about/?lang=sw
+          - link "English" [ref=f3e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/about/?lang=en
+  - main [ref=f3e24]:
+    - generic [ref=f3e26]:
+      - img "HakiMkononi" [ref=f3e28]
+      - heading "Kuhusu HakiMkononi" [level=1] [ref=f3e29]
+      - paragraph [ref=f3e30]: Tunaamini kila Mkenya anastahili kuelewa haki zake. Bila malipo. Bila wasiwasi.
+    - generic [ref=f3e34]:
+      - generic [ref=f3e35]:
+        - heading "🎯 Dhamira Yetu" [level=2] [ref=f3e37]
+        - generic [ref=f3e38]:
+          - paragraph [ref=f3e39]: HakiMkononi iliundwa kwa ajili ya Wanjiku. Mtu wa kawaida Kenya ambaye ana tatizo la kisheria lakini hawezi kumudu wakili, au hajui hata pa kuanza.
+          - paragraph [ref=f3e40]: Watu wengi wanafukuzwa kazi bila haki, wanabaguliwa, au wananyanyaswa. Hawajui haki zao. Sheria ya Kenya ipo, lakini imeandikwa kwa lugha ngumu sana.
+          - paragraph [ref=f3e41]: Sisi tunabadilisha hilo. Unauliza swali kwa lugha yoyote. Sisi tunakuambia sheria inasema nini, haki zako ni zipi, na tunakuandikia barua ya kudai haki yako.
+      - generic [ref=f3e42]:
+        - heading "✅ Unapata Nini" [level=2] [ref=f3e44]
+        - generic [ref=f3e46]:
+          - generic [ref=f3e48]:
+            - generic [ref=f3e49]: 📜
+            - generic [ref=f3e50]:
+              - heading "Sheria inasema nini" [level=6] [ref=f3e51]
+              - paragraph [ref=f3e52]: Vifungu halisi vya sheria ya Kenya vinavyohusiana na hali yako. Na nambari za vifungu ili uweze kuthibitisha mwenyewe.
+          - generic [ref=f3e54]:
+            - generic [ref=f3e55]: 💬
+            - generic [ref=f3e56]:
+              - heading "Maelezo rahisi" [level=6] [ref=f3e57]
+              - paragraph [ref=f3e58]: Hakuna lugha ngumu. Tunakueleza sheria inamaanisha nini kwa hali yako haswa kwa lugha ya kawaida.
+          - generic [ref=f3e60]:
+            - generic [ref=f3e61]: 💪
+            - generic [ref=f3e62]:
+              - heading "Haki zako" [level=6] [ref=f3e63]
+              - paragraph [ref=f3e64]: Unastahili nini. Mwingine alikosea wapi. Unaweza kufanya nini sasa hivi.
+          - generic [ref=f3e66]:
+            - generic [ref=f3e67]: ✉️
+            - generic [ref=f3e68]:
+              - heading "Barua ya kudai haki" [level=6] [ref=f3e69]
+              - paragraph [ref=f3e70]: Barua rasmi inayotaja sheria husika. Jaza jina lako na uitume. Huhitaji wakili kwa hatua ya kwanza.
+      - generic [ref=f3e71]:
+        - heading "🔬 Teknolojia Yetu" [level=2] [ref=f3e73]
+        - generic [ref=f3e74]:
+          - paragraph [ref=f3e75]: Tunatumia njia inayoitwa RAG. Hii inamaanisha AI inajibu kwa kutumia sheria halisi za Kenya tulizopakia. Haiwezi kubuni sheria ambazo hazipo.
+          - generic [ref=f3e76]:
+            - generic [ref=f3e78]:
+              - generic [ref=f3e79]: 📚
+              - generic [ref=f3e80]: Vifungu 4,231
+              - generic [ref=f3e81]: kutoka sheria 43 za Kenya
+            - generic [ref=f3e83]:
+              - generic [ref=f3e84]: 🔍
+              - generic [ref=f3e85]: Utafutaji wa akili
+              - generic [ref=f3e86]: inapata vifungu husika
+            - generic [ref=f3e88]:
+              - generic [ref=f3e89]: 🤖
+              - generic [ref=f3e90]: AI inaandika jibu lako
+              - generic [ref=f3e91]: jibu lako maalum
+      - generic [ref=f3e92]:
+        - heading "📋 Sheria Tulizopakia" [level=2] [ref=f3e94]
+        - generic [ref=f3e95]:
+          - paragraph [ref=f3e96]: Hizi ndizo sheria kuu zilizopo kwenye mfumo wetu sasa hivi. Tunaendelea kuongeza zaidi kila mwezi.
+          - generic [ref=f3e97]:
+            - generic [ref=f3e99]:
+              - generic [ref=f3e100]: 🇰🇪
+              - generic [ref=f3e101]:
+                - generic [ref=f3e102]: Katiba ya Kenya 2010
+                - generic [ref=f3e103]: Haki za msingi
+            - generic [ref=f3e105]:
+              - generic [ref=f3e106]: 💼
+              - generic [ref=f3e107]:
+                - generic [ref=f3e108]: Employment Act 2007
+                - generic [ref=f3e109]: Kazi, mshahara, kufukuzwa
+            - generic [ref=f3e111]:
+              - generic [ref=f3e112]: ⚖️
+              - generic [ref=f3e113]:
+                - generic [ref=f3e114]: Criminal Procedure Code
+                - generic [ref=f3e115]: Haki za kushikiliwa, mahakama
+            - generic [ref=f3e117]:
+              - generic [ref=f3e118]: 🏠
+              - generic [ref=f3e119]:
+                - generic [ref=f3e120]: Sheria za Ardhi na Pango
+                - generic [ref=f3e121]: Kufukuzwa, hati, kodi
+            - generic [ref=f3e123]:
+              - generic [ref=f3e124]: 👨‍👩‍👧
+              - generic [ref=f3e125]:
+                - generic [ref=f3e126]: Ndoa, Watoto, Mirathi
+                - generic [ref=f3e127]: Sheria za familia
+            - generic [ref=f3e129]:
+              - generic [ref=f3e130]: 🛡️
+              - generic [ref=f3e131]:
+                - generic [ref=f3e132]: Mlaji, Data, Usalama Mahali pa Kazi
+                - generic [ref=f3e133]: Haki kama mlaji na mfanyakazi
+      - generic [ref=f3e134]:
+        - heading "⚠️ Mambo Muhimu ya Kujua" [level=2] [ref=f3e136]
+        - generic [ref=f3e137]:
+          - paragraph [ref=f3e138]: Tunataka kuwa wazi nawe kuhusu HakiMkononi ni nini na si nini.
+          - generic [ref=f3e139]:
+            - generic [ref=f3e140]: 📌
+            - generic [ref=f3e141]:
+              - generic [ref=f3e142]: Hii ni taarifa ya kisheria, si ushauri wa kisheria
+              - paragraph [ref=f3e143]:
+                - text: Tunakuambia sheria inasema nini. Hatukuwakilishi mahakamani. Kwa kesi ngumu, unahitaji wakili wa kweli.
+                - link "NLAS" [ref=f3e144] [cursor=pointer]:
+                  - /url: https://www.nlas.go.ke
+                - text: wanatoa mawakili wa bure kwa wale wasiomudu.
+          - generic [ref=f3e145]:
+            - generic [ref=f3e146]: ✅
+            - generic [ref=f3e147]:
+              - generic [ref=f3e148]: Thibitisha vifungu daima
+              - paragraph [ref=f3e149]:
+                - text: Tunataja nambari halisi za vifungu. Unaweza kuzithibitisha mwenyewe kwenye
+                - link "kenyalaw.org" [ref=f3e150] [cursor=pointer]:
+                  - /url: https://kenyalaw.org
+                - text: . Sheria zinaweza kubadilika na pengine hatuna toleo la hivi karibuni.
+          - generic [ref=f3e151]:
+            - generic [ref=f3e152]: 🤖
+            - generic [ref=f3e153]:
+              - generic [ref=f3e154]: AI inaweza kukosea
+              - paragraph [ref=f3e155]: Mfumo wetu unajaribu sana lakini hakuna AI kamili. Chukulia jibu kama mwanzo wa utafutaji, si uamuzi wa mwisho. Una shaka? Zungumza na wakili.
+          - generic [ref=f3e156]:
+            - generic [ref=f3e157]: 🔒
+            - generic [ref=f3e158]:
+              - generic [ref=f3e159]: Maswali yako ni ya siri
+              - paragraph [ref=f3e160]: Hauhitaji kujiandikisha. Hatushirikishi maswali yako na mtu yeyote. Tunayahifadhi tu ili kuboresha huduma kwa muda.
+      - generic [ref=f3e161]:
+        - heading "📞 Msaada wa Kisheria Bila Malipo Kenya" [level=2] [ref=f3e163]
+        - generic [ref=f3e165]:
+          - generic [ref=f3e167]:
+            - generic [ref=f3e168]: NLAS
+            - generic [ref=f3e169]: Huduma ya Msaada wa Kisheria ya Taifa
+            - link "📞 0800 720 120" [ref=f3e170] [cursor=pointer]:
+              - /url: tel:0800720120
+            - generic [ref=f3e171]: Bure, inapatikana nchi nzima
+          - generic [ref=f3e173]:
+            - generic [ref=f3e174]: Kituo Cha Sheria
+            - generic [ref=f3e175]: Msingi wa Rasilimali za Kisheria
+            - link "📞 0800 720 372" [ref=f3e176] [cursor=pointer]:
+              - /url: tel:0800720372
+            - generic [ref=f3e177]: Msaada wa kisheria bure, Nairobi na matawi
+          - generic [ref=f3e179]:
+            - generic [ref=f3e180]: LSK Pro Bono
+            - generic [ref=f3e181]: Chama cha Mawakili Kenya
+            - link "🌐 lsk.or.ke" [ref=f3e182] [cursor=pointer]:
+              - /url: https://www.lsk.or.ke
+            - generic [ref=f3e183]: Pata wakili aliyethibitishwa karibu nawe
+          - generic [ref=f3e185]:
+            - generic [ref=f3e186]: Kenya Law
+            - generic [ref=f3e187]: Sheria zote za Kenya, bure mtandaoni
+            - link "🌐 kenyalaw.org" [ref=f3e188] [cursor=pointer]:
+              - /url: https://kenyalaw.org
+            - generic [ref=f3e189]: Thibitisha kifungu chochote tulichotaja
+      - generic [ref=f3e190]:
+        - paragraph [ref=f3e191]: Uko tayari kujua sheria inasema nini kuhusu hali yako?
+        - link "🔍 Uliza Swali la Kisheria" [ref=f3e192] [cursor=pointer]:
+          - /url: /?lang=sw
+  - contentinfo [ref=f3e193]:
+    - generic [ref=f3e194]:
+      - generic [ref=f3e195]:
+        - text: © 2024
+        - strong [ref=f3e196]: HakiMkononi
+        - text: — Sheria yako, mkononi mwako 🇰🇪
+      - generic [ref=f3e197]:
+        - link "Kuhusu" [ref=f3e198] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f3e199] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f3e200]: Taarifa ya kisheria tu. Si ushauri wa kisheria.

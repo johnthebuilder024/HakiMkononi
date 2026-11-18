@@ -1,0 +1,136 @@
+- generic [active] [ref=f4e1]:
+  - navigation [ref=f4e2]:
+    - generic [ref=f4e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f4e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f4e5]
+        - generic [ref=f4e6]: HakiMkononi
+      - generic [ref=f4e7]:
+        - list [ref=f4e8]:
+          - listitem [ref=f4e9]:
+            - link "Nyumbani" [ref=f4e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f4e11]:
+            - link "Kuhusu" [ref=f4e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f4e13]:
+            - link "⚖️ Mawakili" [ref=f4e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f4e15]:
+            - link "🎙️ Rekodi ya Mahakama" [ref=f4e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f4e17]:
+            - link "🔍 Tafuta Wakili" [ref=f4e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f4e19]:
+            - link "💰 Ada za Wakili" [ref=f4e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f4e21]:
+          - link "Kiswahili" [ref=f4e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/fees/?lang=sw
+          - link "English" [ref=f4e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/fees/?lang=en
+  - main [ref=f4e24]:
+    - generic [ref=f4e26]:
+      - heading "💰 Ada za Kawaida za Mawakili Kenya" [level=1] [ref=f4e27]
+      - paragraph [ref=f4e28]: Kulingana na Amri ya Malipo ya Mawakili wa LSK 2014 na viwango vya soko la sasa. Tumia hii kuangalia kama wakili anakuomba zaidi.
+    - generic [ref=f4e32]:
+      - generic [ref=f4e33]:
+        - generic [ref=f4e34]: ⚠️
+        - generic [ref=f4e35]:
+          - strong [ref=f4e36]: Hizi ni makadirio tu.
+          - text: Ada halisi zinategemea ugumu wa kesi, uzoefu wa wakili, na mazungumzo. Daima omba
+          - strong [ref=f4e37]: makubaliano ya ada kwa maandishi
+          - text: kabla ya kumtunza wakili. Kama huwezi kumudu wakili, wasiliana na
+          - strong [ref=f4e38]: "NLAS (bure): 0800 720 120"
+          - text: .
+      - generic [ref=f4e41]:
+        - generic [ref=f4e42]: 👔
+        - generic [ref=f4e43]:
+          - generic [ref=f4e44]:
+            - heading "Ajira na Kazi" [level=2] [ref=f4e45]
+            - generic [ref=f4e46]: KES 20,000 – 150,000
+          - paragraph [ref=f4e47]: "Kesi ya kufukuzwa kazi / mshahara ambao haujalipiwa katika Mahakama ya Kazi. Mawakili wengi wanachukua 20–30% ya malipo (hakuna ushindi, hakuna ada). Ada ya ushauri: KES 2,000–5,000."
+      - generic [ref=f4e50]:
+        - generic [ref=f4e51]: 🏠
+        - generic [ref=f4e52]:
+          - generic [ref=f4e53]:
+            - heading "Landlord na Mpangaji" [level=2] [ref=f4e54]
+            - generic [ref=f4e55]: KES 10,000 – 80,000
+          - paragraph [ref=f4e56]: "Migogoro ya kukimbia nyumba au kurejesha amana kwenye Baraza la Kodi au Mahakama ya Wilaya. Kesi rahisi zinaweza kufunguliwa wewe mwenyewe (hakuna haja ya wakili). Ada ya ushauri: KES 1,500–3,000."
+      - generic [ref=f4e59]:
+        - generic [ref=f4e60]: 🚔
+        - generic [ref=f4e61]:
+          - generic [ref=f4e62]:
+            - heading "Jinai / Polisi" [level=2] [ref=f4e63]
+            - generic [ref=f4e64]: KES 30,000 – 300,000
+          - paragraph [ref=f4e65]: "Utetezi wa jinai unategemea sana shtaka. Kusikilizana kwa dhamana: KES 5,000–30,000. Kesi kamili: KES 50,000–300,000+. Msaada wa kisheria (bure) unapatikana kupitia NLAS: 0800 720 120."
+      - generic [ref=f4e68]:
+        - generic [ref=f4e69]: 🌍
+        - generic [ref=f4e70]:
+          - generic [ref=f4e71]:
+            - heading "Ardhi na Urithi" [level=2] [ref=f4e72]
+            - generic [ref=f4e73]: KES 25,000 – 250,000
+          - paragraph [ref=f4e74]: "Migogoro ya ardhi katika Mahakama ya Mazingira na Ardhi. Masuala ya urithi katika Mahakama Kuu: KES 15,000–80,000. Uhamishaji wa hati ya ardhi: KES 10,000–50,000."
+      - generic [ref=f4e77]:
+        - generic [ref=f4e78]: 👶
+        - generic [ref=f4e79]:
+          - generic [ref=f4e80]:
+            - heading "Watoto na Familia" [level=2] [ref=f4e81]
+            - generic [ref=f4e82]: KES 8,000 – 60,000
+          - paragraph [ref=f4e83]: "Msaada wa mtoto / ulezi katika Mahakama ya Watoto. Amri za matunzo mara nyingi hushughulikiwa bila wakili. FIDA Kenya inatoa msaada wa kisheria bure kwa wanawake: 020 271 4911."
+      - generic [ref=f4e86]:
+        - generic [ref=f4e87]: 🛒
+        - generic [ref=f4e88]:
+          - generic [ref=f4e89]:
+            - heading "Haki za Mlaji" [level=2] [ref=f4e90]
+            - generic [ref=f4e91]: KES 5,000 – 40,000
+          - paragraph [ref=f4e92]: Migogoro ya walaji kwenye Baraza la Ulinzi wa Walaji au Mahakama ya Wilaya. Madai madogo (chini ya KES 200,000) yanaweza kufunguliwa kwenye Mahakama ya Madai Madogo bila haja ya wakili.
+      - generic [ref=f4e95]:
+        - generic [ref=f4e96]: 📜
+        - generic [ref=f4e97]:
+          - generic [ref=f4e98]:
+            - heading "Kikatiba" [level=2] [ref=f4e99]
+            - generic [ref=f4e100]: KES 30,000 – 200,000
+          - paragraph [ref=f4e101]: Malalamiko ya kikatiba katika Mahakama Kuu. Mashirika mengi ya haki za binadamu (KHRC, ICJ Kenya, Kituo cha Sheria) yanachukua kesi za kikatiba bila malipo.
+      - generic [ref=f4e104]:
+        - generic [ref=f4e105]: ⚖️
+        - generic [ref=f4e106]:
+          - generic [ref=f4e107]:
+            - heading "Mambo Mengine" [level=2] [ref=f4e108]
+            - generic [ref=f4e109]: KES 5,000 – 50,000
+          - paragraph [ref=f4e110]: "Ada zinatofautiana kulingana na ugumu wa kesi. Ushauri wa kwanza: KES 1,000–5,000. Daima omba makubaliano ya ada kwa maandishi kabla ya kumtunza wakili wowote. Msaada wa kisheria bure: NLAS 0800 720 120 (simu ya bure)."
+      - generic [ref=f4e111]:
+        - heading "🆓 Msaada wa Kisheria Bure Kenya" [level=2] [ref=f4e113]
+        - generic [ref=f4e115]:
+          - generic [ref=f4e116]:
+            - strong [ref=f4e117]: NLAS (National Legal Aid Service)
+            - text: 📞 0800 720 120 (simu ya bure) 🌐 nlas.go.ke
+          - generic [ref=f4e118]:
+            - strong [ref=f4e119]: FIDA Kenya
+            - text: Msaada bure wa kisheria kwa wanawake 📞 020 271 4911 · 📞 020 387 4998
+          - generic [ref=f4e120]:
+            - strong [ref=f4e121]: Kituo cha Sheria
+            - text: Kesi za jinai na haki za binadamu 📞 0800 720 372 (simu ya bure)
+          - generic [ref=f4e122]:
+            - strong [ref=f4e123]: LSK Pro-Bono
+            - text: Mpango wa pro bono wa Law Society of Kenya 🌐 lsk.or.ke
+      - generic [ref=f4e124]:
+        - link "🔍 Tafuta Wakili Aliyeidhinishwa" [ref=f4e125] [cursor=pointer]:
+          - /url: /lawyers/directory/
+        - link "⚖️ Uliza Swali la Kisheria" [ref=f4e126] [cursor=pointer]:
+          - /url: /
+      - paragraph [ref=f4e127]: "Chanzo: Amri ya Malipo ya Mawakili wa LSK 2014 (kama ilivyorekebishwa) na viwango vya kawaida vya soko la Nairobi kufikia 2024. HakiMkononi ni huduma ya taarifa za kisheria. Takwimu hizi ni mwongozo tu, si ushauri wa kisheria."
+  - contentinfo [ref=f4e128]:
+    - generic [ref=f4e129]:
+      - generic [ref=f4e130]:
+        - text: © 2024
+        - strong [ref=f4e131]: HakiMkononi
+        - text: — Sheria yako, mkononi mwako 🇰🇪
+      - generic [ref=f4e132]:
+        - link "Kuhusu" [ref=f4e133] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f4e134] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f4e135]: Taarifa ya kisheria tu. Si ushauri wa kisheria.

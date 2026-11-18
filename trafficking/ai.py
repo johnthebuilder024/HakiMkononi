@@ -62,7 +62,7 @@ Read the report below and extract structured information.
 
 KENYA CONTEXT — common patterns to recognise:
 - Recruitment: Facebook/WhatsApp fake job offers, domestic work agencies, romance scams, family members selling relatives
-- Common destinations: Dubai, Saudi Arabia, Qatar, Kuwait, Oman (Gulf), South Sudan, Uganda, Tanzania, and internal routes (Nairobi, Mombasa, Malindi)
+- Common destinations: South East Asia countries like Laos,Myanmar,Vietnam,Malaysia,Phillipines, Cambodia, Dubai, Saudi Arabia, Qatar, Kuwait, Oman (Gulf), South Sudan, Uganda, Tanzania, and internal routes (Nairobi, Mombasa, Malindi)
 - Common indicators: passport taken at airport, unpaid, locked in house, phone confiscated, debt bondage ("you owe us for transport"), threats, multiple victims together
 - Language: story may be in Swahili, English or Sheng — understand all three
 

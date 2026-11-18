@@ -1,0 +1,127 @@
+- generic [active] [ref=f1e1]:
+  - navigation [ref=f1e2]:
+    - generic [ref=f1e3]:
+      - button "Open history" [ref=f1e4] [cursor=pointer]: ☰
+      - link "HakiMkononi HakiMkononi" [ref=f1e5] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f1e6]
+        - generic [ref=f1e7]: HakiMkononi
+      - button "Toggle navigation" [ref=f1e8] [cursor=pointer]
+  - main [ref=f1e10]:
+    - generic [ref=f1e11]:
+      - complementary "Conversation history" [ref=f1e12]:
+        - button "New Chat" [ref=f1e14] [cursor=pointer]
+        - generic [ref=f1e16]:
+          - generic [ref=f1e17]: Older
+          - generic [ref=f1e18] [cursor=pointer]:
+            - generic [ref=f1e19]: ⚖️
+            - generic [ref=f1e20]: I want to buy a plot in Kiambu. The seller showed me ti
+            - button "✕" [ref=f1e21]
+          - generic [ref=f1e22] [cursor=pointer]:
+            - generic [ref=f1e23]: ⚖️
+            - generic [ref=f1e24]: My landlord locked me out of my house without notice an
+            - button "✕" [ref=f1e25]
+          - generic [ref=f1e26] [cursor=pointer]:
+            - generic [ref=f1e27]: ⚖️
+            - generic [ref=f1e28]: My employer fired me without notice after 3 years and r
+            - button "✕" [ref=f1e29]
+          - generic [ref=f1e30] [cursor=pointer]:
+            - generic [ref=f1e31]: ⚖️
+            - generic [ref=f1e32]: I want to buy a plot in Kiambu. The seller showed me a
+            - button "✕" [ref=f1e33]
+          - generic [ref=f1e34] [cursor=pointer]:
+            - generic [ref=f1e35]: ⚖️
+            - generic [ref=f1e36]: Boss wangu alinifukuza kazi bila notisi wala malipo. Ni
+            - button "✕" [ref=f1e37]
+        - generic [ref=f1e38]: Saved in this browser only
+      - generic [ref=f1e39]:
+        - generic [ref=f1e42]:
+          - button "☰ Past chats" [ref=f1e44] [cursor=pointer]
+          - img "HakiMkononi" [ref=f1e46]
+          - heading "HakiMkononi" [level=2] [ref=f1e47]
+          - paragraph [ref=f1e48]: Describe your situation. AI will help you understand your legal rights for free.
+          - generic [ref=f1e49]:
+            - generic [ref=f1e50] [cursor=pointer]: I was fired without notice
+            - generic [ref=f1e51] [cursor=pointer]: Landlord locked me out without notice
+            - generic [ref=f1e52] [cursor=pointer]: Police arrested me without a warrant
+            - generic [ref=f1e53] [cursor=pointer]: Spouse is hiding our shared property
+            - generic [ref=f1e54] [cursor=pointer]: My employer hasn't paid my salary
+            - generic [ref=f1e55] [cursor=pointer]: My neighbour assaulted me. What do I do?
+          - paragraph [ref=f1e56]: Powered by the Kenya Constitution 2010, Employment Act 2007 and more.
+          - generic [ref=f1e57]:
+            - generic [ref=f1e58]: 📍
+            - combobox "Your county (optional)" [ref=f1e59] [cursor=pointer]:
+              - option "All Kenya" [selected]
+              - option "Baringo"
+              - option "Bomet"
+              - option "Bungoma"
+              - option "Busia"
+              - option "Elgeyo Marakwet"
+              - option "Embu"
+              - option "Garissa"
+              - option "Homa Bay"
+              - option "Isiolo"
+              - option "Kajiado"
+              - option "Kakamega"
+              - option "Kericho"
+              - option "Kiambu"
+              - option "Kilifi"
+              - option "Kirinyaga"
+              - option "Kisii"
+              - option "Kisumu"
+              - option "Kitui"
+              - option "Kwale"
+              - option "Laikipia"
+              - option "Lamu"
+              - option "Machakos"
+              - option "Makueni"
+              - option "Mandera"
+              - option "Marsabit"
+              - option "Meru"
+              - option "Migori"
+              - option "Mombasa"
+              - option "Muranga"
+              - option "Nairobi"
+              - option "Nakuru"
+              - option "Nandi"
+              - option "Narok"
+              - option "Nyandarua"
+              - option "Nyamira"
+              - option "Nyeri"
+              - option "Samburu"
+              - option "Siaya"
+              - option "Taita Taveta"
+              - option "Tana River"
+              - option "Tharaka Nithi"
+              - option "Trans Nzoia"
+              - option "Turkana"
+              - option "Uasin Gishu"
+              - option "Vihiga"
+              - option "Wajir"
+              - option "West Pokot"
+            - generic [ref=f1e60]: for better lawyer matching
+        - generic [ref=f1e62]:
+          - generic [ref=f1e63]:
+            - textbox "Your legal problem" [ref=f1e64]:
+              - /placeholder: "Example: My boss fired me without notice or pay. I worked there 3 years. What do I do?"
+            - button "📎" [ref=f1e65] [cursor=pointer]
+            - button "🎤" [ref=f1e67] [cursor=pointer]
+            - button "Send" [disabled] [ref=f1e69]
+          - generic [ref=f1e73]:
+            - generic "Get court document, evidence checklist and step-by-step filing guide" [ref=f1e74] [cursor=pointer]:
+              - checkbox "🏛️ Self-represent in court" [ref=f1e75]
+              - text: 🏛️ Self-represent in court
+            - generic [ref=f1e76]: HakiMkononi provides legal information only. Not legal advice. For complex cases, consult a lawyer.
+  - contentinfo [ref=f1e77]:
+    - generic [ref=f1e78]:
+      - generic [ref=f1e79]:
+        - text: © 2024
+        - strong [ref=f1e80]: HakiMkononi
+        - text: — Your rights, in your hands 🇰🇪
+      - generic [ref=f1e81]:
+        - link "About" [ref=f1e82] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f1e83] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f1e84]: Legal information only. Not legal advice.

@@ -1,0 +1,92 @@
+﻿
+============================================================
+SCENARIO 1: Land TRANSACTION English
+============================================================
+  job_id: 329
+    status='pending', waiting 5 s …
+  ✅ PASS
+  land_subtype : 'transaction'
+  status       : 'done'
+  sheria (200) : '## WHAT TO CHECK\n\n1. **Ardhisasa search** – confirm the title is listed, its status (clean, caution, charge, caveat) and that the LR number matches the deed.  \n2. **LR number verification** – ensure t'
+  sources      : ['Land Registration Act 2012 (No. 3 of 2012)', 'Land Registration Act 2012 (No. 3 of 2012)', 'Land Registration Act 2012 (No. 3 of 2012)']
+
+  ⏳ Waiting 20s between tests (Groq rate limit)...
+
+============================================================
+SCENARIO 2: Land DISPUTE English
+============================================================
+  job_id: 330
+    status='pending', waiting 5 s …
+  ✅ PASS
+  land_subtype : 'dispute'
+  status       : 'done'
+  sheria (200) : '**Land Act 2012 – Section 152A (Prohibition of unlawful occupation of land)**  \nA person shall not unlawfully occupy private, community or public land.  \n\n**Land Registration Act 2012 – Section 20 (Ma'
+  sources      : ['Community Land Act 2016 (No. 27 of 2016)', 'Land Registration Act 2012 (No. 3 of 2012)', 'Land Act 2012 (No. 6 of 2012)']
+
+  ⏳ Waiting 20s between tests (Groq rate limit)...
+
+============================================================
+SCENARIO 3: Land TRANSACTION Swahili
+============================================================
+  job_id: 331
+    status='pending', waiting 5 s …
+  ✅ PASS
+  land_subtype : 'transaction'
+  status       : 'done'
+  sheria (200) : '**UNACHOHITAJI KUCHUNGUZA**  \n1. **Tafuta taarifa kwenye Ardhisasa**  \n   - Ingia https://ardhisasa.co.ke  \n   - Chagua “Search Title” → “Search by Title Number”  \n   - Weka nambari: **NAIROBI/BLOCK24'
+  sources      : ['Land Registration Act 2012 (No. 3 of 2012)', 'Land Registration Act 2012 (No. 3 of 2012)', 'Land Registration Act 2012 (No. 3 of 2012)']
+
+  ⏳ Waiting 20s between tests (Groq rate limit)...
+
+============================================================
+SCENARIO 4: Mode switch (paid, seller disappeared)
+============================================================
+  job_id: 332
+    status='pending', waiting 5 s …
+  ❌ FAIL
+  land_subtype : 'dispute'
+  status       : 'done'
+  sheria (200) : '[Land Sale Deposit Fraud and Recovery Kenya] – Section — (What to do when seller takes deposit and disappears)  \nThe sale agreement is a binding contract under the Law of Contract Act (Cap\u202f23). The se'
+  sources      : ['Land Sale Deposit Fraud and Recovery Kenya', 'Distress for Rent Act (Cap 293)', 'Contract Law — Deposit Recovery Kenya']
+
+  ⏳ Waiting 20s between tests (Groq rate limit)...
+
+============================================================
+SCENARIO 5: Employment (non-land)
+============================================================
+  job_id: 333
+    status='pending', waiting 5 s …
+  ✅ PASS
+  land_subtype : ''
+  status       : 'done'
+  sheria (200) : '**Employment Act 2007 – Section 38 (Waiver of notice by employer)**  \nIf an employer waives notice, the employer must pay the employee remuneration equal to the notice period not served, unless otherw'
+  sources      : ['Employment Act 2007', 'Employment Act 2007', 'Employment Act 2007']
+
+  ⏳ Waiting 20s between tests (Groq rate limit)...
+
+============================================================
+SCENARIO 6: Landlord lockout (pure rental)
+============================================================
+  job_id: 334
+    status='pending', waiting 5 s …
+  ✅ PASS
+  land_subtype : ''
+  status       : 'done'
+  sheria (200) : '**Distress for Rent Act (Cap 293) – Section 11 (Landlord may break into house to seize goods fraudulently secured therein)**  \nIf a landlord wants to seize goods that have been fraudulently or clandes'
+  sources      : ['Distress for Rent Act (Cap 293)', 'Distress for Rent Act (Cap 293)', 'Distress for Rent Act (Cap 293)']
+
+============================================================
+FINAL SUMMARY
+============================================================
+
+5/6 passed
+
+  Scenario 1 (Land TRANSACTION English): ✅ PASS
+  Scenario 2 (Land DISPUTE English): ✅ PASS
+  Scenario 3 (Land TRANSACTION Swahili): ✅ PASS
+  Scenario 4 (Mode switch (paid, seller disappeared)): ❌ FAIL
+    Expected : land_subtype="dispute" AND sources contain land/fraud Acts (NOT distress/rent restriction)
+    Got      : land_subtype='dispute', status='done'
+    sheria   : '[Land Sale Deposit Fraud and Recovery Kenya] – Section — (What to do when seller takes deposit and disappears)  \nThe sale agreement is a binding contract under the Law of Contract Act (Cap\u202f23). The se'
+  Scenario 5 (Employment (non-land)): ✅ PASS
+  Scenario 6 (Landlord lockout (pure rental)): ✅ PASS

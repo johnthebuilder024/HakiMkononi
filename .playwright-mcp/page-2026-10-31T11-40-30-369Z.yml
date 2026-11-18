@@ -1,0 +1,142 @@
+- generic [active] [ref=f11e1]:
+  - navigation [ref=f11e2]:
+    - generic [ref=f11e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f11e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f11e5]
+        - generic [ref=f11e6]: HakiMkononi
+      - generic [ref=f11e7]:
+        - list [ref=f11e8]:
+          - listitem [ref=f11e9]:
+            - link "Nyumbani" [ref=f11e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f11e11]:
+            - link "Kuhusu" [ref=f11e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f11e13]:
+            - link "⚖️ Mawakili" [ref=f11e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f11e15]:
+            - link "🎙️ Rekodi ya Mahakama" [ref=f11e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f11e17]:
+            - link "🔍 Tafuta Wakili" [ref=f11e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f11e19]:
+            - link "💰 Ada za Wakili" [ref=f11e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f11e21]:
+          - link "Kiswahili" [ref=f11e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/lawyers/directory/?lang=sw
+          - link "English" [ref=f11e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/lawyers/directory/?lang=en
+  - main [ref=f11e24]:
+    - generic [ref=f11e26]:
+      - heading "🔍 Tafuta Wakili Aliyeidhinishwa" [level=1] [ref=f11e27]
+      - paragraph [ref=f11e28]: Mawakili wote kwenye HakiMkononi wamethibitishwa kwa nambari ya LSK na cheti cha utendaji.
+    - generic [ref=f11e30]:
+      - generic [ref=f11e32]:
+        - generic [ref=f11e33]:
+          - generic [ref=f11e34]: 🔍 Tafuta jina / kampuni
+          - 'textbox "mfano: Kamau" [ref=f11e35]'
+        - generic [ref=f11e36]:
+          - generic [ref=f11e37]: 📍 Kaunti
+          - combobox [ref=f11e38]:
+            - option "Kenya Yote" [selected]
+            - option "Baringo"
+            - option "Bomet"
+            - option "Bungoma"
+            - option "Busia"
+            - option "Elgeyo Marakwet"
+            - option "Embu"
+            - option "Garissa"
+            - option "Homa Bay"
+            - option "Isiolo"
+            - option "Kajiado"
+            - option "Kakamega"
+            - option "Kericho"
+            - option "Kiambu"
+            - option "Kilifi"
+            - option "Kirinyaga"
+            - option "Kisii"
+            - option "Kisumu"
+            - option "Kitui"
+            - option "Kwale"
+            - option "Laikipia"
+            - option "Lamu"
+            - option "Machakos"
+            - option "Makueni"
+            - option "Mandera"
+            - option "Marsabit"
+            - option "Meru"
+            - option "Migori"
+            - option "Mombasa"
+            - option "Muranga"
+            - option "Nairobi"
+            - option "Nakuru"
+            - option "Nandi"
+            - option "Narok"
+            - option "Nyandarua"
+            - option "Nyamira"
+            - option "Nyeri"
+            - option "Samburu"
+            - option "Siaya"
+            - option "Taita Taveta"
+            - option "Tana River"
+            - option "Tharaka Nithi"
+            - option "Trans Nzoia"
+            - option "Turkana"
+            - option "Uasin Gishu"
+            - option "Vihiga"
+            - option "Wajir"
+            - option "West Pokot"
+        - generic [ref=f11e39]:
+          - generic [ref=f11e40]: ⚖️ Utaalamu
+          - combobox [ref=f11e41]:
+            - option "Utaalamu Wote" [selected]
+            - option "Employment & Labour"
+            - option "Criminal Law"
+            - option "Land & Property"
+            - option "Family & Matrimonial"
+            - option "Consumer Protection"
+            - option "Data Protection & Cyber"
+            - option "Commercial & Business"
+            - option "Other"
+        - generic [ref=f11e42]:
+          - generic [ref=f11e43]: 📅 Uzoefu wa Kiwango
+          - combobox [ref=f11e44]:
+            - option "Yoyote" [selected]
+            - option "1+ mwaka"
+            - option "3+ miaka"
+            - option "5+ miaka"
+            - option "10+ miaka"
+        - generic [ref=f11e45]:
+          - generic [ref=f11e46]: 🤝 Pro Bono
+          - combobox [ref=f11e47]:
+            - option "Wote" [selected]
+            - option "Pro bono pekee"
+        - button "Chuja" [ref=f11e49] [cursor=pointer]
+      - paragraph [ref=f11e50]: Mawakili 0 walioidhinishwa wamepatikana
+      - generic [ref=f11e51]:
+        - generic [ref=f11e52]: 🔍
+        - heading "Hakuna mawakili waliopatikana" [level=3] [ref=f11e53]
+        - paragraph [ref=f11e54]: Jaribu kupanua vichujio vyako, au angalia tena hivi karibuni. Mawakili zaidi wanajiunga kila wiki.
+        - link "Onyesha mawakili wote" [ref=f11e55] [cursor=pointer]:
+          - /url: /lawyers/directory/
+      - paragraph [ref=f11e56]:
+        - text: Mawakili wote wamethibitishwa kwa nambari ya LSK na cheti cha utendaji. Hii ni saraka ya rufaa. HakiMkononi haihakikishii matokeo wala haipendekezi ushauri wa kisheria. ·
+        - link "Ona ada za kawaida za wakili →" [ref=f11e57] [cursor=pointer]:
+          - /url: /fees/
+  - contentinfo [ref=f11e58]:
+    - generic [ref=f11e59]:
+      - generic [ref=f11e60]:
+        - text: © 2024
+        - strong [ref=f11e61]: HakiMkononi
+        - text: — Sheria yako, mkononi mwako 🇰🇪
+      - generic [ref=f11e62]:
+        - link "Kuhusu" [ref=f11e63] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f11e64] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f11e65]: Taarifa ya kisheria tu. Si ushauri wa kisheria.

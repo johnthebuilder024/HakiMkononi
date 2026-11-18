@@ -1,0 +1,55 @@
+﻿{
+  "status": "done",
+  "query_id": 364,
+  "is_serious": false,
+  "self_rep": false,
+  "land_subtype": "transaction",
+  "answer": {
+    "sheria_inasema": "## WHAT TO CHECK  \n1. **Ardhisasa search** – confirm the title is free of cautions, charges, or caveats.  \n2. **LR (Land Registration) number verification** – ensure the number matches the official register.  \n3. **Land Control Board (LCB) consent** – required for agricultural land; not needed for town plots.  \n4. **Advocate check on the LSK register** – confirm the seller’s lawyer is registered.  \n5. **Rates clearance** – verify that all county rates are paid up to date.  \n6. **Survey beacon check** – confirm the beacon on the plot matches the title description.  \n\n---\n\n## HOW TO DO IT STEP BY STEP  \n\n### 1. Ardhisasa Search  \n- **URL:** https://ardhisasa.kenyalaw.org/  \n- **Steps:**  \n  1. Click “Search by Title” or “Search by LR No.”  \n  2. Enter the LR number: **KIAMBU/001/234**.  \n  3. Review the result:  \n     - **Clean** – no cautions, charges, or caveats.  \n     - **Caution** – a caution is registered; you’ll need to investigate the reason.  \n     - **Charge** – a charge (mortgage, lien, etc.) is registered; you must negotiate settlement.  \n     - **Caveat** – a caveat is registered; it blocks transfer until resolved.  \n\n### 2. Land Control Board (LCB) Consent  \n- **Which land types need consent?**  \n  - **Agricultural land** – always requires LCB consent.  \n  - **Nairobi town plots** – not required.  \n  - **Kiambu** – if the plot is agricultural, you must obtain LCB consent.  \n- **How to obtain:**  \n  1. Visit the Kiambu LCB office or their website (if available).  \n  2. Submit the title deed and a request for consent.  \n  3. Pay the applicable fee.  \n  4. Wait for the written consent before proceeding.  \n\n### 3. LSK Register Check (KenyaLaw)  \n- **URL:** https://new.kenyalaw.org/akn/ke/act/2012/3/eng@2022-12-31 (navigate to “LSK Register”)  \n- **Steps:**  \n  1. Click “LSK Register” in the menu.  \n  2. Search for the seller’s lawyer’s name.  \n  3. Verify the lawyer is listed and active.  \n\n### 4. Rates Clearance  \n- **County portal:** Kiambu County Government website (search for “Rates Clearance” or “Property Tax”).  \n- **Steps:**  \n  1. Log in or register.  \n  2. Enter the LR number or property address.  \n  3. Check the rates status.  \n  4. If unpaid, arrange payment or obtain a receipt of payment.  \n\n### 5. Survey Beacon Check  \n- **What to do:**  \n  1. Obtain the survey beacon number from the title deed.  \n  2. Visit the Kiambu County Survey Office or use the online portal (if available).  \n  3. Confirm the beacon matches the plot boundaries described in the deed.  \n\n---\n\n## RED FLAGS — STOP AND INVESTIGATE  \n- **Seller pushes for quick payment** before you’ve done any searches.  \n- **Title format mismatch** – Kiambu titles should be post‑2012 blue titles; a green card may indicate an older registration that needs extra scrutiny.  \n- **No LCB consent** for an agricultural plot.  \n- **Advocate not listed** on the LSK register.  \n- **Duplicate claims** – two people claiming the same LR number or plot.  \n- **Caution or charge** already registered on Ardhisasa.  \n\n---\n\n## YOUR NEXT STEP RIGHT NOW  \n**Perform the Ardhisasa search for KIAMBU/001/234**.  \n- If the result shows “Clean”, proceed to the LCB consent (if agricultural).  \n- If any caution/charge/caveat appears, halt the transaction and investigate before moving forward.  \n\nGood luck, and let me know what you find!",
+    "tafsiri_rahisi": "",
+    "haki_yako": "",
+    "andika_hivi": "",
+    "hati_mahakama": "",
+    "ushahidi": "",
+    "ratiba": ""
+  },
+  "sources": [
+    {
+      "title": "Land Registration Act 2012 (No. 3 of 2012)",
+      "section": "26. Certificate of title to be held as conclusive evidence of proprietorship",
+      "url": "https://new.kenyalaw.org/akn/ke/act/2012/3/eng@2022-12-31",
+      "category": "land"
+    },
+    {
+      "title": "Land Registration Act 2012 (No. 3 of 2012)",
+      "section": "105. Transiting title documents",
+      "url": "https://new.kenyalaw.org/akn/ke/act/2012/3/eng@2022-12-31",
+      "category": "land"
+    },
+    {
+      "title": "Land Registration Act 2012 (No. 3 of 2012)",
+      "section": "66. Trusts not to be entered",
+      "url": "https://new.kenyalaw.org/akn/ke/act/2012/3/eng@2022-12-31",
+      "category": "land"
+    },
+    {
+      "title": "Kenyan Title Deed Format Guide",
+      "section": "Pre-2012 Green Card vs Post-2012 Blue Title",
+      "url": "https://kenyalaw.org",
+      "category": "land"
+    },
+    {
+      "title": "Land Registration Act 2012 (No. 3 of 2012)",
+      "section": "8. Community Land Register",
+      "url": "https://new.kenyalaw.org/akn/ke/act/2012/3/eng@2022-12-31",
+      "category": "land"
+    }
+  ],
+  "fee_guide": {
+    "category": "land",
+    "range": "KES 25,000 – 250,000",
+    "note": "Land disputes at the Environment & Land Court. Succession matters at the High Court: KES 15,000–80,000. Title deed transfers: KES 10,000–50,000."
+  },
+  "elapsed_seconds": 105,
+  "assistant_summary": ""
+}

@@ -1,0 +1,953 @@
+- generic [active] [ref=f1e1]:
+  - banner [ref=f1e2]:
+    - heading "OperationalError at /api/health/" [level=1] [ref=f1e3]
+    - generic [ref=f1e4]: "connection to server at \"aws-0-us-east-1.pooler.supabase.com\" (52.45.94.125), port 5432 failed: FATAL: (ENOTFOUND) tenant/user postgres.ttasvwxystzeojmsbvna not found connection to server at \"aws-0-us-east-1.pooler.supabase.com\" (52.45.94.125), port 5432 failed: FATAL: (ENOTFOUND) tenant/user postgres.ttasvwxystzeojmsbvna not found"
+    - table [ref=f1e5]:
+      - rowgroup [ref=f1e6]:
+        - row [ref=f1e7]:
+          - rowheader "Request Method:" [ref=f1e8]
+          - cell "GET" [ref=f1e9]
+        - row [ref=f1e10]:
+          - rowheader "Request URL:" [ref=f1e11]
+          - cell "https://hakimkononi.onrender.com/api/health/" [ref=f1e12]
+        - row [ref=f1e13]:
+          - rowheader "Django Version:" [ref=f1e14]
+          - cell "6.1.2" [ref=f1e15]
+        - row [ref=f1e16]:
+          - rowheader "Exception Type:" [ref=f1e17]
+          - cell "OperationalError" [ref=f1e18]
+        - row [ref=f1e19]:
+          - rowheader "Exception Value:" [ref=f1e20]
+          - 'cell "connection to server at \"aws-0-us-east-1.pooler.supabase.com\" (52.45.94.125), port 5432 failed: FATAL: (ENOTFOUND) tenant/user postgres.ttasvwxystzeojmsbvna not found connection to server at \"aws-0-us-east-1.pooler.supabase.com\" (52.45.94.125), port 5432 failed: FATAL: (ENOTFOUND) tenant/user postgres.ttasvwxystzeojmsbvna not found" [ref=f1e21]'
+        - row [ref=f1e23]:
+          - rowheader "Exception Location:" [ref=f1e24]
+          - cell "/opt/render/project/src/.venv/lib/python3.13/site-packages/psycopg2/__init__.py, line 122, in connect" [ref=f1e25]
+        - row [ref=f1e26]:
+          - rowheader "Raised during:" [ref=f1e27]
+          - cell "cases.views.health_check" [ref=f1e28]
+        - row [ref=f1e29]:
+          - rowheader "Python Executable:" [ref=f1e30]
+          - cell "/opt/render/project/src/.venv/bin/python3.13" [ref=f1e31]
+        - row [ref=f1e32]:
+          - rowheader "Python Version:" [ref=f1e33]
+          - cell "3.13.0" [ref=f1e34]
+        - row [ref=f1e35]:
+          - rowheader "Python Path:" [ref=f1e36]
+          - cell [ref=f1e37]:
+            - code [ref=f1e39]: "['/opt/render/project/src', '/opt/render/project/src/.venv/bin', '/opt/render/project/python/Python-3.13.0/lib/python313.zip', '/opt/render/project/python/Python-3.13.0/lib/python3.13', '/opt/render/project/python/Python-3.13.0/lib/python3.13/lib-dynload', '/opt/render/project/src/.venv/lib/python3.13/site-packages']"
+        - row [ref=f1e40]:
+          - rowheader "Server time:" [ref=f1e41]
+          - cell "Sat, 31 Oct 2026 13:56:30 +0300" [ref=f1e42]
+  - main [ref=f1e43]:
+    - generic [ref=f1e44]:
+      - heading [level=2] [ref=f1e45]:
+        - text: Traceback
+        - button "Switch to copy-and-paste view" [ref=f1e47] [cursor=pointer]
+      - list [ref=f1e49]:
+        - listitem [ref=f1e50]:
+          - code [ref=f1e51]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/backends/base/base.py
+          - text: ", line 279, in ensure_connection"
+          - list [ref=f1e53]:
+            - listitem [ref=f1e54] [cursor=pointer]:
+              - text: self.connect() ^^^^^^^^^^^^^^
+              - generic [ref=f1e55]: …
+          - group [ref=f1e56]:
+            - generic "Local vars" [ref=f1e57] [cursor=pointer]
+        - listitem [ref=f1e58]:
+          - code [ref=f1e59]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/utils/asyncio.py
+          - text: ", line 26, in inner"
+          - list [ref=f1e61]:
+            - listitem [ref=f1e62] [cursor=pointer]:
+              - text: return func(*args, **kwargs) ^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e63]: …
+          - group [ref=f1e64]:
+            - generic "Local vars" [ref=f1e65] [cursor=pointer]
+        - listitem [ref=f1e66]:
+          - code [ref=f1e67]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/backends/base/base.py
+          - text: ", line 256, in connect"
+          - list [ref=f1e69]:
+            - listitem [ref=f1e70] [cursor=pointer]:
+              - text: self.connection = self.get_new_connection(conn_params) ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e71]: …
+          - group [ref=f1e72]:
+            - generic "Local vars" [ref=f1e73] [cursor=pointer]
+        - listitem [ref=f1e74]:
+          - code [ref=f1e75]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/utils/asyncio.py
+          - text: ", line 26, in inner"
+          - list [ref=f1e77]:
+            - listitem [ref=f1e78] [cursor=pointer]:
+              - text: return func(*args, **kwargs) ^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e79]: …
+          - group [ref=f1e80]:
+            - generic "Local vars" [ref=f1e81] [cursor=pointer]
+        - listitem [ref=f1e82]:
+          - code [ref=f1e83]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/backends/postgresql/base.py
+          - text: ", line 345, in get_new_connection"
+          - list [ref=f1e85]:
+            - listitem [ref=f1e86] [cursor=pointer]:
+              - text: connection = self.Database.connect(**conn_params) ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e87]: …
+          - group [ref=f1e88]:
+            - generic "Local vars" [ref=f1e89] [cursor=pointer]
+        - listitem [ref=f1e90]:
+          - code [ref=f1e91]: /opt/render/project/src/.venv/lib/python3.13/site-packages/psycopg2/__init__.py
+          - text: ", line 122, in connect"
+          - list [ref=f1e93]:
+            - listitem [ref=f1e94] [cursor=pointer]:
+              - text: conn = _connect(dsn, connection_factory=connection_factory, **kwasync) ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e95]: …
+          - group [ref=f1e96]:
+            - generic "Local vars" [ref=f1e97] [cursor=pointer]
+        - listitem [ref=f1e98]:
+          - 'heading "The above exception (connection to server at \"aws-0-us-east-1.pooler.supabase.com\" (52.45.94.125), port 5432 failed: FATAL: (ENOTFOUND) tenant/user postgres.ttasvwxystzeojmsbvna not found connection to server at \"aws-0-us-east-1.pooler.supabase.com\" (52.45.94.125), port 5432 failed: FATAL: (ENOTFOUND) tenant/user postgres.ttasvwxystzeojmsbvna not found ) was the direct cause of the following exception:" [level=3] [ref=f1e99]'
+        - listitem [ref=f1e100]:
+          - code [ref=f1e101]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/core/handlers/exception.py
+          - text: ", line 56, in inner"
+          - list [ref=f1e103]:
+            - listitem [ref=f1e104] [cursor=pointer]:
+              - text: response = get_response(request) ^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e105]: …
+          - group [ref=f1e106]:
+            - generic "Local vars" [ref=f1e107] [cursor=pointer]
+        - listitem [ref=f1e108]:
+          - code [ref=f1e109]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/core/handlers/base.py
+          - text: ", line 199, in _get_response"
+          - list [ref=f1e111]:
+            - listitem [ref=f1e112] [cursor=pointer]:
+              - text: response = wrapped_callback(request, *callback_args, **callback_kwargs) ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e113]: …
+          - group [ref=f1e114]:
+            - generic "Local vars" [ref=f1e115] [cursor=pointer]
+        - listitem [ref=f1e116]:
+          - code [ref=f1e117]: /opt/render/project/src/cases/views.py
+          - text: ", line 742, in health_check"
+          - list [ref=f1e119]:
+            - listitem [ref=f1e120] [cursor=pointer]:
+              - text: count = Law.objects.count() ^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e121]: …
+          - group [ref=f1e122]:
+            - generic "Local vars" [ref=f1e123] [cursor=pointer]
+        - listitem [ref=f1e124]:
+          - code [ref=f1e125]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/models/manager.py
+          - text: ", line 87, in manager_method"
+          - list [ref=f1e127]:
+            - listitem [ref=f1e128] [cursor=pointer]:
+              - text: return getattr(self.get_queryset(), name)(*args, **kwargs) ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e129]: …
+          - group [ref=f1e130]:
+            - generic "Local vars" [ref=f1e131] [cursor=pointer]
+        - listitem [ref=f1e132]:
+          - code [ref=f1e133]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/models/query.py
+          - text: ", line 693, in count"
+          - list [ref=f1e135]:
+            - listitem [ref=f1e136] [cursor=pointer]:
+              - text: return self.query.get_count(using=self.db) ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e137]: …
+          - group [ref=f1e138]:
+            - generic "Local vars" [ref=f1e139] [cursor=pointer]
+        - listitem [ref=f1e140]:
+          - code [ref=f1e141]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/models/sql/query.py
+          - text: ", line 656, in get_count"
+          - list [ref=f1e143]:
+            - listitem [ref=f1e144] [cursor=pointer]:
+              - text: "return obj.get_aggregation(using, {\"__count\": Count(\"*\")})[\"__count\"] ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+              - generic [ref=f1e145]: …
+          - group [ref=f1e146]:
+            - generic "Local vars" [ref=f1e147] [cursor=pointer]
+        - listitem [ref=f1e148]:
+          - code [ref=f1e149]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/models/sql/query.py
+          - text: ", line 638, in get_aggregation"
+          - list [ref=f1e151]:
+            - listitem [ref=f1e152] [cursor=pointer]:
+              - text: result = compiler.execute_sql(SINGLE) ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e153]: …
+          - group [ref=f1e154]:
+            - generic "Local vars" [ref=f1e155] [cursor=pointer]
+        - listitem [ref=f1e156]:
+          - code [ref=f1e157]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/models/sql/compiler.py
+          - text: ", line 1641, in execute_sql"
+          - list [ref=f1e159]:
+            - listitem [ref=f1e160] [cursor=pointer]:
+              - text: cursor = self.connection.cursor() ^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e161]: …
+          - group [ref=f1e162]:
+            - generic "Local vars" [ref=f1e163] [cursor=pointer]
+        - listitem [ref=f1e164]:
+          - code [ref=f1e165]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/utils/asyncio.py
+          - text: ", line 26, in inner"
+          - list [ref=f1e167]:
+            - listitem [ref=f1e168] [cursor=pointer]:
+              - text: return func(*args, **kwargs) ^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e169]: …
+          - group [ref=f1e170]:
+            - generic "Local vars" [ref=f1e171] [cursor=pointer]
+        - listitem [ref=f1e172]:
+          - code [ref=f1e173]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/backends/base/base.py
+          - text: ", line 320, in cursor"
+          - list [ref=f1e175]:
+            - listitem [ref=f1e176] [cursor=pointer]:
+              - text: return self._cursor() ^^^^^^^^^^^^^^
+              - generic [ref=f1e177]: …
+          - group [ref=f1e178]:
+            - generic "Local vars" [ref=f1e179] [cursor=pointer]
+        - listitem [ref=f1e180]:
+          - code [ref=f1e181]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/backends/base/base.py
+          - text: ", line 296, in _cursor"
+          - list [ref=f1e183]:
+            - listitem [ref=f1e184] [cursor=pointer]:
+              - text: self.ensure_connection() ^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e185]: …
+          - group [ref=f1e186]:
+            - generic "Local vars" [ref=f1e187] [cursor=pointer]
+        - listitem [ref=f1e188]:
+          - code [ref=f1e189]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/utils/asyncio.py
+          - text: ", line 26, in inner"
+          - list [ref=f1e191]:
+            - listitem [ref=f1e192] [cursor=pointer]:
+              - text: return func(*args, **kwargs) ^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e193]: …
+          - group [ref=f1e194]:
+            - generic "Local vars" [ref=f1e195] [cursor=pointer]
+        - listitem [ref=f1e196]:
+          - code [ref=f1e197]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/backends/base/base.py
+          - text: ", line 278, in ensure_connection"
+          - list [ref=f1e199]:
+            - listitem [ref=f1e200] [cursor=pointer]:
+              - text: "with self.wrap_database_errors: ^^^^^^^^^^^^^^^^^^^^^^^^^"
+              - generic [ref=f1e201]: …
+          - group [ref=f1e202]:
+            - generic "Local vars" [ref=f1e203] [cursor=pointer]
+        - listitem [ref=f1e204]:
+          - code [ref=f1e205]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/utils.py
+          - text: ", line 94, in __exit__"
+          - list [ref=f1e207]:
+            - listitem [ref=f1e208] [cursor=pointer]:
+              - text: raise dj_exc_value.with_traceback(traceback) from exc_value ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e209]: …
+          - group [ref=f1e210]:
+            - generic "Local vars" [ref=f1e211] [cursor=pointer]
+        - listitem [ref=f1e212]:
+          - code [ref=f1e213]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/backends/base/base.py
+          - text: ", line 279, in ensure_connection"
+          - list [ref=f1e215]:
+            - listitem [ref=f1e216] [cursor=pointer]:
+              - text: self.connect() ^^^^^^^^^^^^^^
+              - generic [ref=f1e217]: …
+          - group [ref=f1e218]:
+            - generic "Local vars" [ref=f1e219] [cursor=pointer]
+        - listitem [ref=f1e220]:
+          - code [ref=f1e221]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/utils/asyncio.py
+          - text: ", line 26, in inner"
+          - list [ref=f1e223]:
+            - listitem [ref=f1e224] [cursor=pointer]:
+              - text: return func(*args, **kwargs) ^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e225]: …
+          - group [ref=f1e226]:
+            - generic "Local vars" [ref=f1e227] [cursor=pointer]
+        - listitem [ref=f1e228]:
+          - code [ref=f1e229]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/backends/base/base.py
+          - text: ", line 256, in connect"
+          - list [ref=f1e231]:
+            - listitem [ref=f1e232] [cursor=pointer]:
+              - text: self.connection = self.get_new_connection(conn_params) ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e233]: …
+          - group [ref=f1e234]:
+            - generic "Local vars" [ref=f1e235] [cursor=pointer]
+        - listitem [ref=f1e236]:
+          - code [ref=f1e237]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/utils/asyncio.py
+          - text: ", line 26, in inner"
+          - list [ref=f1e239]:
+            - listitem [ref=f1e240] [cursor=pointer]:
+              - text: return func(*args, **kwargs) ^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e241]: …
+          - group [ref=f1e242]:
+            - generic "Local vars" [ref=f1e243] [cursor=pointer]
+        - listitem [ref=f1e244]:
+          - code [ref=f1e245]: /opt/render/project/src/.venv/lib/python3.13/site-packages/django/db/backends/postgresql/base.py
+          - text: ", line 345, in get_new_connection"
+          - list [ref=f1e247]:
+            - listitem [ref=f1e248] [cursor=pointer]:
+              - text: connection = self.Database.connect(**conn_params) ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e249]: …
+          - group [ref=f1e250]:
+            - generic "Local vars" [ref=f1e251] [cursor=pointer]
+        - listitem [ref=f1e252]:
+          - code [ref=f1e253]: /opt/render/project/src/.venv/lib/python3.13/site-packages/psycopg2/__init__.py
+          - text: ", line 122, in connect"
+          - list [ref=f1e255]:
+            - listitem [ref=f1e256] [cursor=pointer]:
+              - text: conn = _connect(dsn, connection_factory=connection_factory, **kwasync) ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=f1e257]: …
+          - group [ref=f1e258]:
+            - generic "Local vars" [ref=f1e259] [cursor=pointer]
+    - generic [ref=f1e260]:
+      - heading "Request information" [level=2] [ref=f1e261]
+      - heading "USER" [level=3] [ref=f1e262]
+      - paragraph [ref=f1e263]: AnonymousUser
+      - heading "GET" [level=3] [ref=f1e264]
+      - paragraph [ref=f1e265]: No GET data
+      - heading "POST" [level=3] [ref=f1e266]
+      - paragraph [ref=f1e267]: No POST data
+      - heading "FILES" [level=3] [ref=f1e268]
+      - paragraph [ref=f1e269]: No FILES data
+      - heading "COOKIES" [level=3] [ref=f1e270]
+      - table [ref=f1e271]:
+        - rowgroup [ref=f1e272]:
+          - row [ref=f1e273]:
+            - columnheader "Variable" [ref=f1e274]
+            - columnheader "Value" [ref=f1e275]
+        - rowgroup [ref=f1e276]:
+          - row [ref=f1e277]:
+            - cell "haki_lang" [ref=f1e278]
+            - cell "'sw'" [ref=f1e279]
+          - row [ref=f1e281]:
+            - cell "csrftoken" [ref=f1e282]
+            - cell "'********************'" [ref=f1e283]
+      - heading "META" [level=3] [ref=f1e285]
+      - table [ref=f1e286]:
+        - rowgroup [ref=f1e287]:
+          - row [ref=f1e288]:
+            - columnheader "Variable" [ref=f1e289]
+            - columnheader "Value" [ref=f1e290]
+        - rowgroup [ref=f1e291]:
+          - row [ref=f1e292]:
+            - cell "CSRF_COOKIE" [ref=f1e293]
+            - cell "'mUlGPIu55Gs5YzpHK5GB5aZff1AeagxV'" [ref=f1e294]
+          - row [ref=f1e296]:
+            - cell "HTTP_ACCEPT" [ref=f1e297]
+            - cell "'text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7'" [ref=f1e298]
+          - row [ref=f1e300]:
+            - cell "HTTP_ACCEPT_ENCODING" [ref=f1e301]
+            - cell "'gzip, br'" [ref=f1e302]
+          - row [ref=f1e304]:
+            - cell "HTTP_ACCEPT_LANGUAGE" [ref=f1e305]
+            - cell "'en-US,en;q=0.9'" [ref=f1e306]
+          - row [ref=f1e308]:
+            - cell "HTTP_CDN_LOOP" [ref=f1e309]
+            - cell "'cloudflare; loops=1'" [ref=f1e310]
+          - row [ref=f1e312]:
+            - cell "HTTP_CF_CONNECTING_IP" [ref=f1e313]
+            - cell "'102.202.154.251'" [ref=f1e314]
+          - row [ref=f1e316]:
+            - cell "HTTP_CF_IPCOUNTRY" [ref=f1e317]
+            - cell "'KE'" [ref=f1e318]
+          - row [ref=f1e320]:
+            - cell "HTTP_CF_RAY" [ref=f1e321]
+            - cell "'a53221f6eed75e0e-SEA'" [ref=f1e322]
+          - row [ref=f1e324]:
+            - cell "HTTP_CF_VISITOR" [ref=f1e325]
+            - 'cell "''{\"scheme\":\"https\"}''" [ref=f1e326]'
+          - row [ref=f1e328]:
+            - cell "HTTP_COOKIE" [ref=f1e329]
+            - cell "'********************'" [ref=f1e330]
+          - row [ref=f1e332]:
+            - cell "HTTP_HOST" [ref=f1e333]
+            - cell "'hakimkononi.onrender.com'" [ref=f1e334]
+          - row [ref=f1e336]:
+            - cell "HTTP_PRIORITY" [ref=f1e337]
+            - cell "'u=0, i'" [ref=f1e338]
+          - row [ref=f1e340]:
+            - cell "HTTP_RENDER_PROXY_TTL" [ref=f1e341]
+            - cell "'4'" [ref=f1e342]
+          - row [ref=f1e344]:
+            - cell "HTTP_RNDR_ID" [ref=f1e345]
+            - cell "'22da1e68-f62d-4d0f'" [ref=f1e346]
+          - row [ref=f1e348]:
+            - cell "HTTP_SEC_CH_UA" [ref=f1e349]
+            - cell "'\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"'" [ref=f1e350]
+          - row [ref=f1e352]:
+            - cell "HTTP_SEC_CH_UA_MOBILE" [ref=f1e353]
+            - cell "'?0'" [ref=f1e354]
+          - row [ref=f1e356]:
+            - cell "HTTP_SEC_CH_UA_PLATFORM" [ref=f1e357]
+            - cell "'\"Windows\"'" [ref=f1e358]
+          - row [ref=f1e360]:
+            - cell "HTTP_SEC_FETCH_DEST" [ref=f1e361]
+            - cell "'document'" [ref=f1e362]
+          - row [ref=f1e364]:
+            - cell "HTTP_SEC_FETCH_MODE" [ref=f1e365]
+            - cell "'navigate'" [ref=f1e366]
+          - row [ref=f1e368]:
+            - cell "HTTP_SEC_FETCH_SITE" [ref=f1e369]
+            - cell "'none'" [ref=f1e370]
+          - row [ref=f1e372]:
+            - cell "HTTP_SEC_FETCH_USER" [ref=f1e373]
+            - cell "'?1'" [ref=f1e374]
+          - row [ref=f1e376]:
+            - cell "HTTP_TRUE_CLIENT_IP" [ref=f1e377]
+            - cell "'102.202.154.251'" [ref=f1e378]
+          - row [ref=f1e380]:
+            - cell "HTTP_UPGRADE_INSECURE_REQUESTS" [ref=f1e381]
+            - cell "'1'" [ref=f1e382]
+          - row [ref=f1e384]:
+            - cell "HTTP_USER_AGENT" [ref=f1e385]
+            - cell "('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like ' 'Gecko) HeadlessChrome/156.0.0.0 Safari/537.36')" [ref=f1e386]
+          - row [ref=f1e388]:
+            - cell "HTTP_X_FORWARDED_FOR" [ref=f1e389]
+            - cell "'102.202.154.251, 172.71.150.15, 10.194.65.31'" [ref=f1e390]
+          - row [ref=f1e392]:
+            - cell "HTTP_X_FORWARDED_PROTO" [ref=f1e393]
+            - cell "'https'" [ref=f1e394]
+          - row [ref=f1e396]:
+            - cell "HTTP_X_REQUEST_START" [ref=f1e397]
+            - cell "'1793444181688960'" [ref=f1e398]
+          - row [ref=f1e400]:
+            - cell "PATH_INFO" [ref=f1e401]
+            - cell "'/api/health/'" [ref=f1e402]
+          - row [ref=f1e404]:
+            - cell "QUERY_STRING" [ref=f1e405]
+            - cell "''" [ref=f1e406]
+          - row [ref=f1e408]:
+            - cell "RAW_URI" [ref=f1e409]
+            - cell "'/api/health/'" [ref=f1e410]
+          - row [ref=f1e412]:
+            - cell "REMOTE_ADDR" [ref=f1e413]
+            - cell "'127.0.0.1'" [ref=f1e414]
+          - row [ref=f1e416]:
+            - cell "REMOTE_PORT" [ref=f1e417]
+            - cell "'44056'" [ref=f1e418]
+          - row [ref=f1e420]:
+            - cell "REQUEST_METHOD" [ref=f1e421]
+            - cell "'GET'" [ref=f1e422]
+          - row [ref=f1e424]:
+            - cell "SCRIPT_NAME" [ref=f1e425]
+            - cell "''" [ref=f1e426]
+          - row [ref=f1e428]:
+            - cell "SERVER_NAME" [ref=f1e429]
+            - cell "'0.0.0.0'" [ref=f1e430]
+          - row [ref=f1e432]:
+            - cell "SERVER_PORT" [ref=f1e433]
+            - cell "'10000'" [ref=f1e434]
+          - row [ref=f1e436]:
+            - cell "SERVER_PROTOCOL" [ref=f1e437]
+            - cell "'HTTP/1.1'" [ref=f1e438]
+          - row [ref=f1e440]:
+            - cell "SERVER_SOFTWARE" [ref=f1e441]
+            - cell "'gunicorn/26.2.0'" [ref=f1e442]
+          - row [ref=f1e444]:
+            - cell "gunicorn.socket" [ref=f1e445]
+            - cell "<socket.socket fd=10, family=2, type=1, proto=0, laddr=('127.0.0.1', 10000), raddr=('127.0.0.1', 44056)>" [ref=f1e446]
+          - row [ref=f1e448]:
+            - cell "wsgi.early_hints" [ref=f1e449]
+            - cell "<function _make_early_hints_callback.<locals>.send_early_hints at 0x7a2dca0db240>" [ref=f1e450]
+          - row [ref=f1e452]:
+            - cell "wsgi.errors" [ref=f1e453]
+            - cell "<gunicorn.http.wsgi.WSGIErrorsWrapper object at 0x7a2dc9f1e410>" [ref=f1e454]
+          - row [ref=f1e456]:
+            - cell "wsgi.file_wrapper" [ref=f1e457]
+            - cell "<class 'gunicorn.http.wsgi.FileWrapper'>" [ref=f1e458]
+          - row [ref=f1e460]:
+            - cell "wsgi.input" [ref=f1e461]
+            - cell "<gunicorn.http.body.Body object at 0x7a2dca08e060>" [ref=f1e462]
+          - row [ref=f1e464]:
+            - cell "wsgi.input_terminated" [ref=f1e465]
+            - cell "True" [ref=f1e466]
+          - row [ref=f1e468]:
+            - cell "wsgi.multiprocess" [ref=f1e469]
+            - cell "False" [ref=f1e470]
+          - row [ref=f1e472]:
+            - cell "wsgi.multithread" [ref=f1e473]
+            - cell "False" [ref=f1e474]
+          - row [ref=f1e476]:
+            - cell "wsgi.run_once" [ref=f1e477]
+            - cell "False" [ref=f1e478]
+          - row [ref=f1e480]:
+            - cell "wsgi.url_scheme" [ref=f1e481]
+            - cell "'https'" [ref=f1e482]
+          - row [ref=f1e484]:
+            - cell "wsgi.version" [ref=f1e485]
+            - cell "(1, 0)" [ref=f1e486]
+      - heading "Settings" [level=3] [ref=f1e488]
+      - heading [level=4] [ref=f1e489]:
+        - text: Using settings module
+        - code [ref=f1e490]: sheria_ai.settings
+      - table [ref=f1e491]:
+        - rowgroup [ref=f1e492]:
+          - row [ref=f1e493]:
+            - columnheader "Setting" [ref=f1e494]
+            - columnheader "Value" [ref=f1e495]
+        - rowgroup [ref=f1e496]:
+          - row [ref=f1e497]:
+            - cell "ABSOLUTE_URL_OVERRIDES" [ref=f1e498]
+            - 'cell "{}" [ref=f1e499]'
+          - row [ref=f1e501]:
+            - cell "ADMINS" [ref=f1e502]
+            - cell "[]" [ref=f1e503]
+          - row [ref=f1e505]:
+            - cell "ADMIN_EMAIL" [ref=f1e506]
+            - cell "''" [ref=f1e507]
+          - row [ref=f1e509]:
+            - cell "ALLOWED_HOSTS" [ref=f1e510]
+            - cell "['localhost', '127.0.0.1', 'margin-comma-showgirl.ngrok-free.dev', 'hakimkononi.onrender.com']" [ref=f1e511]
+          - row [ref=f1e513]:
+            - cell "APPEND_SLASH" [ref=f1e514]
+            - cell "True" [ref=f1e515]
+          - row [ref=f1e517]:
+            - cell "AUTHENTICATION_BACKENDS" [ref=f1e518]
+            - cell "'********************'" [ref=f1e519]
+          - row [ref=f1e521]:
+            - cell "AUTH_PASSWORD_VALIDATORS" [ref=f1e522]
+            - cell "'********************'" [ref=f1e523]
+          - row [ref=f1e525]:
+            - cell "AUTH_USER_MODEL" [ref=f1e526]
+            - cell "'********************'" [ref=f1e527]
+          - row [ref=f1e529]:
+            - cell "BASE_DIR" [ref=f1e530]
+            - cell "PosixPath('/opt/render/project/src')" [ref=f1e531]
+          - row [ref=f1e533]:
+            - cell "CACHES" [ref=f1e534]
+            - 'cell "{''default'': {''BACKEND'': ''django.core.cache.backends.locmem.LocMemCache''}}" [ref=f1e535]'
+          - row [ref=f1e537]:
+            - cell "CACHE_MIDDLEWARE_ALIAS" [ref=f1e538]
+            - cell "'default'" [ref=f1e539]
+          - row [ref=f1e541]:
+            - cell "CACHE_MIDDLEWARE_KEY_PREFIX" [ref=f1e542]
+            - cell "'********************'" [ref=f1e543]
+          - row [ref=f1e545]:
+            - cell "CACHE_MIDDLEWARE_SECONDS" [ref=f1e546]
+            - cell "600" [ref=f1e547]
+          - row [ref=f1e549]:
+            - cell "CORS_ALLOW_ALL_ORIGINS" [ref=f1e550]
+            - cell "True" [ref=f1e551]
+          - row [ref=f1e553]:
+            - cell "CSRF_COOKIE_AGE" [ref=f1e554]
+            - cell "31449600" [ref=f1e555]
+          - row [ref=f1e557]:
+            - cell "CSRF_COOKIE_DOMAIN" [ref=f1e558]
+            - cell "None" [ref=f1e559]
+          - row [ref=f1e561]:
+            - cell "CSRF_COOKIE_HTTPONLY" [ref=f1e562]
+            - cell "False" [ref=f1e563]
+          - row [ref=f1e565]:
+            - cell "CSRF_COOKIE_NAME" [ref=f1e566]
+            - cell "'csrftoken'" [ref=f1e567]
+          - row [ref=f1e569]:
+            - cell "CSRF_COOKIE_PATH" [ref=f1e570]
+            - cell "'/'" [ref=f1e571]
+          - row [ref=f1e573]:
+            - cell "CSRF_COOKIE_SAMESITE" [ref=f1e574]
+            - cell "'Lax'" [ref=f1e575]
+          - row [ref=f1e577]:
+            - cell "CSRF_COOKIE_SECURE" [ref=f1e578]
+            - cell "False" [ref=f1e579]
+          - row [ref=f1e581]:
+            - cell "CSRF_FAILURE_VIEW" [ref=f1e582]
+            - cell "'django.views.csrf.csrf_failure'" [ref=f1e583]
+          - row [ref=f1e585]:
+            - cell "CSRF_HEADER_NAME" [ref=f1e586]
+            - cell "'HTTP_X_CSRFTOKEN'" [ref=f1e587]
+          - row [ref=f1e589]:
+            - cell "CSRF_TRUSTED_ORIGINS" [ref=f1e590]
+            - cell "['https://*.onrender.com', 'https://*.ngrok-free.app', 'http://localhost:8000', 'http://127.0.0.1:8000', 'https://hakimkononi.onrender.com']" [ref=f1e591]
+          - row [ref=f1e593]:
+            - cell "CSRF_USE_SESSIONS" [ref=f1e594]
+            - cell "False" [ref=f1e595]
+          - row [ref=f1e597]:
+            - cell "DATABASES" [ref=f1e598]
+            - 'cell "{''default'': {''ATOMIC_REQUESTS'': False, ''AUTOCOMMIT'': True, ''CONN_HEALTH_CHECKS'': True, ''CONN_MAX_AGE'': 0, ''DISABLE_SERVER_SIDE_CURSORS'': False, ''ENGINE'': ''django.db.backends.postgresql'', ''HOST'': ''aws-0-us-east-1.pooler.supabase.com'', ''NAME'': ''postgres'', ''OPTIONS'': {}, ''PASSWORD'': ''********************'', ''PORT'': 5432, ''TEST'': {''CHARSET'': None, ''COLLATION'': None, ''MIGRATE'': True, ''MIRROR'': None, ''NAME'': None}, ''TIME_ZONE'': None, ''USER'': ''postgres.ttasvwxystzeojmsbvna''}}" [ref=f1e599]'
+          - row [ref=f1e601]:
+            - cell "DATABASE_ROUTERS" [ref=f1e602]
+            - cell "[]" [ref=f1e603]
+          - row [ref=f1e605]:
+            - cell "DATABASE_URL" [ref=f1e606]
+            - cell "'postgresql://postgres.ttasvwxystzeojmsbvna:LindaHankLove19982003@aws-0-us-east-1.pooler.supabase.com:5432/postgres'" [ref=f1e607]
+          - row [ref=f1e609]:
+            - cell "DATA_UPLOAD_MAX_MEMORY_SIZE" [ref=f1e610]
+            - cell "52428800" [ref=f1e611]
+          - row [ref=f1e613]:
+            - cell "DATA_UPLOAD_MAX_NUMBER_FIELDS" [ref=f1e614]
+            - cell "1000" [ref=f1e615]
+          - row [ref=f1e617]:
+            - cell "DATA_UPLOAD_MAX_NUMBER_FILES" [ref=f1e618]
+            - cell "100" [ref=f1e619]
+          - row [ref=f1e621]:
+            - cell "DATETIME_FORMAT" [ref=f1e622]
+            - cell "'N j, Y, P'" [ref=f1e623]
+          - row [ref=f1e625]:
+            - cell "DATETIME_INPUT_FORMATS" [ref=f1e626]
+            - cell "['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%d %H:%M', '%m/%d/%Y %H:%M:%S', '%m/%d/%Y %H:%M:%S.%f', '%m/%d/%Y %H:%M', '%m/%d/%y %H:%M:%S', '%m/%d/%y %H:%M:%S.%f', '%m/%d/%y %H:%M']" [ref=f1e627]
+          - row [ref=f1e629]:
+            - cell "DATE_FORMAT" [ref=f1e630]
+            - cell "'N j, Y'" [ref=f1e631]
+          - row [ref=f1e633]:
+            - cell "DATE_INPUT_FORMATS" [ref=f1e634]
+            - cell "['%Y-%m-%d', '%m/%d/%Y', '%m/%d/%y', '%b %d %Y', '%b %d, %Y', '%d %b %Y', '%d %b, %Y', '%B %d %Y', '%B %d, %Y', '%d %B %Y', '%d %B, %Y']" [ref=f1e635]
+          - row [ref=f1e637]:
+            - cell "DEBUG" [ref=f1e638]
+            - cell "True" [ref=f1e639]
+          - row [ref=f1e641]:
+            - cell "DEBUG_PROPAGATE_EXCEPTIONS" [ref=f1e642]
+            - cell "False" [ref=f1e643]
+          - row [ref=f1e645]:
+            - cell "DECIMAL_SEPARATOR" [ref=f1e646]
+            - cell "'.'" [ref=f1e647]
+          - row [ref=f1e649]:
+            - cell "DEFAULT_AUTO_FIELD" [ref=f1e650]
+            - cell "'django.db.models.BigAutoField'" [ref=f1e651]
+          - row [ref=f1e653]:
+            - cell "DEFAULT_CHARSET" [ref=f1e654]
+            - cell "'utf-8'" [ref=f1e655]
+          - row [ref=f1e657]:
+            - cell "DEFAULT_EXCEPTION_REPORTER" [ref=f1e658]
+            - cell "'django.views.debug.ExceptionReporter'" [ref=f1e659]
+          - row [ref=f1e661]:
+            - cell "DEFAULT_EXCEPTION_REPORTER_FILTER" [ref=f1e662]
+            - cell "'django.views.debug.SafeExceptionReporterFilter'" [ref=f1e663]
+          - row [ref=f1e665]:
+            - cell "DEFAULT_FROM_EMAIL" [ref=f1e666]
+            - cell "'HakiMkononi <noreply@hakimkononi.co.ke>'" [ref=f1e667]
+          - row [ref=f1e669]:
+            - cell "DEFAULT_INDEX_TABLESPACE" [ref=f1e670]
+            - cell "''" [ref=f1e671]
+          - row [ref=f1e673]:
+            - cell "DEFAULT_TABLESPACE" [ref=f1e674]
+            - cell "''" [ref=f1e675]
+          - row [ref=f1e677]:
+            - cell "DISALLOWED_USER_AGENTS" [ref=f1e678]
+            - cell "[]" [ref=f1e679]
+          - row [ref=f1e681]:
+            - cell "EMAIL_BACKEND" [ref=f1e682]
+            - cell "'django.core.mail.backends.console.EmailBackend'" [ref=f1e683]
+          - row [ref=f1e685]:
+            - cell "EMAIL_HOST" [ref=f1e686]
+            - cell "'smtp.gmail.com'" [ref=f1e687]
+          - row [ref=f1e689]:
+            - cell "EMAIL_HOST_PASSWORD" [ref=f1e690]
+            - cell "'********************'" [ref=f1e691]
+          - row [ref=f1e693]:
+            - cell "EMAIL_HOST_USER" [ref=f1e694]
+            - cell "''" [ref=f1e695]
+          - row [ref=f1e697]:
+            - cell "EMAIL_PORT" [ref=f1e698]
+            - cell "587" [ref=f1e699]
+          - row [ref=f1e701]:
+            - cell "EMAIL_SSL_CERTFILE" [ref=f1e702]
+            - cell "None" [ref=f1e703]
+          - row [ref=f1e705]:
+            - cell "EMAIL_SSL_KEYFILE" [ref=f1e706]
+            - cell "'********************'" [ref=f1e707]
+          - row [ref=f1e709]:
+            - cell "EMAIL_SUBJECT_PREFIX" [ref=f1e710]
+            - cell "'[Django] '" [ref=f1e711]
+          - row [ref=f1e713]:
+            - cell "EMAIL_TIMEOUT" [ref=f1e714]
+            - cell "None" [ref=f1e715]
+          - row [ref=f1e717]:
+            - cell "EMAIL_USE_LOCALTIME" [ref=f1e718]
+            - cell "False" [ref=f1e719]
+          - row [ref=f1e721]:
+            - cell "EMAIL_USE_SSL" [ref=f1e722]
+            - cell "False" [ref=f1e723]
+          - row [ref=f1e725]:
+            - cell "EMAIL_USE_TLS" [ref=f1e726]
+            - cell "True" [ref=f1e727]
+          - row [ref=f1e729]:
+            - cell "FILE_UPLOAD_DIRECTORY_PERMISSIONS" [ref=f1e730]
+            - cell "None" [ref=f1e731]
+          - row [ref=f1e733]:
+            - cell "FILE_UPLOAD_HANDLERS" [ref=f1e734]
+            - cell "['django.core.files.uploadhandler.MemoryFileUploadHandler', 'django.core.files.uploadhandler.TemporaryFileUploadHandler']" [ref=f1e735]
+          - row [ref=f1e737]:
+            - cell "FILE_UPLOAD_MAX_MEMORY_SIZE" [ref=f1e738]
+            - cell "52428800" [ref=f1e739]
+          - row [ref=f1e741]:
+            - cell "FILE_UPLOAD_PERMISSIONS" [ref=f1e742]
+            - cell "420" [ref=f1e743]
+          - row [ref=f1e745]:
+            - cell "FILE_UPLOAD_TEMP_DIR" [ref=f1e746]
+            - cell "None" [ref=f1e747]
+          - row [ref=f1e749]:
+            - cell "FIRST_DAY_OF_WEEK" [ref=f1e750]
+            - cell "0" [ref=f1e751]
+          - row [ref=f1e753]:
+            - cell "FIXTURE_DIRS" [ref=f1e754]
+            - cell "[]" [ref=f1e755]
+          - row [ref=f1e757]:
+            - cell "FORCE_SCRIPT_NAME" [ref=f1e758]
+            - cell "None" [ref=f1e759]
+          - row [ref=f1e761]:
+            - cell "FORMAT_MODULE_PATH" [ref=f1e762]
+            - cell "None" [ref=f1e763]
+          - row [ref=f1e765]:
+            - cell "FORM_RENDERER" [ref=f1e766]
+            - cell "'django.forms.renderers.DjangoTemplates'" [ref=f1e767]
+          - row [ref=f1e769]:
+            - cell "IGNORABLE_404_URLS" [ref=f1e770]
+            - cell "[]" [ref=f1e771]
+          - row [ref=f1e773]:
+            - cell "INSTALLED_APPS" [ref=f1e774]
+            - cell "['django.contrib.admin', 'django.contrib.auth', 'django.contrib.contenttypes', 'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles', 'corsheaders', 'cases']" [ref=f1e775]
+          - row [ref=f1e777]:
+            - cell "INTERNAL_IPS" [ref=f1e778]
+            - cell "[]" [ref=f1e779]
+          - row [ref=f1e781]:
+            - cell "LANGUAGES" [ref=f1e782]
+            - cell [ref=f1e783]
+          - row [ref=f1e785]:
+            - cell "LANGUAGES_BIDI" [ref=f1e786]
+            - cell "['he', 'ar', 'ar-dz', 'ckb', 'fa', 'ug', 'ur']" [ref=f1e787]
+          - row [ref=f1e789]:
+            - cell "LANGUAGE_CODE" [ref=f1e790]
+            - cell "'en-us'" [ref=f1e791]
+          - row [ref=f1e793]:
+            - cell "LANGUAGE_COOKIE_AGE" [ref=f1e794]
+            - cell "None" [ref=f1e795]
+          - row [ref=f1e797]:
+            - cell "LANGUAGE_COOKIE_DOMAIN" [ref=f1e798]
+            - cell "None" [ref=f1e799]
+          - row [ref=f1e801]:
+            - cell "LANGUAGE_COOKIE_HTTPONLY" [ref=f1e802]
+            - cell "False" [ref=f1e803]
+          - row [ref=f1e805]:
+            - cell "LANGUAGE_COOKIE_NAME" [ref=f1e806]
+            - cell "'django_language'" [ref=f1e807]
+          - row [ref=f1e809]:
+            - cell "LANGUAGE_COOKIE_PATH" [ref=f1e810]
+            - cell "'/'" [ref=f1e811]
+          - row [ref=f1e813]:
+            - cell "LANGUAGE_COOKIE_SAMESITE" [ref=f1e814]
+            - cell "None" [ref=f1e815]
+          - row [ref=f1e817]:
+            - cell "LANGUAGE_COOKIE_SECURE" [ref=f1e818]
+            - cell "False" [ref=f1e819]
+          - row [ref=f1e821]:
+            - cell "LOCALE_PATHS" [ref=f1e822]
+            - cell "[]" [ref=f1e823]
+          - row [ref=f1e825]:
+            - cell "LOGGING" [ref=f1e826]
+            - 'cell "{}" [ref=f1e827]'
+          - row [ref=f1e829]:
+            - cell "LOGGING_CONFIG" [ref=f1e830]
+            - cell "'logging.config.dictConfig'" [ref=f1e831]
+          - row [ref=f1e833]:
+            - cell "LOGIN_REDIRECT_URL" [ref=f1e834]
+            - cell "'/accounts/profile/'" [ref=f1e835]
+          - row [ref=f1e837]:
+            - cell "LOGIN_URL" [ref=f1e838]
+            - cell "'/accounts/login/'" [ref=f1e839]
+          - row [ref=f1e841]:
+            - cell "LOGOUT_REDIRECT_URL" [ref=f1e842]
+            - cell "None" [ref=f1e843]
+          - row [ref=f1e845]:
+            - cell "MANAGERS" [ref=f1e846]
+            - cell "[]" [ref=f1e847]
+          - row [ref=f1e849]:
+            - cell "MEDIA_ROOT" [ref=f1e850]
+            - cell "PosixPath('/opt/render/project/src/media')" [ref=f1e851]
+          - row [ref=f1e853]:
+            - cell "MEDIA_URL" [ref=f1e854]
+            - cell "'/media/'" [ref=f1e855]
+          - row [ref=f1e857]:
+            - cell "MESSAGE_STORAGE" [ref=f1e858]
+            - cell "'django.contrib.messages.storage.fallback.FallbackStorage'" [ref=f1e859]
+          - row [ref=f1e861]:
+            - cell "MIDDLEWARE" [ref=f1e862]
+            - cell "['corsheaders.middleware.CorsMiddleware', 'django.middleware.security.SecurityMiddleware', 'whitenoise.middleware.WhiteNoiseMiddleware', 'django.contrib.sessions.middleware.SessionMiddleware', 'django.middleware.common.CommonMiddleware', 'django.middleware.csrf.CsrfViewMiddleware', 'django.contrib.auth.middleware.AuthenticationMiddleware', 'django.contrib.messages.middleware.MessageMiddleware', 'django.middleware.clickjacking.XFrameOptionsMiddleware']" [ref=f1e863]
+          - row [ref=f1e865]:
+            - cell "MIGRATION_MODULES" [ref=f1e866]
+            - 'cell "{}" [ref=f1e867]'
+          - row [ref=f1e869]:
+            - cell "MONTH_DAY_FORMAT" [ref=f1e870]
+            - cell "'F j'" [ref=f1e871]
+          - row [ref=f1e873]:
+            - cell "NUMBER_GROUPING" [ref=f1e874]
+            - cell "0" [ref=f1e875]
+          - row [ref=f1e877]:
+            - cell "PASSWORD_HASHERS" [ref=f1e878]
+            - cell "'********************'" [ref=f1e879]
+          - row [ref=f1e881]:
+            - cell "PASSWORD_RESET_TIMEOUT" [ref=f1e882]
+            - cell "'********************'" [ref=f1e883]
+          - row [ref=f1e885]:
+            - cell "PREPEND_WWW" [ref=f1e886]
+            - cell "False" [ref=f1e887]
+          - row [ref=f1e889]:
+            - cell "RENDER_EXTERNAL_HOSTNAME" [ref=f1e890]
+            - cell "'hakimkononi.onrender.com'" [ref=f1e891]
+          - row [ref=f1e893]:
+            - cell "ROOT_URLCONF" [ref=f1e894]
+            - cell "'sheria_ai.urls'" [ref=f1e895]
+          - row [ref=f1e897]:
+            - cell "SECRET_KEY" [ref=f1e898]
+            - cell "'********************'" [ref=f1e899]
+          - row [ref=f1e901]:
+            - cell "SECRET_KEY_FALLBACKS" [ref=f1e902]
+            - cell "'********************'" [ref=f1e903]
+          - row [ref=f1e905]:
+            - cell "SECURE_CONTENT_TYPE_NOSNIFF" [ref=f1e906]
+            - cell "True" [ref=f1e907]
+          - row [ref=f1e909]:
+            - cell "SECURE_CROSS_ORIGIN_OPENER_POLICY" [ref=f1e910]
+            - cell "'same-origin'" [ref=f1e911]
+          - row [ref=f1e913]:
+            - cell "SECURE_CSP" [ref=f1e914]
+            - 'cell "{}" [ref=f1e915]'
+          - row [ref=f1e917]:
+            - cell "SECURE_CSP_REPORT_ONLY" [ref=f1e918]
+            - 'cell "{}" [ref=f1e919]'
+          - row [ref=f1e921]:
+            - cell "SECURE_HSTS_INCLUDE_SUBDOMAINS" [ref=f1e922]
+            - cell "False" [ref=f1e923]
+          - row [ref=f1e925]:
+            - cell "SECURE_HSTS_PRELOAD" [ref=f1e926]
+            - cell "False" [ref=f1e927]
+          - row [ref=f1e929]:
+            - cell "SECURE_HSTS_SECONDS" [ref=f1e930]
+            - cell "0" [ref=f1e931]
+          - row [ref=f1e933]:
+            - cell "SECURE_PROXY_SSL_HEADER" [ref=f1e934]
+            - cell "None" [ref=f1e935]
+          - row [ref=f1e937]:
+            - cell "SECURE_REDIRECT_EXEMPT" [ref=f1e938]
+            - cell "[]" [ref=f1e939]
+          - row [ref=f1e941]:
+            - cell "SECURE_REFERRER_POLICY" [ref=f1e942]
+            - cell "'same-origin'" [ref=f1e943]
+          - row [ref=f1e945]:
+            - cell "SECURE_SSL_HOST" [ref=f1e946]
+            - cell "None" [ref=f1e947]
+          - row [ref=f1e949]:
+            - cell "SECURE_SSL_REDIRECT" [ref=f1e950]
+            - cell "False" [ref=f1e951]
+          - row [ref=f1e953]:
+            - cell "SERVER_EMAIL" [ref=f1e954]
+            - cell "'root@localhost'" [ref=f1e955]
+          - row [ref=f1e957]:
+            - cell "SESSION_CACHE_ALIAS" [ref=f1e958]
+            - cell "'default'" [ref=f1e959]
+          - row [ref=f1e961]:
+            - cell "SESSION_COOKIE_AGE" [ref=f1e962]
+            - cell "1209600" [ref=f1e963]
+          - row [ref=f1e965]:
+            - cell "SESSION_COOKIE_DOMAIN" [ref=f1e966]
+            - cell "None" [ref=f1e967]
+          - row [ref=f1e969]:
+            - cell "SESSION_COOKIE_HTTPONLY" [ref=f1e970]
+            - cell "True" [ref=f1e971]
+          - row [ref=f1e973]:
+            - cell "SESSION_COOKIE_NAME" [ref=f1e974]
+            - cell "'sessionid'" [ref=f1e975]
+          - row [ref=f1e977]:
+            - cell "SESSION_COOKIE_PATH" [ref=f1e978]
+            - cell "'/'" [ref=f1e979]
+          - row [ref=f1e981]:
+            - cell "SESSION_COOKIE_SAMESITE" [ref=f1e982]
+            - cell "'Lax'" [ref=f1e983]
+          - row [ref=f1e985]:
+            - cell "SESSION_COOKIE_SECURE" [ref=f1e986]
+            - cell "False" [ref=f1e987]
+          - row [ref=f1e989]:
+            - cell "SESSION_ENGINE" [ref=f1e990]
+            - cell "'django.contrib.sessions.backends.db'" [ref=f1e991]
+          - row [ref=f1e993]:
+            - cell "SESSION_EXPIRE_AT_BROWSER_CLOSE" [ref=f1e994]
+            - cell "False" [ref=f1e995]
+          - row [ref=f1e997]:
+            - cell "SESSION_FILE_PATH" [ref=f1e998]
+            - cell "None" [ref=f1e999]
+          - row [ref=f1e1001]:
+            - cell "SESSION_SAVE_EVERY_REQUEST" [ref=f1e1002]
+            - cell "False" [ref=f1e1003]
+          - row [ref=f1e1005]:
+            - cell "SESSION_SERIALIZER" [ref=f1e1006]
+            - cell "'django.contrib.sessions.serializers.JSONSerializer'" [ref=f1e1007]
+          - row [ref=f1e1009]:
+            - cell "SETTINGS_MODULE" [ref=f1e1010]
+            - cell "'sheria_ai.settings'" [ref=f1e1011]
+          - row [ref=f1e1013]:
+            - cell "SHORT_DATETIME_FORMAT" [ref=f1e1014]
+            - cell "'m/d/Y P'" [ref=f1e1015]
+          - row [ref=f1e1017]:
+            - cell "SHORT_DATE_FORMAT" [ref=f1e1018]
+            - cell "'m/d/Y'" [ref=f1e1019]
+          - row [ref=f1e1021]:
+            - cell "SIGNED_COOKIE_LEGACY_SALT_FALLBACK" [ref=f1e1022]
+            - cell "False" [ref=f1e1023]
+          - row [ref=f1e1025]:
+            - cell "SIGNING_BACKEND" [ref=f1e1026]
+            - cell "'django.core.signing.TimestampSigner'" [ref=f1e1027]
+          - row [ref=f1e1029]:
+            - cell "SILENCED_SYSTEM_CHECKS" [ref=f1e1030]
+            - cell "[]" [ref=f1e1031]
+          - row [ref=f1e1033]:
+            - cell "STATICFILES_DIRS" [ref=f1e1034]
+            - cell "[PosixPath('/opt/render/project/src/static')]" [ref=f1e1035]
+          - row [ref=f1e1037]:
+            - cell "STATICFILES_FINDERS" [ref=f1e1038]
+            - cell "['django.contrib.staticfiles.finders.FileSystemFinder', 'django.contrib.staticfiles.finders.AppDirectoriesFinder']" [ref=f1e1039]
+          - row [ref=f1e1041]:
+            - cell "STATIC_ROOT" [ref=f1e1042]
+            - cell "PosixPath('/opt/render/project/src/staticfiles')" [ref=f1e1043]
+          - row [ref=f1e1045]:
+            - cell "STATIC_URL" [ref=f1e1046]
+            - cell "'/static/'" [ref=f1e1047]
+          - row [ref=f1e1049]:
+            - cell "STORAGES" [ref=f1e1050]
+            - 'cell "{''default'': {''BACKEND'': ''django.core.files.storage.FileSystemStorage''}, ''staticfiles'': {''BACKEND'': ''django.contrib.staticfiles.storage.StaticFilesStorage''}}" [ref=f1e1051]'
+          - row [ref=f1e1053]:
+            - cell "TASKS" [ref=f1e1054]
+            - 'cell "{''default'': {''BACKEND'': ''django.tasks.backends.immediate.ImmediateBackend''}}" [ref=f1e1055]'
+          - row [ref=f1e1057]:
+            - cell "TEMPLATES" [ref=f1e1058]
+            - 'cell "[{''APP_DIRS'': True, ''BACKEND'': ''django.template.backends.django.DjangoTemplates'', ''DIRS'': [PosixPath(''/opt/render/project/src/templates'')], ''OPTIONS'': {''context_processors'': [''django.template.context_processors.debug'', ''django.template.context_processors.request'', ''django.contrib.auth.context_processors.auth'', ''django.contrib.messages.context_processors.messages'']}}]" [ref=f1e1059]'
+          - row [ref=f1e1061]:
+            - cell "TEST_NON_SERIALIZED_APPS" [ref=f1e1062]
+            - cell "[]" [ref=f1e1063]
+          - row [ref=f1e1065]:
+            - cell "TEST_RUNNER" [ref=f1e1066]
+            - cell "'django.test.runner.DiscoverRunner'" [ref=f1e1067]
+          - row [ref=f1e1069]:
+            - cell "THOUSAND_SEPARATOR" [ref=f1e1070]
+            - cell "','" [ref=f1e1071]
+          - row [ref=f1e1073]:
+            - cell "TIME_FORMAT" [ref=f1e1074]
+            - cell "'P'" [ref=f1e1075]
+          - row [ref=f1e1077]:
+            - cell "TIME_INPUT_FORMATS" [ref=f1e1078]
+            - cell "['%H:%M:%S', '%H:%M:%S.%f', '%H:%M']" [ref=f1e1079]
+          - row [ref=f1e1081]:
+            - cell "TIME_ZONE" [ref=f1e1082]
+            - cell "'Africa/Nairobi'" [ref=f1e1083]
+          - row [ref=f1e1085]:
+            - cell "URLIZE_ASSUME_HTTPS" [ref=f1e1086]
+            - cell "False" [ref=f1e1087]
+          - row [ref=f1e1089]:
+            - cell "USE_BLANK_CHOICE_DASH" [ref=f1e1090]
+            - cell "False" [ref=f1e1091]
+          - row [ref=f1e1093]:
+            - cell "USE_I18N" [ref=f1e1094]
+            - cell "True" [ref=f1e1095]
+          - row [ref=f1e1097]:
+            - cell "USE_THOUSAND_SEPARATOR" [ref=f1e1098]
+            - cell "False" [ref=f1e1099]
+          - row [ref=f1e1101]:
+            - cell "USE_TZ" [ref=f1e1102]
+            - cell "True" [ref=f1e1103]
+          - row [ref=f1e1105]:
+            - cell "USE_X_FORWARDED_HOST" [ref=f1e1106]
+            - cell "False" [ref=f1e1107]
+          - row [ref=f1e1109]:
+            - cell "USE_X_FORWARDED_PORT" [ref=f1e1110]
+            - cell "False" [ref=f1e1111]
+          - row [ref=f1e1113]:
+            - cell "WHITENOISE_USE_FINDERS" [ref=f1e1114]
+            - cell "True" [ref=f1e1115]
+          - row [ref=f1e1117]:
+            - cell "WSGI_APPLICATION" [ref=f1e1118]
+            - cell "'sheria_ai.wsgi.application'" [ref=f1e1119]
+          - row [ref=f1e1121]:
+            - cell "X_FRAME_OPTIONS" [ref=f1e1122]
+            - cell "'DENY'" [ref=f1e1123]
+          - row [ref=f1e1125]:
+            - cell "YEAR_MONTH_FORMAT" [ref=f1e1126]
+            - cell "'F Y'" [ref=f1e1127]
+          - row [ref=f1e1129]:
+            - cell "_ALLOWED" [ref=f1e1130]
+            - cell "['localhost', '127.0.0.1', 'margin-comma-showgirl.ngrok-free.dev']" [ref=f1e1131]
+  - contentinfo [ref=f1e1133]:
+    - paragraph [ref=f1e1134]:
+      - text: You’re seeing this error because you have
+      - code [ref=f1e1135]: DEBUG = True
+      - text: in your Django settings file. Change that to
+      - code [ref=f1e1136]: "False"
+      - text: ", and Django will display a standard page generated by the handler for this status code."

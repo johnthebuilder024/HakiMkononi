@@ -1,0 +1,105 @@
+- generic [active] [ref=f10e1]:
+  - navigation [ref=f10e2]:
+    - generic [ref=f10e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f10e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f10e5]
+        - generic [ref=f10e6]: HakiMkononi
+      - generic [ref=f10e7]:
+        - list [ref=f10e8]:
+          - listitem [ref=f10e9]:
+            - link "Nyumbani" [ref=f10e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f10e11]:
+            - link "Kuhusu" [ref=f10e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f10e13]:
+            - link "⚖️ Mawakili" [ref=f10e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f10e15]:
+            - link "🎙️ Rekodi ya Mahakama" [ref=f10e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f10e17]:
+            - link "🔍 Tafuta Wakili" [ref=f10e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f10e19]:
+            - link "💰 Ada za Wakili" [ref=f10e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f10e21]:
+          - link "Kiswahili" [ref=f10e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/lawyers/?lang=sw
+          - link "English" [ref=f10e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/lawyers/?lang=en
+  - main [ref=f10e24]:
+    - generic [ref=f10e26]:
+      - generic [ref=f10e27]: ⚖️
+      - heading "Fikia Wateja Wanaokuhitaji" [level=1] [ref=f10e28]
+      - paragraph [ref=f10e29]: Kila siku, Wakenya wanauliza maswali ya kisheria ambayo HakiMkononi haiwezi kuyatatua kikamilifu. Jiunge na mtandao wetu wa mawakili walioidhinishwa na upate wateja wanaohitaji msaada wa kweli.
+      - link "Jiunge Kama Wakili →" [ref=f10e30] [cursor=pointer]:
+        - /url: /lawyers/register/
+    - generic [ref=f10e34]:
+      - heading "Inafanya Kazi Vipi" [level=2] [ref=f10e35]
+      - generic [ref=f10e36]:
+        - generic [ref=f10e38]:
+          - generic [ref=f10e39]: 1️⃣
+          - heading "Jisajili" [level=6] [ref=f10e40]
+          - paragraph [ref=f10e41]: Jaza maelezo yako na nambari ya cheti chako cha LSK.
+        - generic [ref=f10e43]:
+          - generic [ref=f10e44]: 2️⃣
+          - heading "Thibitishwa" [level=6] [ref=f10e45]
+          - paragraph [ref=f10e46]: Pakia cheti chako, kitambulisho na selfie. Tunathibitisha ndani ya masaa 24–48.
+        - generic [ref=f10e48]:
+          - generic [ref=f10e49]: 3️⃣
+          - heading "Pata Wateja" [level=6] [ref=f10e50]
+          - paragraph [ref=f10e51]: Wasifu wako unaonekana kwa watumiaji ambao maswali yao yanalingana na utaalamu na kaunti yako.
+      - generic [ref=f10e52]:
+        - heading "Kwa Nini Ujiunge na HakiMkononi" [level=2] [ref=f10e54]
+        - generic [ref=f10e56]:
+          - generic [ref=f10e58]:
+            - generic [ref=f10e59]: 📍
+            - generic [ref=f10e60]:
+              - heading "Ulinganifu wa kaunti na utaalamu" [level=6] [ref=f10e61]
+              - paragraph [ref=f10e62]: Unaonekana tu kwa wateja walio karibu nawe wanaouliza kuhusu maeneo yako ya utaalamu.
+          - generic [ref=f10e64]:
+            - generic [ref=f10e65]: 💬
+            - generic [ref=f10e66]:
+              - heading "WhatsApp na Telegram Moja kwa Moja" [level=6] [ref=f10e67]
+              - paragraph [ref=f10e68]: Wateja wanakufikia moja kwa moja. Hakuna mpatanishi, hakuna kamisheni kwenye ada zako.
+          - generic [ref=f10e70]:
+            - generic [ref=f10e71]: ✅
+            - generic [ref=f10e72]:
+              - heading "Alama ya kuthibitishwa inajenga uaminifu" [level=6] [ref=f10e73]
+              - paragraph [ref=f10e74]: Kila wakili kwenye jukwaa amethibitishwa na LSK. Wateja wanajua ni halali.
+          - generic [ref=f10e76]:
+            - generic [ref=f10e77]: 🆓
+            - generic [ref=f10e78]:
+              - heading "Bure kujiunga" [level=6] [ref=f10e79]
+              - paragraph [ref=f10e80]: Hakuna ada ya kujisajili. Uthibitishaji ni bure. Unabaki na 100% ya ada ya wateja wako.
+      - generic [ref=f10e81]:
+        - heading "Utahitaji Nini Kuthibitisha" [level=2] [ref=f10e83]
+        - list [ref=f10e85]:
+          - listitem [ref=f10e86]: "Nambari sahihi ya LSK (muundo: P.XXX/XXXX/YYYY)"
+          - listitem [ref=f10e87]: Cheti cha Sasa cha Utendaji cha LSK
+          - listitem [ref=f10e88]: Kitambulisho cha Taifa au Pasipoti
+          - listitem [ref=f10e89]: Picha yako ukiwa unashikilia kitambulisho
+          - listitem [ref=f10e90]: Cheti cha KRA PIN
+      - generic [ref=f10e91]:
+        - link "Anza Maombi Yako →" [ref=f10e92] [cursor=pointer]:
+          - /url: /lawyers/register/
+        - paragraph [ref=f10e93]:
+          - text: Umeomba tayari?
+          - link "Angalia hali ya maombi yako →" [ref=f10e94] [cursor=pointer]:
+            - /url: /lawyers/check-status/
+  - contentinfo [ref=f10e95]:
+    - generic [ref=f10e96]:
+      - generic [ref=f10e97]:
+        - text: © 2024
+        - strong [ref=f10e98]: HakiMkononi
+        - text: — Sheria yako, mkononi mwako 🇰🇪
+      - generic [ref=f10e99]:
+        - link "Kuhusu" [ref=f10e100] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f10e101] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f10e102]: Taarifa ya kisheria tu. Si ushauri wa kisheria.

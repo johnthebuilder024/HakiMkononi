@@ -1,0 +1,139 @@
+- generic [active] [ref=f5e1]:
+  - navigation [ref=f5e2]:
+    - generic [ref=f5e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f5e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f5e5]
+        - generic [ref=f5e6]: HakiMkononi
+      - generic [ref=f5e7]:
+        - list [ref=f5e8]:
+          - listitem [ref=f5e9]:
+            - link "Home" [ref=f5e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f5e11]:
+            - link "About" [ref=f5e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f5e13]:
+            - link "⚖️ Lawyers" [ref=f5e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f5e15]:
+            - link "🎙️ Court Audio" [ref=f5e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f5e17]:
+            - link "🔍 Find a Lawyer" [ref=f5e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f5e19]:
+            - link "💰 Lawyer Fees" [ref=f5e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f5e21]:
+          - link "Kiswahili" [ref=f5e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=sw
+          - link "English" [ref=f5e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=en
+  - main [ref=f5e24]:
+    - generic [ref=f5e25]:
+      - complementary "Conversation history" [ref=f5e26]:
+        - button "New Chat" [ref=f5e28] [cursor=pointer]
+        - generic [ref=f5e30]:
+          - generic [ref=f5e31]: Today
+          - generic [ref=f5e32] [cursor=pointer]:
+            - generic [ref=f5e33]: ⚖️
+            - generic [ref=f5e34]: I want to buy a plot in Kiambu. The seller showed me a
+            - button "✕" [ref=f5e35]
+          - generic [ref=f5e36]: Older
+          - generic [ref=f5e37] [cursor=pointer]:
+            - generic [ref=f5e38]: ⚖️
+            - generic [ref=f5e39]: Boss wangu alinifukuza kazi bila notisi wala malipo. Ni
+            - button "✕" [ref=f5e40]
+        - generic [ref=f5e41]: Saved in this browser only
+      - generic [ref=f5e42]:
+        - generic [ref=f5e45]:
+          - button "☰ Past chats" [ref=f5e47] [cursor=pointer]
+          - img "HakiMkononi" [ref=f5e49]
+          - heading "HakiMkononi" [level=2] [ref=f5e50]
+          - paragraph [ref=f5e51]: Describe your situation. AI will help you understand your legal rights for free.
+          - generic [ref=f5e52]:
+            - generic [ref=f5e53] [cursor=pointer]: I was fired without notice
+            - generic [ref=f5e54] [cursor=pointer]: Landlord locked me out without notice
+            - generic [ref=f5e55] [cursor=pointer]: Police arrested me without a warrant
+            - generic [ref=f5e56] [cursor=pointer]: Spouse is hiding our shared property
+            - generic [ref=f5e57] [cursor=pointer]: My employer hasn't paid my salary
+            - generic [ref=f5e58] [cursor=pointer]: My neighbour assaulted me. What do I do?
+          - paragraph [ref=f5e59]: Powered by the Kenya Constitution 2010, Employment Act 2007 and more.
+          - generic [ref=f5e60]:
+            - generic [ref=f5e61]: 📍
+            - combobox "Your county (optional)" [ref=f5e62] [cursor=pointer]:
+              - option "All Kenya" [selected]
+              - option "Baringo"
+              - option "Bomet"
+              - option "Bungoma"
+              - option "Busia"
+              - option "Elgeyo Marakwet"
+              - option "Embu"
+              - option "Garissa"
+              - option "Homa Bay"
+              - option "Isiolo"
+              - option "Kajiado"
+              - option "Kakamega"
+              - option "Kericho"
+              - option "Kiambu"
+              - option "Kilifi"
+              - option "Kirinyaga"
+              - option "Kisii"
+              - option "Kisumu"
+              - option "Kitui"
+              - option "Kwale"
+              - option "Laikipia"
+              - option "Lamu"
+              - option "Machakos"
+              - option "Makueni"
+              - option "Mandera"
+              - option "Marsabit"
+              - option "Meru"
+              - option "Migori"
+              - option "Mombasa"
+              - option "Muranga"
+              - option "Nairobi"
+              - option "Nakuru"
+              - option "Nandi"
+              - option "Narok"
+              - option "Nyandarua"
+              - option "Nyamira"
+              - option "Nyeri"
+              - option "Samburu"
+              - option "Siaya"
+              - option "Taita Taveta"
+              - option "Tana River"
+              - option "Tharaka Nithi"
+              - option "Trans Nzoia"
+              - option "Turkana"
+              - option "Uasin Gishu"
+              - option "Vihiga"
+              - option "Wajir"
+              - option "West Pokot"
+            - generic [ref=f5e63]: for better lawyer matching
+        - generic [ref=f5e65]:
+          - generic [ref=f5e66]:
+            - textbox "Your legal problem" [ref=f5e67]:
+              - /placeholder: "Example: My boss fired me without notice or pay. I worked there 3 years. What do I do?"
+            - button "📎" [ref=f5e68] [cursor=pointer]
+            - button "🎤" [ref=f5e70] [cursor=pointer]
+            - button "Send" [disabled] [ref=f5e72]
+          - generic [ref=f5e76]:
+            - generic "Get court document, evidence checklist and step-by-step filing guide" [ref=f5e77] [cursor=pointer]:
+              - checkbox "🏛️ Self-represent in court" [ref=f5e78]
+              - text: 🏛️ Self-represent in court
+            - generic [ref=f5e79]: HakiMkononi provides legal information only. Not legal advice. For complex cases, consult a lawyer.
+  - contentinfo [ref=f5e80]:
+    - generic [ref=f5e81]:
+      - generic [ref=f5e82]:
+        - text: © 2024
+        - strong [ref=f5e83]: HakiMkononi
+        - text: — Your rights, in your hands 🇰🇪
+      - generic [ref=f5e84]:
+        - link "About" [ref=f5e85] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f5e86] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f5e87]: Legal information only. Not legal advice.

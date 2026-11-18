@@ -1,0 +1,11 @@
+﻿python :   File "telegram_bot.py", line 1053
+At line:1 char:1
++ python -m py_compile telegram_bot.py 2>&1 | Out-File C:\Users\hp\Desk ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "telegram_bot.py", line 10 
+   53:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    }
+    ^
+SyntaxError: unmatched '}'

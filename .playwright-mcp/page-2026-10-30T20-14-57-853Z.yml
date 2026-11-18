@@ -1,0 +1,543 @@
+- generic [active] [ref=f5e1]:
+  - banner [ref=f5e2]:
+    - generic:
+      - link "Skip to document content" [ref=f5e3] [cursor=pointer]:
+        - /url: "#document-content"
+      - link "Go to main menu" [ref=f5e4] [cursor=pointer]:
+        - /url: "#main-nav"
+      - link "Go to search" [ref=f5e5] [cursor=pointer]:
+        - /url: "#header-search"
+    - navigation [ref=f5e6]:
+      - list [ref=f5e8]:
+        - listitem [ref=f5e9]:
+          - link "About Us" [ref=f5e10] [cursor=pointer]:
+            - /url: /about/
+        - listitem [ref=f5e11]:
+          - link "Product Catalogue" [ref=f5e12] [cursor=pointer]:
+            - /url: https://kenyalaw.org/ecommerce
+        - listitem [ref=f5e13]:
+          - link "Contact Us" [ref=f5e14] [cursor=pointer]:
+            - /url: /about/#contact
+        - listitem [ref=f5e15]:
+          - link "Site Map" [ref=f5e16] [cursor=pointer]:
+            - /url: /sitemap.xml
+    - generic [ref=f5e19]:
+      - link [ref=f5e20] [cursor=pointer]:
+        - /url: /
+        - img "Kenya Law" [ref=f5e21]
+      - generic [ref=f5e23]:
+        - textbox "Search Kenya Law" [ref=f5e24]
+        - button " Search" [ref=f5e25] [cursor=pointer]:
+          - generic [ref=f5e26]: 
+          - text: Search
+    - navigation [ref=f5e27]:
+      - generic [ref=f5e28]:
+        - text: 
+        - generic [ref=f5e29]:
+          - text: 
+          - list [ref=f5e30]:
+            - listitem [ref=f5e31]:
+              - link "Home" [ref=f5e32] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=f5e33]:
+              - button "Case Law" [ref=f5e34] [cursor=pointer]
+            - listitem [ref=f5e35]:
+              - button "Laws of Kenya" [ref=f5e36] [cursor=pointer]
+            - listitem [ref=f5e37]:
+              - link "Counties" [ref=f5e38] [cursor=pointer]:
+                - /url: /legislation/counties
+            - listitem [ref=f5e39]:
+              - link "Cause List" [ref=f5e40] [cursor=pointer]:
+                - /url: /causelists/
+            - listitem [ref=f5e41]:
+              - link "Kenya Gazette" [ref=f5e42] [cursor=pointer]:
+                - /url: /gazettes/
+            - listitem [ref=f5e43]:
+              - button "Publications" [ref=f5e44] [cursor=pointer]
+            - listitem [ref=f5e45]:
+              - button "Parliament" [ref=f5e46] [cursor=pointer]
+            - listitem [ref=f5e47]:
+              - link "Blog" [ref=f5e48] [cursor=pointer]:
+                - /url: /articles/
+          - list [ref=f5e49]:
+            - listitem [ref=f5e50]:
+              - link " Log in" [ref=f5e51] [cursor=pointer]:
+                - /url: /accounts/login/?next=/akn/ke/judgment/keelc/2024/4992/eng%402024-01-16
+                - generic [ref=f5e52]: 
+                - text: Log in
+  - main [ref=f5e53]:
+    - generic [ref=f5e54]:
+      - generic [ref=f5e56]:
+        - navigation [ref=f5e57]:
+          - list [ref=f5e58]:
+            - listitem [ref=f5e59]:
+              - link "Home" [ref=f5e60] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=f5e61]:
+              - text: /
+              - link "Judgments" [ref=f5e62] [cursor=pointer]:
+                - /url: /judgments/
+            - listitem [ref=f5e63]:
+              - text: /
+              - link "Superior Courts" [ref=f5e64] [cursor=pointer]:
+                - /url: /judgments/court-class/superior-courts/
+            - listitem [ref=f5e65]:
+              - text: /
+              - link "Environment and Land Court" [ref=f5e66] [cursor=pointer]:
+                - /url: /judgments/KEELC/
+            - listitem [ref=f5e67]:
+              - text: /
+              - link "Environment and Land Court at Kwale" [ref=f5e68] [cursor=pointer]:
+                - /url: /judgments/KEELC/ELCKW/
+            - listitem [ref=f5e69]:
+              - text: /
+              - link "2024" [ref=f5e70] [cursor=pointer]:
+                - /url: /judgments/KEELC/2024/
+        - generic [ref=f5e71]:
+          - heading "Republic v Chief Magistrates Court Kwale & 3 others; Ndolo & 8 others (Ex parte Applicant) (Environment and Land Judicial Review Case 5 of 2021) [2024] KEELC 4992 (KLR) (16 January 2024) (Ruling)" [level=1] [ref=f5e73]
+          - generic [ref=f5e75]:
+            - link "Share this document on WhatsApp opens in new tab" [ref=f5e76] [cursor=pointer]:
+              - /url: https://api.whatsapp.com/send?text=Republic+v+Chief+Magistrates+Court+Kwale+%26+3+others%3B+Ndolo+%26+8+others+%28Ex+parte+Applicant%29+%28Environment+and+Land+Judicial+Review+Case+5%C2%A0of%C2%A02021%29+%5B2024%5D%C2%A0KEELC%C2%A04992%C2%A0%28KLR%29+%2816%C2%A0January%C2%A02024%29+%28Ruling%29+-+https%3A%2F%2Fkenyalaw.org%2Fakn%2Fke%2Fjudgment%2Fkeelc%2F2024%2F4992%2Feng%402024-01-16
+              - generic [aria-hidden] [ref=f5e78]: 
+            - link "Share this document on X opens in new tab" [ref=f5e79] [cursor=pointer]:
+              - /url: https://twitter.com/intent/tweet?text=Republic+v+Chief+Magistrates+Court+Kwale+%26+3+others%3B+Ndolo+%26+8+others+%28Ex+parte+Applicant%29+%28Environment+and+Land+Judicial+Review+Case+5%C2%A0of%C2%A02021%29+%5B2024%5D%C2%A0KEELC%C2%A04992%C2%A0%28KLR%29+%2816%C2%A0January%C2%A02024%29+%28Ruling%29+-+https%3A%2F%2Fkenyalaw.org%2Fakn%2Fke%2Fjudgment%2Fkeelc%2F2024%2F4992%2Feng%402024-01-16
+              - generic [aria-hidden] [ref=f5e81]: 
+            - link "Share this document on Facebook opens in new tab" [ref=f5e82] [cursor=pointer]:
+              - /url: https://www.facebook.com/sharer/sharer.php?u=https://kenyalaw.org/akn/ke/judgment/keelc/2024/4992/eng@2024-01-16
+              - generic [aria-hidden] [ref=f5e84]: 
+            - link "Share this document on LinkedIn opens in new tab" [ref=f5e85] [cursor=pointer]:
+              - /url: https://www.linkedin.com/sharing/share-offsite/?url=https://kenyalaw.org/akn/ke/judgment/keelc/2024/4992/eng@2024-01-16
+              - generic [aria-hidden] [ref=f5e87]: 
+            - link "Share this document by email" [ref=f5e88] [cursor=pointer]:
+              - /url: mailto:?subject=Take%20a%20look%20at%20this%20document%20from%20Kenya%20Law:%20Republic%20v%20Chief%20Magistrates%20Court%20Kwale%20&%20%E2%80%A6&body=https://kenyalaw.org/akn/ke/judgment/keelc/2024/4992/eng@2024-01-16
+              - generic [aria-hidden] [ref=f5e90]: 
+        - toolbar "Document toolbar" [ref=f5e91]:
+          - button " Save" [ref=f5e93] [cursor=pointer]:
+            - generic [ref=f5e94]: 
+            - text: Save
+          - link "Download PDF (73.1 KB)" [ref=f5e96] [cursor=pointer]:
+            - /url: /akn/ke/judgment/keelc/2024/4992/eng@2024-01-16/source
+          - button "Report a problem" [ref=f5e97] [cursor=pointer]
+          - text: 
+        - text:  
+        - tablist [ref=f5e98]:
+          - tab " Document detail" [selected] [ref=f5e99] [cursor=pointer]:
+            - generic [ref=f5e100]: 
+            - text: Document detail
+          - tab " Related documents" [ref=f5e101] [cursor=pointer]:
+            - generic [ref=f5e102]: 
+            - text: Related documents
+          - tab " Citations 12 / -" [ref=f5e103] [cursor=pointer]:
+            - generic [ref=f5e104]: 
+            - text: Citations
+            - generic [ref=f5e105]: 12 / -
+      - generic [ref=f5e106]:
+        - tabpanel [ref=f5e107]:
+          - generic [ref=f5e108]:
+            - generic [ref=f5e109]:
+              - generic [ref=f5e111]:
+                - term [ref=f5e112]: Citation
+                - definition [ref=f5e113]:
+                  - text: Republic v Chief Magistrates Court Kwale & 3 others; Ndolo & 8 others (Ex parte Applicant) [2024] KEELC 4992 (KLR)
+                  - button "Copy" [ref=f5e114] [cursor=pointer]
+                - term [ref=f5e115]: Media Neutral Citation
+                - definition [ref=f5e116]:
+                  - text: "[2024] KEELC 4992 (KLR)"
+                  - button "Copy" [ref=f5e117] [cursor=pointer]
+                - term [ref=f5e118]: Court
+                - definition [ref=f5e119]:
+                  - link "Environment and Land Court" [ref=f5e120] [cursor=pointer]:
+                    - /url: /judgments/KEELC/
+                - term [ref=f5e121]: Court station
+                - definition [ref=f5e122]:
+                  - link "Environment and Land Court at Kwale" [ref=f5e123] [cursor=pointer]:
+                    - /url: /judgments/KEELC/ELCKW/
+                - term [ref=f5e124]: Outcome
+                - definition [ref=f5e125]: Dismissed
+                - term [ref=f5e126]: Case number
+                - definition [ref=f5e127]: Environment and Land Judicial Review Case 5 of 2021
+                - term [ref=f5e128]: Judges
+                - definition [ref=f5e129]:
+                  - link "AE Dena" [ref=f5e130] [cursor=pointer]:
+                    - /url: /judgments/all/?judges=AE%20Dena
+                - term [ref=f5e131]: Judgment date
+                - definition [ref=f5e132]: 16 January 2024
+                - term [ref=f5e133]: Language
+                - definition [ref=f5e134]: English
+                - term [ref=f5e135]: Original source file
+                - definition [ref=f5e136]:
+                  - link "Download DOC" [ref=f5e137] [cursor=pointer]:
+                    - /url: /akn/ke/judgment/keelc/2024/4992/eng@2024-01-16/attachment/ELC%20JR%20NO.%20%205%20OF%202021.doc
+                  - text: (58.0 KB)
+              - generic [ref=f5e138]:
+                - heading " Collections" [level=5] [ref=f5e139]:
+                  - generic [ref=f5e140]: 
+                  - text: Collections
+                - list [ref=f5e141]:
+                  - listitem [ref=f5e142]:
+                    - link "Case Indexes" [ref=f5e143] [cursor=pointer]:
+                      - /url: /taxonomy/case-indexes
+                    - list [ref=f5e144]:
+                      - listitem [ref=f5e145]:
+                        - link "Civil Practice and Procedure" [ref=f5e146] [cursor=pointer]:
+                          - /url: /taxonomy/case-indexes/case-indexes-civil-practice-and-procedure
+            - generic [ref=f5e147]:
+              - term [ref=f5e148]: Date published
+              - definition [ref=f5e149]: 08 July 2024
+              - term [ref=f5e150]: Case action
+              - definition [ref=f5e151]: Ruling
+              - term [ref=f5e152]: Court division
+              - definition [ref=f5e153]: Environment and Planning
+              - term [ref=f5e154]: Filing county
+              - definition [ref=f5e155]: Kwale
+            - separator [ref=f5e156]
+          - generic [ref=f5e157]:
+            - link "Skip to document content" [ref=f5e158] [cursor=pointer]:
+              - /url: "#document-content"
+            - generic [ref=f5e159]:
+              - generic [ref=f5e161]:
+                - navigation [ref=f5e162]:
+                  - tablist [ref=f5e163]:
+                    - tab "Search" [selected] [ref=f5e164] [cursor=pointer]
+                - tabpanel "Search" [ref=f5e166]:
+                  - generic [ref=f5e169]:
+                    - generic [ref=f5e170]:
+                      - textbox "Search document content" [ref=f5e171]
+                      - button "Search" [ref=f5e172] [cursor=pointer]
+                    - link " Help opens in new tab" [ref=f5e175] [cursor=pointer]:
+                      - /url: https://help.kenyalaw.org/search/search-inside-a-document
+                      - generic [ref=f5e176]: 
+                      - text: Help
+                      - generic [ref=f5e177]: opens in new tab
+              - article [ref=f5e183]:
+                - generic [ref=f5e184]:
+                  - generic [ref=f5e185]:
+                    - generic [ref=f5e186]: Republic v Chief Magistrates Court Kwale & 3 others; Ndolo & 8 others (Ex parte Applicant) (Environment and Land Judicial Review Case 5 of 2021) [2024] KEELC 4992 (KLR) (16 January 2024) (Ruling)
+                    - generic [ref=f5e187]: "Neutral citation: [2024] KEELC 4992 (KLR)"
+                    - generic [ref=f5e188]: Republic of Kenya
+                    - generic [ref=f5e189]: In the Environment and Land Court at Kwale
+                    - generic [ref=f5e190]: Environment and Land Judicial Review Case 5 of 2021
+                    - generic [ref=f5e191]: AE Dena, J
+                    - generic [ref=f5e192]: January 16, 2024
+                    - generic [ref=f5e193]:
+                      - generic [ref=f5e194]: Between
+                      - generic [ref=f5e195]:
+                        - generic [ref=f5e196]: Republic
+                        - generic [ref=f5e198]: Applicant
+                      - generic [ref=f5e199]: and
+                      - generic [ref=f5e200]:
+                        - generic [ref=f5e201]: Chief Magistrates Court Kwale
+                        - generic [ref=f5e203]:
+                          - text: "1"
+                          - superscript [ref=f5e204]: st
+                          - text: Respondent
+                      - generic [ref=f5e205]:
+                        - generic [ref=f5e206]: The County Government Of Kwale
+                        - generic [ref=f5e208]:
+                          - text: "2"
+                          - superscript [ref=f5e209]: nd
+                          - text: Respondent
+                      - generic [ref=f5e210]:
+                        - generic [ref=f5e211]: The Land Registrar, Kwale County
+                        - generic [ref=f5e213]:
+                          - text: "3"
+                          - superscript [ref=f5e214]: rd
+                          - text: Respondent
+                      - generic [ref=f5e215]:
+                        - generic [ref=f5e216]: The Attorney General
+                        - generic [ref=f5e218]:
+                          - text: "4"
+                          - superscript [ref=f5e219]: th
+                          - text: Respondent
+                      - generic [ref=f5e220]: and
+                      - generic [ref=f5e221]:
+                        - generic [ref=f5e222]: Margaret Ndolo & 8 others
+                        - generic [ref=f5e224]: Ex parte Applicant
+                  - generic [ref=f5e225]: Ruling
+                - generic [ref=f5e228]:
+                  - generic [ref=f5e229]:
+                    - generic [ref=f5e230]: "1."
+                    - generic [ref=f5e231]: The Exparte Applicants herein moved this court vide a Notice of Motion dated 20/3/2023 seeking orders of certiorari for purposes of quashing the proceedings and decision of the lower court in Chief Magistrate’s Land Case No 25 of 2018 and the proceedings therewith. The Applicants further sought that the Respondents be barred from implementing the said orders and mandamus compelling the Respondents to issue lease title pursuant to the provisions of the terms of allotment of 30/6/2006.
+                  - generic [ref=f5e233]:
+                    - generic [ref=f5e234]: 2 .
+                    - generic [ref=f5e236]:
+                      - text: In response, Ambetsa W, State Counsel, has raised a preliminary objection the subject of this ruling on behalf of the 4
+                      - superscript [ref=f5e237]: th
+                      - text: Respondent the Attorney General, on the following grounds;
+                    - generic [ref=f5e238]:
+                      - generic [ref=f5e239]: "1."
+                      - generic [ref=f5e241]:
+                        - text: That the application having been founded on the proceedings in Chief Magistrate’s Land Case No 25 of 2018 and brought against the 1
+                        - superscript [ref=f5e242]: st
+                        - text: ",3"
+                        - superscript [ref=f5e243]: rd
+                        - text: and 4
+                        - superscript [ref=f5e244]: th
+                        - text: Respondents is incompetent as it contravenes the mandatory provisions of Section 35 of the
+                        - link "Physical Planning Act." [ref=f5e245] [cursor=pointer]:
+                          - /url: /akn/ke/act/2019/13
+                    - generic [ref=f5e246]:
+                      - generic [ref=f5e247]: "2."
+                      - generic [ref=f5e248]: That by dint of it contravening the provisions of Section 35 of the Physical Planning Act, this Honourable court lacks the jurisdiction to entertain the suit herein as the same is an abuse of the court process and should be dismissed/struck out with costs to the Respondents.
+                  - generic [ref=f5e250]:
+                    - generic [ref=f5e251]: 3 .
+                    - generic [ref=f5e252]: The preliminary objection was canvassed by written submissions.
+                  - generic [ref=f5e254]:
+                    - generic [ref=f5e255]:
+                      - text: The 1
+                      - superscript [ref=f5e256]: st
+                      - text: ", 3"
+                      - superscript [ref=f5e257]: rd
+                      - text: and 4
+                      - superscript [ref=f5e258]: th
+                      - text: Respondents
+                    - generic [ref=f5e259]:
+                      - generic [ref=f5e260]: 4 .
+                      - generic [ref=f5e262]:
+                        - text: The 1
+                        - superscript [ref=f5e263]: st
+                        - text: ",3"
+                        - superscript [ref=f5e264]: rd
+                        - text: and 4
+                        - superscript [ref=f5e265]: th
+                        - text: Respondents submissions identify one issue for determination and which is whether or not this court has the requisite jurisdiction to determine the instant dispute. According to the said parties, the applicants were required to exhaust the dispute resolution mechanism under the Physical Planning Act prior to filing this suit. The court is referred to the holding in
+                        - link "Republic v NEMA Exparte Sound Equipment" [ref=f5e266] [cursor=pointer]:
+                          - /url: /akn/ke/judgment/kehc/2010/3736
+                        - text: "[2011] eKLR."
+                    - generic [ref=f5e267]:
+                      - generic [ref=f5e268]: 5 .
+                      - generic [ref=f5e269]: The Respondent’s further submit that there being an alternative dispute resolution mechanism, the same ought to be exhausted before the jurisdiction of the court is invoked. That having failed to do so, the Applicants suit should be struck out with costs.
+                  - generic [ref=f5e271]:
+                    - generic [ref=f5e272]:
+                      - text: "2"
+                      - superscript [ref=f5e273]: nd
+                      - text: Respondents Submission
+                    - generic [ref=f5e274]:
+                      - generic [ref=f5e275]: 6 .
+                      - generic [ref=f5e277]:
+                        - text: The 2
+                        - superscript [ref=f5e278]: nd
+                        - text: Respondents submissions are filed before court on 24/11/2023 and were on Whether the application contravenes the mandatory provisions of Section 35 of the
+                        - link "Physical Planning Act" [ref=f5e279] [cursor=pointer]:
+                          - /url: /akn/ke/act/2019/13
+                        - text: and Whether this court has jurisdiction to entertain this suit. It is submitted that the impugned enforcement motive forming basis of this suit was issued pursuant to the Physical Planning Act and if any grievances arose from it then the forum for resolution of disputes is the Liaison Committee as provided for in the Act. That the said procedure was ignored by the Applicants who have since rushed to court without first exhausting the said procedure. That by doing so the applicants have contravened the provisions of Section 35 of the
+                        - link "Physical Planning Act" [ref=f5e280] [cursor=pointer]:
+                          - /url: /akn/ke/act/2019/13
+                        - text: . The court is referred to the holding in the cases of
+                        - link "Whitehorse Investments Ltd v Nairobi City County" [ref=f5e281] [cursor=pointer]:
+                          - /url: /akn/ke/judgment/keca/2019/102
+                        - text: "[2019] eKLR and in"
+                        - link "Speaker of The National Assembly v James Njenga Karume" [ref=f5e282] [cursor=pointer]:
+                          - /url: /akn/ke/judgment/keca/1992/42
+                        - text: "[1992] eKLR."
+                    - generic [ref=f5e283]:
+                      - generic [ref=f5e284]: 7 .
+                      - generic [ref=f5e286]:
+                        - text: Counsel for the 2
+                        - superscript [ref=f5e287]: nd
+                        - text: respondent submits that this court is not clothed with the jurisdiction to handle the instant dispute. That the
+                        - link "Physical Planning Act" [ref=f5e288] [cursor=pointer]:
+                          - /url: /akn/ke/act/2019/13
+                        - text: provides a clear procedure to be followed by aggrieved parties as per the provisions of section 34[4] of the said
+                        - link "Act" [ref=f5e289] [cursor=pointer]:
+                          - /url: /akn/ke/act/2019/13
+                        - text: . That the Applicants having not lodged an appeal to the committee, the judicial review proceedings herein cannot be entertained. In conclusion it is submitted that the preliminary objection is meritorious and should be allowed.
+                    - generic [ref=f5e290]:
+                      - generic [ref=f5e291]: 8 .
+                      - generic [ref=f5e293]:
+                        - text: The Applicants submissions oppose the preliminary objection by placing reliance on Article 159[2][d] of
+                        - link "Constitution" [ref=f5e294] [cursor=pointer]:
+                          - /url: /akn/ke/act/2010/constitution
+                        - text: . The Applicants further refer to Section 13 of the
+                        - link "Environment and Land Court Act" [ref=f5e295] [cursor=pointer]:
+                          - /url: /akn/ke/act/2011/19
+                        - text: which outlines the jurisdiction of this court. It is submitted that the Exparte Applicants are the beneficial owners of the suit property Kwale/Ukunda/686 having been allotted the same sometime in the year 1996 on a leasehold. That they have run businesses on the premises with the necessary permits.
+                    - generic [ref=f5e296]:
+                      - generic [ref=f5e297]: 9 .
+                      - generic [ref=f5e299]:
+                        - text: The applicants further submit that they were issued with eviction notices in 2004 or face demolition. That in doing so the respondents failed to adhere to the rules of natural justice and the provisions of Sections 4[3] and 7 of the Fair Administrative Actions Act. That the actions of the 2
+                        - superscript [ref=f5e300]: nd
+                        - text: Respondent amount to fundamental breach of the said rules as listed under paragraph 9 of the submissions.
+                    - generic [ref=f5e301]:
+                      - generic [ref=f5e302]: 10 .
+                      - generic [ref=f5e304]:
+                        - text: According to the Exparte Applicants, it is the Respondent who would have first referred the matter to the Liaison Committee before issuing the eviction notices. That this being a land matter, the Physical Planning Act does not specifically give an avenue on how the dispute on land ownership should be determined and hence this court is the correct channel. That the provisions of Section 38 of the
+                        - link "Physical Planning Act" [ref=f5e305] [cursor=pointer]:
+                          - /url: /akn/ke/act/2019/13
+                        - text: are not mandatory based on the fact that the Liaison Committee was not set up by the Respondents. On this the applicants rely on the case of
+                        - link "Republic" [ref=f5e306] [cursor=pointer]:
+                          - /url: /akn/ke/judgment/kehc/2017/6319
+                        - link "v" [ref=f5e307] [cursor=pointer]:
+                          - /url: /akn/ke/judgment/kehc/2017/6319
+                        - link "Mombasa County Government Exparte African University Trust of Kenya & Another" [ref=f5e308] [cursor=pointer]:
+                          - /url: /akn/ke/judgment/kehc/2017/6319
+                        - text: "[2017] eKLR."
+                    - generic [ref=f5e309]:
+                      - generic [ref=f5e310]: 11 .
+                      - generic [ref=f5e311]: It is lastly argued that the preliminary objection is not premised on pure points of law as the court has to review the eviction notices and the enforcement notices and which are issues of fact.
+                  - generic [ref=f5e313]:
+                    - text: Analysis and Determination
+                    - generic [ref=f5e314]:
+                      - generic [ref=f5e315]: 12 .
+                      - generic [ref=f5e316]:
+                        - generic [ref=f5e317]: "From the foregoing the main issue for determination is whether the grounds set out in the notice of preliminary objection are a point of law. In answering this question, the court will most definitely make a finding on whether it is clothed with the requisite jurisdiction to determine the instant dispute. What constitutes a Preliminary Objection is set out in the case of Mukisa Biscuit Manufacturing Co. Ltd –vs- West End Distributors Ltd (1969) EA 696, where it was held that:"
+                        - generic [ref=f5e319]:
+                          - generic [ref=f5e320]: “
+                          - generic [ref=f5e321]: a Preliminary Objection consists of a point of law which has been pleaded or which arises by clear implication out of pleadings and which if argued as a preliminary point may dispose of the suit. Examples are an objection to the jurisdiction of the Court or a plea of limitation or a submission that the parties are bound by the contract giving rise to the suit to refer the dispute to arbitration… a Preliminary Objection is in the nature of what used to be a demurrer. It raises a pure point of law which is argued on the assumption that all the facts pleaded by the other side are correct. It cannot be raised if any fact had to be ascertained or if what is sought is the exercise of judicial discretion.”
+                    - generic [ref=f5e323]:
+                      - generic [ref=f5e324]: 13 .
+                      - generic [ref=f5e325]:
+                        - generic [ref=f5e326]:
+                          - text: Mwita J elabotaed the above position further in the case
+                          - link "John Musakali v Speaker County of Bungoma & 4 others" [ref=f5e327] [cursor=pointer]:
+                            - /url: /akn/ke/judgment/kehc/2015/2131
+                          - text: (2015) eKLR thus;
+                        - generic [ref=f5e329]:
+                          - generic [ref=f5e330]: “
+                          - generic [ref=f5e331]: The position in law is that a Preliminary Objection should arise from the pleadings and on the basis that facts are agreed by both sides. Once raised the Preliminary Objection should have the potential to disposing of the suit at that point without the need to go for trial. If, however, facts are disputed and remain to be ascertained, that would not be a suitable Preliminary Objection on a point of law.”
+                    - generic [ref=f5e333]:
+                      - generic [ref=f5e334]: 14 .
+                      - generic [ref=f5e335]:
+                        - generic [ref=f5e336]:
+                          - text: The preliminary objection herein raises issues of this court’s jurisdiction to handle the instant suit. It is well settled that jurisdiction is the base of every matter brought before court, without it the court has no business proceeding with the matter. In the celebrated case of
+                          - link "Owners of the Motor Vessel “Lillian S” v Caltex Oil (Kenya) Ltd" [ref=f5e337] [cursor=pointer]:
+                            - /url: /akn/ke/judgment/keca/1989/48
+                          - text: "[1989] KLR 1 Justice Nyarangi of the Court of Appeal held as follows; -"
+                        - generic [ref=f5e339]:
+                          - generic [ref=f5e340]: “
+                          - generic [ref=f5e342]:
+                            - generic [ref=f5e343]: i.
+                            - generic [ref=f5e344]: I think that it is reasonably plain that a question of jurisdiction ought to be raised at the earliest opportunity and the court seized of the matter is then obliged to decide the issue right away on the material before it. Jurisdiction is everything. Without it, a court has no power to make one more step. Where a court has no jurisdiction, there would be no basis for a continuation of proceedings pending other evidence. A court of law downs tools in respect of the matter before it the moment it holds the opinion that it is without jurisdiction.”
+                    - generic [ref=f5e346]:
+                      - generic [ref=f5e347]: 15 .
+                      - generic [ref=f5e348]:
+                        - generic [ref=f5e349]:
+                          - text: On the source of jurisdiction, it was held in the case of
+                          - link "Samuel Kamau Macharia & Another v Kenya Commercial Bank Limited & others" [ref=f5e350] [cursor=pointer]:
+                            - /url: /akn/ke/judgment/kesc/2012/8
+                          - text: (2012) eKLR that -
+                        - generic [ref=f5e352]:
+                          - generic [ref=f5e353]: “
+                          - generic [ref=f5e354]: A court’s jurisdiction flows from either Constitution or legislation or both. Thus, a court of law can only exercise jurisdiction as conferred by Constitution or other written law. It cannot arrogate to itself jurisdiction exceeding that which is conferred upon it by law. We agree with counsels for the first and second respondents in his submission that the issue as to whether a Court of law has jurisdiction to entertain a matter before it, is not one of mere procedural technicality, it goes to the very heart of the matter, for without jurisdiction, the Court cannot entertain any proceedings … where Constitution exhaustively provides for the jurisdiction of a Court of law, the Court must operate within the constitutional limits. It cannot expand its jurisdiction through judicial craft or innovation. Nor can Parliament confer jurisdiction upon a Court of law beyond the scope defined by Constitution. Where Constitution confers power upon Parliament to set the jurisdiction of a Court of law or tribunal, the legislature would be within its authority to prescribe the jurisdiction of such a court or tribunal by statute law”.
+                    - generic [ref=f5e356]:
+                      - generic [ref=f5e357]: 16 .
+                      - generic [ref=f5e359]:
+                        - text: It is clear that the allegation that the court lacks jurisdiction is indeed a pure point of law. The jurisdiction of the Environment and Land Court is found in section 13 of the
+                        - link "Environment and Land Court Act" [ref=f5e360] [cursor=pointer]:
+                          - /url: /akn/ke/act/2011/19
+                        - text: "of 2012 which provides that the court shall hear disputes relating to :"
+                      - generic [ref=f5e361]:
+                        - generic [ref=f5e362]: a.
+                        - generic [ref=f5e363]: Environmental planning and protection, trade, climate issues, land use planning, title, tenure, boundaries, rates, rents, valuations, mining, minerals and other natural resources;
+                      - generic [ref=f5e365]:
+                        - generic [ref=f5e366]: b.
+                        - generic [ref=f5e367]: Compulsory acquisition of land;
+                      - generic [ref=f5e369]:
+                        - generic [ref=f5e370]: c.
+                        - generic [ref=f5e371]: Land administration and management;
+                      - generic [ref=f5e373]:
+                        - generic [ref=f5e374]: d.
+                        - generic [ref=f5e375]: Public, private and community land and contracts, choses in action or other instruments granting any enforceable interests in land; and
+                      - generic [ref=f5e377]:
+                        - generic [ref=f5e378]: e.
+                        - generic [ref=f5e379]: Any other dispute relating to environment and land.
+                    - generic [ref=f5e381]:
+                      - generic [ref=f5e382]: 17 .
+                      - generic [ref=f5e384]:
+                        - text: The preliminary objection is based on the provisions of Section 38 of the
+                        - link "Physical Planning Act" [ref=f5e385] [cursor=pointer]:
+                          - /url: /akn/ke/act/2019/13
+                        - text: which provides that in the event of any conflict in relation to matters under the
+                        - link "Act" [ref=f5e386] [cursor=pointer]:
+                          - /url: /akn/ke/act/2019/13
+                        - text: ", the parties are to first exhaust alternative dispute resolution mechanisms before indulging the intervention of the court. The County Physical and Land Use Planning Liaison Committee is the statutory body empowered to hear and determine appeals against enforcement notices as per the provisions of Section 78 of the"
+                        - link "Physical and Land Use Planning Act" [ref=f5e387] [cursor=pointer]:
+                          - /url: /akn/ke/act/2019/13
+                        - text: .
+                    - generic [ref=f5e388]:
+                      - generic [ref=f5e389]: 18 .
+                      - generic [ref=f5e391]:
+                        - text: It is trite that where a specific procedure has been provided for the resolution of particular grievances, the concerned parties are obligated to exhaust such mechanism as was held in
+                        - link "Republic v Nairobi City County Government exparte Ndiara Enterprises Ltd" [ref=f5e392] [cursor=pointer]:
+                          - /url: /akn/ke/judgment/kehc/2017/8731
+                        - text: "[2017] eKLR unless the claim is multifaceted as per the recent decision of the Supreme Court petition No. E007 of 2023"
+                        - link "Abidha Nicholas v Attorney General and" [ref=f5e393] [cursor=pointer]:
+                          - /url: /akn/ke/judgment/kesc/2023/113
+                        - link "others" [ref=f5e394] [cursor=pointer]:
+                          - /url: /akn/ke/judgment/kesc/2023/113
+                        - text: .
+                    - generic [ref=f5e395]:
+                      - generic [ref=f5e396]: 19 .
+                      - generic [ref=f5e398]:
+                        - text: It is the Respondents argument that the Liaison Committee that would have been tasked to resolve the dispute had not been set up by the Applicants by the time the dispute arose. The courts attention has been drawn to Section 93 of the
+                        - link "Physical and Land Use Planning Act" [ref=f5e399] [cursor=pointer]:
+                          - /url: /akn/ke/act/2019/13
+                        - text: which stipulates that all disputes relating to physical planning and land use before the establishment of the committee shall be heard and determined by the Environment and Land Court.
+                    - generic [ref=f5e400]:
+                      - generic [ref=f5e401]: 20 .
+                      - generic [ref=f5e402]: No evidence has been tendered by the Applicants to confirm that there was a committee that was constituted by the time the dispute started. It therefore follows that the only redress available for the Exparte/Applicants herein was this court. Consequently, the court finds and holds that it has jurisdiction to entertain the instant suit.
+                    - generic [ref=f5e404]:
+                      - generic [ref=f5e405]: 21 .
+                      - generic [ref=f5e406]: The upshot is that the preliminary objection herein is dismissed. Costs of the same to be in the cause.
+                    - generic [ref=f5e408]: It is so ordered.
+                - generic [ref=f5e410]:
+                  - generic [ref=f5e412]:
+                    - text: RULING DATED, SIGNED AND DELIVERED THIS 16
+                    - superscript [ref=f5e413]: TH
+                    - text: DAY OF JANUARY 2024
+                  - generic [ref=f5e414]: ………………………
+                  - generic [ref=f5e415]: A.E DENA
+                  - generic [ref=f5e416]: JUDGE
+                  - generic [ref=f5e417]: ……………………………… for the Plaintiff
+                  - generic [ref=f5e418]: ……………………………… for the Defendant
+                  - generic [ref=f5e419]: Mr. Daniel Disii – Court Assistant
+        - text: 
+      - link "▲ To the top" [ref=f5e421] [cursor=pointer]:
+        - /url: "#top"
+  - contentinfo [ref=f5e422]:
+    - generic [ref=f5e423]:
+      - separator [ref=f5e424]
+      - generic [ref=f5e425]:
+        - generic [ref=f5e426]:
+          - paragraph [ref=f5e427]: The NCLR website, systems and content published on this website www.kenyalaw.org is protected under the Copyright Act (Cap. 130, Laws of Kenya). Automated data scraping, bulk extraction, commercial redistribution, or training of machine learning/AI models without an explicit Licensing Agreement from NCLR is strictly prohibited.
+          - paragraph [ref=f5e428]:
+            - text: Documents as received from the source in their original unannotated form (raw documents) are provided for fair and reasonable public use. They may be used and re-used under the terms of the Creative Commons Attribution-NonCommercial 4.0 International license. Under this license, you may freely use, re-use and redistribute works from NCLR provided you credit NCLR as your source and your use is not for commercial gain. For more information, see the
+            - link "Website Terms of Use" [ref=f5e429] [cursor=pointer]:
+              - /url: /terms-of-use/
+            - text: .
+          - list [ref=f5e430]:
+            - listitem [ref=f5e431]:
+              - link "Home" [ref=f5e432] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=f5e433]:
+              - link "About us" [ref=f5e434] [cursor=pointer]:
+                - /url: /about/
+            - listitem [ref=f5e435]:
+              - link "Contact Us" [ref=f5e436] [cursor=pointer]:
+                - /url: /about/#contact
+            - listitem [ref=f5e437]:
+              - link "Site Map" [ref=f5e438] [cursor=pointer]:
+                - /url: /sitemap.xml
+          - generic [ref=f5e439]:
+            - text: © 2026 National Council for Law Reporting (Kenya Law) is ISO 9001:2015 Certified. |
+            - link "Website Terms of Use" [ref=f5e440] [cursor=pointer]:
+              - /url: /terms-of-use/
+        - generic [ref=f5e441]:
+          - link "Contact us" [ref=f5e442] [cursor=pointer]:
+            - /url: /about/#contact
+          - list [ref=f5e443]:
+            - listitem [ref=f5e444]:
+              - link "Visit our Facebook page " [ref=f5e445] [cursor=pointer]:
+                - /url: https://web.facebook.com/mykenyalaw
+                - generic [ref=f5e446]: Visit our Facebook page
+                - generic [ref=f5e447]: 
+            - listitem [ref=f5e448]:
+              - link "Visit our Twitter/X profile " [ref=f5e449] [cursor=pointer]:
+                - /url: https://x.com/mykenyalaw
+                - generic [ref=f5e450]: Visit our Twitter/X profile
+                - generic [ref=f5e451]: 
+            - listitem [ref=f5e452]:
+              - link "Visit our YouTube channel " [ref=f5e453] [cursor=pointer]:
+                - /url: https://www.youtube.com/mykenyalaw
+                - generic [ref=f5e454]: Visit our YouTube channel
+                - generic [ref=f5e455]: 

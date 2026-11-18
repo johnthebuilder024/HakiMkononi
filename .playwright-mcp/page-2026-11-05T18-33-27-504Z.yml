@@ -1,0 +1,73 @@
+- generic [active] [ref=f2e1]:
+  - navigation [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f2e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f2e5]
+        - generic [ref=f2e6]: HakiMkononi
+      - generic [ref=f2e7]:
+        - list [ref=f2e8]:
+          - listitem [ref=f2e9]:
+            - link "Home" [ref=f2e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f2e11]:
+            - link "About" [ref=f2e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f2e13]:
+            - link "⚖️ Lawyers" [ref=f2e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f2e15]:
+            - link "🎙️ Court Audio" [ref=f2e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f2e17]:
+            - link "🔍 Find a Lawyer" [ref=f2e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f2e19]:
+            - link "💰 Lawyer Fees" [ref=f2e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f2e21]:
+          - link "Kiswahili" [ref=f2e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=sw
+          - link "English" [ref=f2e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=en
+          - button "✏️ New Chat" [ref=f2e83] [cursor=pointer]
+  - main [ref=f2e24]:
+    - generic [ref=f2e25]:
+      - complementary "Conversation history" [ref=f2e26]:
+        - button "New Chat" [ref=f2e28] [cursor=pointer]
+        - generic [ref=f2e30]:
+          - generic [ref=f2e31]: Older
+          - generic [ref=f2e32] [cursor=pointer]:
+            - generic [ref=f2e33]: ⚖️
+            - generic [ref=f2e34]: Boss wangu alinifukuza kazi bila notisi wala malipo. Ni
+            - button "✕" [ref=f2e35]
+        - generic [ref=f2e36]: Saved in this browser only
+      - generic [ref=f2e37]:
+        - generic [ref=f2e84]:
+          - generic [ref=f2e85]: I want to buy a plot in Kiambu. The seller showed me a title deed number KIAMBU/001/234. Is this land clean?
+          - img "HakiMkononi" [ref=f2e89]
+        - generic [ref=f2e60]:
+          - generic [ref=f2e61]:
+            - textbox "Your legal problem" [ref=f2e62]:
+              - /placeholder: "Example: My boss fired me without notice or pay. I worked there 3 years. What do I do?"
+            - button "📎" [ref=f2e63] [cursor=pointer]
+            - button "🎤" [ref=f2e65] [cursor=pointer]
+            - button "Send" [disabled] [ref=f2e67]
+          - generic [ref=f2e71]:
+            - generic "Get court document, evidence checklist and step-by-step filing guide" [ref=f2e72] [cursor=pointer]:
+              - checkbox "🏛️ Self-represent in court" [ref=f2e73]
+              - text: 🏛️ Self-represent in court
+            - generic [ref=f2e74]: HakiMkononi provides legal information only. Not legal advice. For complex cases, consult a lawyer.
+  - contentinfo [ref=f2e75]:
+    - generic [ref=f2e76]:
+      - generic [ref=f2e77]:
+        - text: © 2024
+        - strong [ref=f2e78]: HakiMkononi
+        - text: — Your rights, in your hands 🇰🇪
+      - generic [ref=f2e79]:
+        - link "About" [ref=f2e80] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f2e81] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f2e82]: Legal information only. Not legal advice.

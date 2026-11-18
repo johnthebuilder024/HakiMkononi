@@ -1,0 +1,352 @@
+- generic [active] [ref=f2e1]:
+  - navigation [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f2e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f2e5]
+        - generic [ref=f2e6]: HakiMkononi
+      - generic [ref=f2e7]:
+        - list [ref=f2e8]:
+          - listitem [ref=f2e9]:
+            - link "Home" [ref=f2e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f2e11]:
+            - link "About" [ref=f2e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f2e13]:
+            - link "⚖️ Lawyers" [ref=f2e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f2e15]:
+            - link "🎙️ Court Audio" [ref=f2e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f2e17]:
+            - link "🔍 Find a Lawyer" [ref=f2e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f2e19]:
+            - link "💰 Lawyer Fees" [ref=f2e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f2e21]:
+          - link "Kiswahili" [ref=f2e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=sw
+          - link "English" [ref=f2e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=en
+          - button "✏️ New Chat" [ref=f2e83] [cursor=pointer]
+  - main [ref=f2e24]:
+    - generic [ref=f2e25]:
+      - complementary "Conversation history" [ref=f2e26]:
+        - button "New Chat" [ref=f2e28] [cursor=pointer]
+        - generic [ref=f2e30]:
+          - generic [ref=f2e94]: Today
+          - generic [ref=f2e95] [cursor=pointer]:
+            - generic [ref=f2e96]: ⚖️
+            - generic [ref=f2e97]: I want to buy a plot in Kiambu. The seller showed me a
+            - button "✕" [ref=f2e98]
+          - generic [ref=f2e99]: Older
+          - generic [ref=f2e100] [cursor=pointer]:
+            - generic [ref=f2e101]: ⚖️
+            - generic [ref=f2e102]: Boss wangu alinifukuza kazi bila notisi wala malipo. Ni
+            - button "✕" [ref=f2e103]
+        - generic [ref=f2e36]: Saved in this browser only
+      - generic [ref=f2e37]:
+        - generic [ref=f2e84]:
+          - generic [ref=f2e85]: I want to buy a plot in Kiambu. The seller showed me a title deed number KIAMBU/001/234. Is this land clean?
+          - generic [ref=f2e104]:
+            - img "HakiMkononi" [ref=f2e106]
+            - generic [ref=f2e107]:
+              - text: 🏛️
+              - strong [ref=f2e108]: Want to represent yourself in court?
+              - text: Turn on "Self-represent in court" below to get a court document, evidence checklist, and step-by-step filing guide.
+              - button "✅ Yes, show me" [ref=f2e109] [cursor=pointer]
+          - generic [ref=f2e110]:
+            - img "HakiMkononi" [ref=f2e112]
+            - generic [ref=f2e113]:
+              - generic [ref=f2e114]:
+                - generic [ref=f2e115]:
+                  - generic [ref=f2e116]: 📜
+                  - generic [ref=f2e117]: What The Law Says
+                - generic [ref=f2e118]:
+                  - heading "WHAT TO CHECK" [level=2] [ref=f2e119]
+                  - list [ref=f2e120]:
+                    - listitem [ref=f2e121]:
+                      - strong [ref=f2e122]: Ardhisasa search
+                      - text: – confirm the LR number, title status (clean, caution, charge, caveat).
+                    - listitem [ref=f2e123]:
+                      - strong [ref=f2e124]: LR number verification
+                      - text: – ensure the format matches Kiambu’s standard (e.g., KIAMBU/001/234).
+                    - listitem [ref=f2e125]:
+                      - strong [ref=f2e126]: Land Control Board consent
+                      - text: – required for agricultural land; not needed for Nairobi town plots.
+                    - listitem [ref=f2e127]:
+                      - strong [ref=f2e128]: Advocate check on LSK register
+                      - text: – confirm the seller’s lawyer is registered.
+                    - listitem [ref=f2e129]:
+                      - strong [ref=f2e130]: Rates clearance
+                      - text: – verify that all land rates are paid up to date.
+                    - listitem [ref=f2e131]:
+                      - strong [ref=f2e132]: Survey beacon check
+                      - text: – confirm the beacon on the title matches the physical plot.
+                  - heading "HOW TO DO IT STEP BY STEP" [level=2] [ref=f2e133]
+                  - heading "1. Ardhisasa Search" [level=3] [ref=f2e134]
+                  - list [ref=f2e135]:
+                    - listitem [ref=f2e136]:
+                      - strong [ref=f2e137]: "URL:"
+                      - link "https://ardhisasa.go.ke" [ref=f2e138] [cursor=pointer]:
+                        - /url: https://ardhisasa.go.ke
+                    - listitem [ref=f2e139]:
+                      - strong [ref=f2e140]: "Steps:"
+                      - list [ref=f2e141]:
+                        - listitem [ref=f2e142]: Click “Search Land” → “LR Number Search.”
+                        - listitem [ref=f2e143]:
+                          - text: "Enter the LR number exactly as shown:"
+                          - code [ref=f2e144]: KIAMBU/001/234
+                          - text: .
+                        - listitem [ref=f2e145]:
+                          - text: "Review the result:"
+                          - list [ref=f2e146]:
+                            - listitem [ref=f2e147]:
+                              - strong [ref=f2e148]: Clean
+                              - text: – no encumbrances.
+                            - listitem [ref=f2e149]:
+                              - strong [ref=f2e150]: Caution
+                              - text: – a caution notice is registered; you’ll need to investigate the reason.
+                            - listitem [ref=f2e151]:
+                              - strong [ref=f2e152]: Charge
+                              - text: – a charge (mortgage, lease, etc.) is registered; you’ll need to clear it or negotiate.
+                            - listitem [ref=f2e153]:
+                              - strong [ref=f2e154]: Caveat
+                              - text: – a caveat is registered; you’ll need to resolve the dispute before proceeding.
+                  - heading "2. LR Number Verification" [level=3] [ref=f2e155]
+                  - list [ref=f2e156]:
+                    - listitem [ref=f2e157]:
+                      - text: Kiambu’s LR numbers typically follow the pattern
+                      - code [ref=f2e158]: KIAMBU/XXX/YYY
+                      - text: .
+                    - listitem [ref=f2e159]: Verify that the first part is “KIAMBU” and that the number of digits matches the county’s format.
+                  - heading "3. Land Control Board Consent" [level=3] [ref=f2e160]
+                  - list [ref=f2e161]:
+                    - listitem [ref=f2e162]:
+                      - strong [ref=f2e163]: Agricultural land
+                      - text: – always requires a Land Control Board (LCB) consent.
+                    - listitem [ref=f2e164]:
+                      - strong [ref=f2e165]: Town plots (Nairobi)
+                      - text: – no LCB consent needed.
+                    - listitem [ref=f2e166]:
+                      - strong [ref=f2e167]: "How to check:"
+                      - list [ref=f2e168]:
+                        - listitem [ref=f2e169]: Visit the LCB office in Kiambu or their website (if available).
+                        - listitem [ref=f2e170]: Request the consent status for the LR number.
+                        - listitem [ref=f2e171]: If consent is missing, you cannot register the transfer.
+                  - heading "4. Advocate Check on LSK Register" [level=3] [ref=f2e172]
+                  - list [ref=f2e173]:
+                    - listitem [ref=f2e174]:
+                      - strong [ref=f2e175]: "URL:"
+                      - link "https://new.kenyalaw.org" [ref=f2e176] [cursor=pointer]:
+                        - /url: https://new.kenyalaw.org
+                    - listitem [ref=f2e177]:
+                      - strong [ref=f2e178]: "Steps:"
+                      - list [ref=f2e179]:
+                        - listitem [ref=f2e180]: Go to “LSK Register.”
+                        - listitem [ref=f2e181]: Search the seller’s lawyer’s name.
+                        - listitem [ref=f2e182]: Confirm they are listed as a licensed advocate.
+                  - heading "5. Rates Clearance" [level=3] [ref=f2e183]
+                  - list [ref=f2e184]:
+                    - listitem [ref=f2e185]:
+                      - strong [ref=f2e186]: "County portal:"
+                      - text: Kiambu County’s e‑services portal (e.g.,
+                      - link "https://www.kiambu.go.ke" [ref=f2e187] [cursor=pointer]:
+                        - /url: https://www.kiambu.go.ke
+                      - text: ).
+                    - listitem [ref=f2e188]:
+                      - strong [ref=f2e189]: "Steps:"
+                      - list [ref=f2e190]:
+                        - listitem [ref=f2e191]: Log in or register.
+                        - listitem [ref=f2e192]: Enter the LR number or plot details.
+                        - listitem [ref=f2e193]: Check the rates payment history.
+                        - listitem [ref=f2e194]: If unpaid, obtain a clearance certificate from the county.
+                  - heading "6. Survey Beacon Check" [level=3] [ref=f2e195]
+                  - list [ref=f2e196]:
+                    - listitem [ref=f2e197]:
+                      - strong [ref=f2e198]: "How to do it:"
+                      - list [ref=f2e199]:
+                        - listitem [ref=f2e200]: Locate the beacon number on the title deed.
+                        - listitem [ref=f2e201]: Visit the plot and verify the beacon’s physical presence and location.
+                        - listitem [ref=f2e202]: If the beacon is missing or mismatched, you may need a new survey.
+                  - heading "RED FLAGS — STOP AND INVESTIGATE" [level=2] [ref=f2e203]
+                  - list [ref=f2e204]:
+                    - listitem [ref=f2e205]:
+                      - strong [ref=f2e206]: Seller pushes for quick payment
+                      - text: before you complete the searches.
+                    - listitem [ref=f2e207]:
+                      - strong [ref=f2e208]: Title format mismatch
+                      - text: – e.g., a green card for a plot that should be a blue title in Kiambu.
+                    - listitem [ref=f2e209]:
+                      - strong [ref=f2e210]: Missing LCB consent
+                      - text: for an agricultural parcel.
+                    - listitem [ref=f2e211]:
+                      - strong [ref=f2e212]: Advocate not listed
+                      - text: on the LSK register.
+                    - listitem [ref=f2e213]:
+                      - strong [ref=f2e214]: Duplicate claims
+                      - text: – two people claiming the same LR number.
+                    - listitem [ref=f2e215]:
+                      - strong [ref=f2e216]: Caution or charge
+                      - text: already registered on Ardhisasa.
+                    - listitem [ref=f2e217]:
+                      - strong [ref=f2e218]: Rates unpaid
+                      - text: or no clearance certificate.
+                    - listitem [ref=f2e219]:
+                      - strong [ref=f2e220]: Beacon mismatch
+                      - text: – the beacon on the deed does not match the physical beacon.
+                  - heading "YOUR NEXT STEP RIGHT NOW" [level=2] [ref=f2e221]
+                  - paragraph [ref=f2e222]:
+                    - strong [ref=f2e223]:
+                      - text: Perform the Ardhisasa search for
+                      - code [ref=f2e224]: KIAMBU/001/234
+                      - text: immediately.
+                  - list [ref=f2e225]:
+                    - listitem [ref=f2e226]: If the result shows “clean,” proceed to the next checks.
+                    - listitem [ref=f2e227]: If it shows any caution, charge, or caveat, halt the transaction and investigate further before moving forward.
+              - generic [ref=f2e228]:
+                - generic [ref=f2e229]:
+                  - generic [ref=f2e230]: 📚
+                  - generic [ref=f2e231]: Legal Sources
+                - list [ref=f2e232]:
+                  - listitem [ref=f2e233]:
+                    - generic [ref=f2e234]: "1"
+                    - generic [ref=f2e235]:
+                      - strong [ref=f2e236]: Land Registration Act 2012 (No. 3 of 2012)
+                      - emphasis [ref=f2e237]: · 26. Certificate of title to be held as conclusive evidence of proprietorship
+                    - link "↗" [ref=f2e238] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/2012/3/eng@2022-12-31
+                  - listitem [ref=f2e239]:
+                    - generic [ref=f2e240]: "2"
+                    - generic [ref=f2e241]:
+                      - strong [ref=f2e242]: Land Registration Act 2012 (No. 3 of 2012)
+                      - emphasis [ref=f2e243]: · 105. Transiting title documents
+                    - link "↗" [ref=f2e244] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/2012/3/eng@2022-12-31
+                  - listitem [ref=f2e245]:
+                    - generic [ref=f2e246]: "3"
+                    - generic [ref=f2e247]:
+                      - strong [ref=f2e248]: Ardhisasa Land Registry Search Guide
+                      - emphasis [ref=f2e249]: · LR Number format by county
+                    - link "↗" [ref=f2e250] [cursor=pointer]:
+                      - /url: https://ardhisasa.go.ke
+                  - listitem [ref=f2e251]:
+                    - generic [ref=f2e252]: "4"
+                    - generic [ref=f2e253]:
+                      - strong [ref=f2e254]: Land Registration Act 2012 (No. 3 of 2012)
+                      - emphasis [ref=f2e255]: · 66. Trusts not to be entered
+                    - link "↗" [ref=f2e256] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/2012/3/eng@2022-12-31
+                  - listitem [ref=f2e257]:
+                    - generic [ref=f2e258]: "5"
+                    - generic [ref=f2e259]:
+                      - strong [ref=f2e260]: Kenyan Title Deed Format Guide
+                      - emphasis [ref=f2e261]: · Pre-2012 Green Card vs Post-2012 Blue Title
+                    - link "↗" [ref=f2e262] [cursor=pointer]:
+                      - /url: https://kenyalaw.org
+              - generic [ref=f2e263]:
+                - button "📋 Copy" [ref=f2e264] [cursor=pointer]
+                - button "⬇️ PDF" [ref=f2e265] [cursor=pointer]
+                - button "💾 Save Link" [ref=f2e266] [cursor=pointer]
+              - generic [ref=f2e267]:
+                - generic [ref=f2e268]: Was this helpful?
+                - button "👍" [ref=f2e269] [cursor=pointer]
+                - button "👎" [ref=f2e270] [cursor=pointer]
+              - generic [ref=f2e272]:
+                - generic [ref=f2e273]:
+                  - generic [ref=f2e274]: 💰
+                  - generic [ref=f2e275]: Typical Lawyer Fee for This Case
+                  - generic [ref=f2e276]: LSK Remuneration Order
+                - generic [ref=f2e277]: KES 25,000 – 250,000
+                - generic [ref=f2e278]: "Land disputes at the Environment & Land Court. Succession matters at the High Court: KES 15,000–80,000. Title deed transfers: KES 10,000–50,000."
+                - generic [ref=f2e279]: These are typical ranges only. Always get a written fee agreement.
+          - generic [ref=f2e280]:
+            - img "HakiMkononi" [ref=f2e282]
+            - generic [ref=f2e283]:
+              - text: ❓ Have another question? Type it below.
+              - generic [ref=f2e284]:
+                - combobox [ref=f2e285] [cursor=pointer]:
+                  - option "All Kenya" [selected]
+                  - option "Baringo"
+                  - option "Bomet"
+                  - option "Bungoma"
+                  - option "Busia"
+                  - option "Elgeyo Marakwet"
+                  - option "Embu"
+                  - option "Garissa"
+                  - option "Homa Bay"
+                  - option "Isiolo"
+                  - option "Kajiado"
+                  - option "Kakamega"
+                  - option "Kericho"
+                  - option "Kiambu"
+                  - option "Kilifi"
+                  - option "Kirinyaga"
+                  - option "Kisii"
+                  - option "Kisumu"
+                  - option "Kitui"
+                  - option "Kwale"
+                  - option "Laikipia"
+                  - option "Lamu"
+                  - option "Machakos"
+                  - option "Makueni"
+                  - option "Mandera"
+                  - option "Marsabit"
+                  - option "Meru"
+                  - option "Migori"
+                  - option "Mombasa"
+                  - option "Muranga"
+                  - option "Nairobi"
+                  - option "Nakuru"
+                  - option "Nandi"
+                  - option "Narok"
+                  - option "Nyandarua"
+                  - option "Nyamira"
+                  - option "Nyeri"
+                  - option "Samburu"
+                  - option "Siaya"
+                  - option "Taita Taveta"
+                  - option "Tana River"
+                  - option "Tharaka Nithi"
+                  - option "Trans Nzoia"
+                  - option "Turkana"
+                  - option "Uasin Gishu"
+                  - option "Vihiga"
+                  - option "Wajir"
+                  - option "West Pokot"
+                - button "🗑️ Start Fresh" [ref=f2e286] [cursor=pointer]
+          - generic [ref=f2e287]:
+            - img "HakiMkononi" [ref=f2e289]
+            - generic [ref=f2e290]:
+              - text: 💾
+              - strong [ref=f2e291]: "Save your answer:"
+              - button "📲 Copy link" [ref=f2e292] [cursor=pointer]
+              - link "📲 Send WhatsApp" [ref=f2e293] [cursor=pointer]:
+                - /url: https://wa.me/?text=Check%20my%20legal%20answer%3A%20https%3A%2F%2Fhakimkononi.onrender.com%2F%3Fjob%3D293
+        - generic [ref=f2e60]:
+          - generic [ref=f2e61]:
+            - textbox "Your legal problem" [ref=f2e62]:
+              - /placeholder: "Example: My boss fired me without notice or pay. I worked there 3 years. What do I do?"
+            - button "📎" [ref=f2e63] [cursor=pointer]
+            - button "🎤" [ref=f2e65] [cursor=pointer]
+            - button "Send" [disabled] [ref=f2e67]
+          - generic [ref=f2e71]:
+            - generic "Get court document, evidence checklist and step-by-step filing guide" [ref=f2e72] [cursor=pointer]:
+              - checkbox "🏛️ Self-represent in court" [ref=f2e73]
+              - text: 🏛️ Self-represent in court
+            - generic [ref=f2e74]: HakiMkononi provides legal information only. Not legal advice. For complex cases, consult a lawyer.
+  - contentinfo [ref=f2e75]:
+    - generic [ref=f2e76]:
+      - generic [ref=f2e77]:
+        - text: © 2024
+        - strong [ref=f2e78]: HakiMkononi
+        - text: — Your rights, in your hands 🇰🇪
+      - generic [ref=f2e79]:
+        - link "About" [ref=f2e80] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f2e81] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f2e82]: Legal information only. Not legal advice.

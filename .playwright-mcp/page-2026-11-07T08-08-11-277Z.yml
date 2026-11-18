@@ -1,0 +1,86 @@
+- generic [active] [ref=f1e1]:
+  - navigation [ref=f1e2]:
+    - generic [ref=f1e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f1e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f1e5]
+        - generic [ref=f1e6]: HakiMkononi
+      - generic [ref=f1e7]:
+        - list [ref=f1e8]:
+          - listitem [ref=f1e9]:
+            - link "Home" [ref=f1e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f1e11]:
+            - link "About" [ref=f1e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f1e13]:
+            - link "⚖️ Lawyers" [ref=f1e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f1e15]:
+            - link "🎙️ Court Audio" [ref=f1e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f1e17]:
+            - link "🔍 Find a Lawyer" [ref=f1e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f1e19]:
+            - link "💰 Lawyer Fees" [ref=f1e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f1e21]:
+          - link "Kiswahili" [ref=f1e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=sw
+          - link "English" [ref=f1e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=en
+          - button "✏️ New Chat" [ref=f1e96] [cursor=pointer]
+  - main [ref=f1e24]:
+    - generic [ref=f1e25]:
+      - complementary "Conversation history" [ref=f1e26]:
+        - button "New Chat" [ref=f1e28] [cursor=pointer]
+        - generic [ref=f1e30]:
+          - generic [ref=f1e31]: Yesterday
+          - generic [ref=f1e32] [cursor=pointer]:
+            - generic [ref=f1e33]: ⚖️
+            - generic [ref=f1e34]: My landlord locked me out of my house without notice an
+            - button "✕" [ref=f1e35]
+          - generic [ref=f1e36] [cursor=pointer]:
+            - generic [ref=f1e37]: ⚖️
+            - generic [ref=f1e38]: My employer fired me without notice after 3 years and r
+            - button "✕" [ref=f1e39]
+          - generic [ref=f1e40] [cursor=pointer]:
+            - generic [ref=f1e41]: ⚖️
+            - generic [ref=f1e42]: I want to buy a plot in Kiambu. The seller showed me a
+            - button "✕" [ref=f1e43]
+          - generic [ref=f1e44]: Older
+          - generic [ref=f1e45] [cursor=pointer]:
+            - generic [ref=f1e46]: ⚖️
+            - generic [ref=f1e47]: Boss wangu alinifukuza kazi bila notisi wala malipo. Ni
+            - button "✕" [ref=f1e48]
+        - generic [ref=f1e49]: Saved in this browser only
+      - generic [ref=f1e50]:
+        - generic [ref=f1e97]:
+          - generic [ref=f1e98]: I want to buy a plot in Kiambu. The seller showed me title deed KIAMBU/001/234. Is this land clean?
+          - img "HakiMkononi" [ref=f1e102]
+        - generic [ref=f1e73]:
+          - generic [ref=f1e74]:
+            - textbox "Your legal problem" [ref=f1e75]:
+              - /placeholder: "Example: My boss fired me without notice or pay. I worked there 3 years. What do I do?"
+            - button "📎" [ref=f1e76] [cursor=pointer]
+            - button "🎤" [ref=f1e78] [cursor=pointer]
+            - button "Send" [disabled] [ref=f1e80]
+          - generic [ref=f1e84]:
+            - generic "Get court document, evidence checklist and step-by-step filing guide" [ref=f1e85] [cursor=pointer]:
+              - checkbox "🏛️ Self-represent in court" [ref=f1e86]
+              - text: 🏛️ Self-represent in court
+            - generic [ref=f1e87]: HakiMkononi provides legal information only. Not legal advice. For complex cases, consult a lawyer.
+  - contentinfo [ref=f1e88]:
+    - generic [ref=f1e89]:
+      - generic [ref=f1e90]:
+        - text: © 2024
+        - strong [ref=f1e91]: HakiMkononi
+        - text: — Your rights, in your hands 🇰🇪
+      - generic [ref=f1e92]:
+        - link "About" [ref=f1e93] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f1e94] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f1e95]: Legal information only. Not legal advice.

@@ -1,0 +1,266 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "HakiMkononi HakiMkononi" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=e5]
+        - generic [ref=e6]: HakiMkononi
+      - generic [ref=e7]:
+        - list [ref=e8]:
+          - listitem [ref=e9]:
+            - link "Home" [ref=e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=e11]:
+            - link "About" [ref=e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=e13]:
+            - link "⚖️ Lawyers" [ref=e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=e15]:
+            - link "🎙️ Court Audio" [ref=e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=e17]:
+            - link "🔍 Find a Lawyer" [ref=e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=e19]:
+            - link "💰 Lawyer Fees" [ref=e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=e21]:
+          - link "Kiswahili" [ref=e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=sw
+          - link "English" [ref=e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=en
+          - button "✏️ New Chat" [ref=e88] [cursor=pointer]
+  - main [ref=e24]:
+    - generic [ref=e25]:
+      - complementary "Conversation history" [ref=e26]:
+        - button "New Chat" [ref=e28] [cursor=pointer]
+        - generic [ref=e30]:
+          - generic [ref=e99]: Today
+          - generic [ref=e100] [cursor=pointer]:
+            - generic [ref=e101]: ⚖️
+            - generic [ref=e102]: My employer fired me without notice after 3 years and r
+            - button "✕" [ref=e103]
+          - generic [ref=e104] [cursor=pointer]:
+            - generic [ref=e105]: ⚖️
+            - generic [ref=e106]: I want to buy a plot in Kiambu. The seller showed me a
+            - button "✕" [ref=e107]
+          - generic [ref=e108]: Older
+          - generic [ref=e109] [cursor=pointer]:
+            - generic [ref=e110]: ⚖️
+            - generic [ref=e111]: Boss wangu alinifukuza kazi bila notisi wala malipo. Ni
+            - button "✕" [ref=e112]
+        - generic [ref=e41]: Saved in this browser only
+      - generic [ref=e42]:
+        - generic [ref=e89]:
+          - generic [ref=e90]: My employer fired me without notice after 3 years and refused to pay my salary.
+          - generic [ref=e113]:
+            - img "HakiMkononi" [ref=e115]
+            - generic [ref=e116]:
+              - text: 🏛️
+              - strong [ref=e117]: Want to represent yourself in court?
+              - text: Turn on "Self-represent in court" below to get a court document, evidence checklist, and step-by-step filing guide.
+              - button "✅ Yes, show me" [ref=e118] [cursor=pointer]
+          - generic [ref=e119]:
+            - img "HakiMkononi" [ref=e121]
+            - generic [ref=e122]:
+              - generic [ref=e123]:
+                - generic [ref=e124]:
+                  - generic [ref=e125]: 📜
+                  - generic [ref=e126]: What The Law Says
+                - generic [ref=e127]:
+                  - paragraph [ref=e128]:
+                    - strong [ref=e129]: Employment Act 2007 – Section 38 (Waiver of notice by employer)
+                    - text: If an employee gives notice of termination and the employer waives the notice, the employer must pay remuneration equivalent to the notice period not served unless otherwise agreed.
+                  - paragraph [ref=e130]:
+                    - strong [ref=e131]: Employment Act 2007 – Section 35 (Termination notice)
+                    - text: A contract of service may be terminated by either party with notice; the notice period is determined by the contract or the Act. Failure to give notice is a breach.
+                  - paragraph [ref=e132]:
+                    - strong [ref=e133]: Employment Act 2007 – Section 18 (When wages or salaries due)
+                    - text: An employee is entitled to be paid for work performed up to the date of termination, including any unpaid wages for the period worked.
+                  - paragraph [ref=e134]:
+                    - strong [ref=e135]: Employment Act 2007 – Section 49 (Remedies for wrongful dismissal and unfair termination)
+                    - text: If dismissal is unjustified, the labour officer may recommend payment of wages that would have been earned during the notice period and any other compensation.
+                  - paragraph [ref=e136]:
+                    - strong [ref=e137]: Employment Act 2007 – Section 36 (Payment in lieu of notice)
+                    - text: Either party may terminate without notice if the other party pays remuneration equal to what would have been earned during the notice period.
+              - generic [ref=e138]:
+                - generic [ref=e139]:
+                  - generic [ref=e140]: 💬
+                  - generic [ref=e141]: Plain Explanation
+                - generic [ref=e142]:
+                  - paragraph [ref=e143]: You were dismissed without the required notice period and your employer has not paid your final salary. The law says the employer must pay you the wages you would have earned during the notice period and any unpaid salary. You can demand these payments immediately. If the employer does not comply, you can take the matter to the Labour Court.
+                  - paragraph [ref=e144]: "Steps to take RIGHT NOW:"
+                  - list [ref=e145]:
+                    - listitem [ref=e146]: Gather all documents – contract, payslips, any communication about dismissal.
+                    - listitem [ref=e147]: Write and send a demand letter to your employer.
+                    - listitem [ref=e148]: If no response, file a complaint with the Labour Office or file a claim in the Labour Court.
+              - generic [ref=e149]:
+                - generic [ref=e150]:
+                  - generic [ref=e151]: 💪
+                  - generic [ref=e152]: Your Rights
+                - generic [ref=e153]:
+                  - paragraph [ref=e154]: "Your rights:"
+                  - list [ref=e155]:
+                    - listitem [ref=e156]: Right to receive notice of termination or payment in lieu of notice.
+                    - listitem [ref=e157]: Right to receive all wages earned up to the date of dismissal.
+                  - paragraph [ref=e158]: "What went wrong:"
+                  - list [ref=e159]:
+                    - listitem [ref=e160]: The employer failed to give you the required notice period.
+                    - listitem [ref=e161]: The employer failed to pay your final salary and wages for the period worked.
+              - generic [ref=e162]:
+                - generic [ref=e163]:
+                  - generic [ref=e164]: ✉️
+                  - generic [ref=e165]: Write This
+                  - generic [ref=e166]: 9 left to fill
+                - generic [ref=e167]:
+                  - generic [ref=e168]: Click [PLACEHOLDER] then type
+                  - button "📋 Copy" [ref=e169] [cursor=pointer]
+                - generic [ref=e170]: "(DEMAND LETTER) [DATE] [YOUR NAME] [YOUR ADDRESS] To: [Name of Employer] [Employer’s Address] Dear Sir/Madam, Subject: Demand for payment of wages and notice compensation I, [YOUR NAME], write to formally demand compliance with my legal rights. I was dismissed from my position on [date of dismissal] without the required notice period and have not received my final salary or wages for the period worked. Under the Employment Act 2007, Section 38, I am entitled to remuneration equivalent to the notice period not served. Under Section 49, I am also entitled to any wages that would have been earned during that period. I demand that you pay the full amount of my unpaid wages and the notice compensation within 14 days of receiving this letter. Failure to comply will compel me to seek legal redress through the Labour Court. Yours faithfully, [YOUR NAME] [PHONE NUMBER]"
+              - generic [ref=e171]:
+                - generic [ref=e172]:
+                  - generic [ref=e173]: 📚
+                  - generic [ref=e174]: Legal Sources
+                - list [ref=e175]:
+                  - listitem [ref=e176]:
+                    - generic [ref=e177]: "1"
+                    - generic [ref=e178]:
+                      - strong [ref=e179]: Employment Act 2007
+                      - emphasis [ref=e180]: · 38. Waiver of notice by employer
+                    - link "↗" [ref=e181] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/2007/11/eng@2024-03-22
+                  - listitem [ref=e182]:
+                    - generic [ref=e183]: "2"
+                    - generic [ref=e184]:
+                      - strong [ref=e185]: Employment Act 2007
+                      - emphasis [ref=e186]: · 35. Termination notice
+                    - link "↗" [ref=e187] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/2007/11/eng@2024-03-22
+                  - listitem [ref=e188]:
+                    - generic [ref=e189]: "3"
+                    - generic [ref=e190]:
+                      - strong [ref=e191]: Employment Act 2007
+                      - emphasis [ref=e192]: · 18. When wages or salaries due
+                    - link "↗" [ref=e193] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/2007/11/eng@2024-03-22
+                  - listitem [ref=e194]:
+                    - generic [ref=e195]: "4"
+                    - generic [ref=e196]:
+                      - strong [ref=e197]: Employment Act 2007
+                      - emphasis [ref=e198]: · 49. Remedies for wrongful dismissal and unfair termination
+                    - link "↗" [ref=e199] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/2007/11/eng@2024-03-22
+                  - listitem [ref=e200]:
+                    - generic [ref=e201]: "5"
+                    - generic [ref=e202]:
+                      - strong [ref=e203]: Employment Act 2007
+                      - emphasis [ref=e204]: · 36. Payment in lieu of notice
+                    - link "↗" [ref=e205] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/2007/11/eng@2024-03-22
+              - generic [ref=e206]:
+                - button "📋 Copy" [ref=e207] [cursor=pointer]
+                - button "⬇️ PDF" [ref=e208] [cursor=pointer]
+                - button "✉️ Letter PDF" [ref=e209] [cursor=pointer]
+                - button "💾 Save Link" [ref=e210] [cursor=pointer]
+              - generic [ref=e211]:
+                - generic [ref=e212]: Was this helpful?
+                - button "👍" [ref=e213] [cursor=pointer]
+                - button "👎" [ref=e214] [cursor=pointer]
+              - generic [ref=e216]:
+                - generic [ref=e217]:
+                  - generic [ref=e218]: 💰
+                  - generic [ref=e219]: Typical Lawyer Fee for This Case
+                  - generic [ref=e220]: LSK Remuneration Order
+                - generic [ref=e221]: KES 20,000 – 150,000
+                - generic [ref=e222]: "Unfair dismissal / unpaid wages at Employment & Labour Court. Many advocates take 20–30% of the award (no win, no fee). Consultation fee: KES 2,000–5,000."
+                - generic [ref=e223]: These are typical ranges only. Always get a written fee agreement.
+          - generic [ref=e224]:
+            - img "HakiMkononi" [ref=e226]
+            - generic [ref=e227]:
+              - text: ✏️ Tap any
+              - strong [ref=e228]: "[PLACEHOLDER]"
+              - text: in the letter above to fill it in directly.❓ Have another question? Type it below.
+              - generic [ref=e229]:
+                - combobox [ref=e230] [cursor=pointer]:
+                  - option "All Kenya" [selected]
+                  - option "Baringo"
+                  - option "Bomet"
+                  - option "Bungoma"
+                  - option "Busia"
+                  - option "Elgeyo Marakwet"
+                  - option "Embu"
+                  - option "Garissa"
+                  - option "Homa Bay"
+                  - option "Isiolo"
+                  - option "Kajiado"
+                  - option "Kakamega"
+                  - option "Kericho"
+                  - option "Kiambu"
+                  - option "Kilifi"
+                  - option "Kirinyaga"
+                  - option "Kisii"
+                  - option "Kisumu"
+                  - option "Kitui"
+                  - option "Kwale"
+                  - option "Laikipia"
+                  - option "Lamu"
+                  - option "Machakos"
+                  - option "Makueni"
+                  - option "Mandera"
+                  - option "Marsabit"
+                  - option "Meru"
+                  - option "Migori"
+                  - option "Mombasa"
+                  - option "Muranga"
+                  - option "Nairobi"
+                  - option "Nakuru"
+                  - option "Nandi"
+                  - option "Narok"
+                  - option "Nyandarua"
+                  - option "Nyamira"
+                  - option "Nyeri"
+                  - option "Samburu"
+                  - option "Siaya"
+                  - option "Taita Taveta"
+                  - option "Tana River"
+                  - option "Tharaka Nithi"
+                  - option "Trans Nzoia"
+                  - option "Turkana"
+                  - option "Uasin Gishu"
+                  - option "Vihiga"
+                  - option "Wajir"
+                  - option "West Pokot"
+                - button "🗑️ Start Fresh" [ref=e231] [cursor=pointer]
+          - generic [ref=e232]:
+            - img "HakiMkononi" [ref=e234]
+            - generic [ref=e235]:
+              - text: 💾
+              - strong [ref=e236]: "Save your answer:"
+              - button "📲 Copy link" [ref=e237] [cursor=pointer]
+              - link "📲 Send WhatsApp" [ref=e238] [cursor=pointer]:
+                - /url: https://wa.me/?text=Check%20my%20legal%20answer%3A%20https%3A%2F%2Fhakimkononi.onrender.com%2F%3Fjob%3D325
+        - generic [ref=e65]:
+          - generic [ref=e66]:
+            - textbox "Your legal problem" [ref=e67]:
+              - /placeholder: "Example: My boss fired me without notice or pay. I worked there 3 years. What do I do?"
+            - button "📎" [ref=e68] [cursor=pointer]
+            - button "🎤" [ref=e70] [cursor=pointer]
+            - button "Send" [disabled] [ref=e72]
+          - generic [ref=e76]:
+            - generic "Get court document, evidence checklist and step-by-step filing guide" [ref=e77] [cursor=pointer]:
+              - checkbox "🏛️ Self-represent in court" [ref=e78]
+              - text: 🏛️ Self-represent in court
+            - generic [ref=e79]: HakiMkononi provides legal information only. Not legal advice. For complex cases, consult a lawyer.
+  - contentinfo [ref=e80]:
+    - generic [ref=e81]:
+      - generic [ref=e82]:
+        - text: © 2024
+        - strong [ref=e83]: HakiMkononi
+        - text: — Your rights, in your hands 🇰🇪
+      - generic [ref=e84]:
+        - link "About" [ref=e85] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=e86] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=e87]: Legal information only. Not legal advice.

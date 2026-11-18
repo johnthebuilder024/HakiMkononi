@@ -1,0 +1,128 @@
+- generic [active] [ref=f7e1]:
+  - navigation [ref=f7e2]:
+    - generic [ref=f7e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f7e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f7e5]
+        - generic [ref=f7e6]: HakiMkononi
+      - generic [ref=f7e7]:
+        - list [ref=f7e8]:
+          - listitem [ref=f7e9]:
+            - link "Nyumbani" [ref=f7e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f7e11]:
+            - link "Kuhusu" [ref=f7e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f7e13]:
+            - link "⚖️ Mawakili" [ref=f7e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f7e15]:
+            - link "🎙️ Rekodi ya Mahakama" [ref=f7e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f7e17]:
+            - link "🔍 Tafuta Wakili" [ref=f7e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f7e19]:
+            - link "💰 Ada za Wakili" [ref=f7e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f7e21]:
+          - link "Kiswahili" [ref=f7e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=sw
+          - link "English" [ref=f7e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=en
+  - main [ref=f7e24]:
+    - generic [ref=f7e25]:
+      - complementary "Historia ya mazungumzo" [ref=f7e26]:
+        - button "Mazungumzo Mapya" [ref=f7e28] [cursor=pointer]
+        - generic [ref=f7e30]: Mazungumzo yako yataonekana hapa
+        - generic [ref=f7e32]: Imehifadhiwa kwenye kivinjari hiki tu
+      - generic [ref=f7e33]:
+        - generic [ref=f7e36]:
+          - img "HakiMkononi" [ref=f7e38]
+          - heading "HakiMkononi" [level=2] [ref=f7e39]
+          - paragraph [ref=f7e40]: Eleza hali yako. AI itakusaidia kuelewa haki zako bila malipo.
+          - generic [ref=f7e41]:
+            - generic [ref=f7e42] [cursor=pointer]: Nilifukuzwa kazi bila notisi
+            - generic [ref=f7e43] [cursor=pointer]: Landlord ananizuia nyumba bila notisi
+            - generic [ref=f7e44] [cursor=pointer]: Polisi walinishika bila warrant
+            - generic [ref=f7e45] [cursor=pointer]: Mke wangu ananidanganya mali
+            - generic [ref=f7e46] [cursor=pointer]: Mwajiri hakulipia mshahara wangu
+            - generic [ref=f7e47] [cursor=pointer]: Nilipigwa na jirani. Nifanye nini?
+          - paragraph [ref=f7e48]: Inategemea Katiba ya Kenya 2010, Sheria ya Ajira 2007 na zaidi.
+          - generic [ref=f7e49]:
+            - generic [ref=f7e50]: 📍
+            - combobox "Kaunti yako (si lazima)" [ref=f7e51] [cursor=pointer]:
+              - option "Kenya Yote" [selected]
+              - option "Baringo"
+              - option "Bomet"
+              - option "Bungoma"
+              - option "Busia"
+              - option "Elgeyo Marakwet"
+              - option "Embu"
+              - option "Garissa"
+              - option "Homa Bay"
+              - option "Isiolo"
+              - option "Kajiado"
+              - option "Kakamega"
+              - option "Kericho"
+              - option "Kiambu"
+              - option "Kilifi"
+              - option "Kirinyaga"
+              - option "Kisii"
+              - option "Kisumu"
+              - option "Kitui"
+              - option "Kwale"
+              - option "Laikipia"
+              - option "Lamu"
+              - option "Machakos"
+              - option "Makueni"
+              - option "Mandera"
+              - option "Marsabit"
+              - option "Meru"
+              - option "Migori"
+              - option "Mombasa"
+              - option "Muranga"
+              - option "Nairobi"
+              - option "Nakuru"
+              - option "Nandi"
+              - option "Narok"
+              - option "Nyandarua"
+              - option "Nyamira"
+              - option "Nyeri"
+              - option "Samburu"
+              - option "Siaya"
+              - option "Taita Taveta"
+              - option "Tana River"
+              - option "Tharaka Nithi"
+              - option "Trans Nzoia"
+              - option "Turkana"
+              - option "Uasin Gishu"
+              - option "Vihiga"
+              - option "Wajir"
+              - option "West Pokot"
+            - generic [ref=f7e52]: kwa uwiano bora wa wakili
+        - generic [ref=f7e54]:
+          - generic [ref=f7e55]:
+            - textbox "Tatizo lako la kisheria" [ref=f7e56]:
+              - /placeholder: "Mfano: Boss wangu alinifukuza kazi bila notisi wala malipo. Nilifanya kazi miaka 3. Nifanye nini?"
+            - button "📎" [ref=f7e57] [cursor=pointer]
+            - button "🎤" [ref=f7e59] [cursor=pointer]
+            - button "Tuma" [disabled] [ref=f7e61]
+          - generic [ref=f7e65]:
+            - generic "Pata hati ya mahakama, orodha ya ushahidi na mwongozo wa hatua kwa hatua" [ref=f7e66] [cursor=pointer]:
+              - checkbox "🏛️ Jitetea mahakamani" [ref=f7e67]
+              - text: 🏛️ Jitetea mahakamani
+            - generic [ref=f7e68]: HakiMkononi inatoa taarifa za kisheria tu. Si ushauri wa kisheria. Kwa kesi ngumu, wasiliana na wakili.
+  - contentinfo [ref=f7e69]:
+    - generic [ref=f7e70]:
+      - generic [ref=f7e71]:
+        - text: © 2024
+        - strong [ref=f7e72]: HakiMkononi
+        - text: — Sheria yako, mkononi mwako 🇰🇪
+      - generic [ref=f7e73]:
+        - link "Kuhusu" [ref=f7e74] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f7e75] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f7e76]: Taarifa ya kisheria tu. Si ushauri wa kisheria.

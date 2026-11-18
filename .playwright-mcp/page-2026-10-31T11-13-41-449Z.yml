@@ -1,0 +1,68 @@
+- generic [active] [ref=f7e1]:
+  - navigation [ref=f7e2]:
+    - generic [ref=f7e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f7e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f7e5]
+        - generic [ref=f7e6]: HakiMkononi
+      - generic [ref=f7e7]:
+        - list [ref=f7e8]:
+          - listitem [ref=f7e9]:
+            - link "Nyumbani" [ref=f7e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f7e11]:
+            - link "Kuhusu" [ref=f7e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f7e13]:
+            - link "⚖️ Mawakili" [ref=f7e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f7e15]:
+            - link "🎙️ Rekodi ya Mahakama" [ref=f7e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f7e17]:
+            - link "🔍 Tafuta Wakili" [ref=f7e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f7e19]:
+            - link "💰 Ada za Wakili" [ref=f7e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f7e21]:
+          - link "Kiswahili" [ref=f7e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=sw
+          - link "English" [ref=f7e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=en
+          - button "✏️ Mpya" [ref=f7e77] [cursor=pointer]
+  - main [ref=f7e24]:
+    - generic [ref=f7e25]:
+      - complementary "Historia ya mazungumzo" [ref=f7e26]:
+        - button "Mazungumzo Mapya" [ref=f7e28] [cursor=pointer]
+        - generic [ref=f7e30]: Mazungumzo yako yataonekana hapa
+        - generic [ref=f7e32]: Imehifadhiwa kwenye kivinjari hiki tu
+      - generic [ref=f7e33]:
+        - generic [ref=f7e78]:
+          - generic [ref=f7e79]: Boss wangu alinifukuza kazi bila notisi wala malipo. Nilifanya kazi miaka 3.
+          - img "HakiMkononi" [ref=f7e83]
+        - generic [ref=f7e54]:
+          - generic [ref=f7e55]:
+            - textbox "Tatizo lako la kisheria" [ref=f7e56]:
+              - /placeholder: "Mfano: Boss wangu alinifukuza kazi bila notisi wala malipo. Nilifanya kazi miaka 3. Nifanye nini?"
+            - button "📎" [ref=f7e57] [cursor=pointer]
+            - button "🎤" [ref=f7e59] [cursor=pointer]
+            - button "Tuma" [disabled] [ref=f7e61]
+          - generic [ref=f7e65]:
+            - generic "Pata hati ya mahakama, orodha ya ushahidi na mwongozo wa hatua kwa hatua" [ref=f7e66] [cursor=pointer]:
+              - checkbox "🏛️ Jitetea mahakamani" [ref=f7e67]
+              - text: 🏛️ Jitetea mahakamani
+            - generic [ref=f7e68]: HakiMkononi inatoa taarifa za kisheria tu. Si ushauri wa kisheria. Kwa kesi ngumu, wasiliana na wakili.
+  - contentinfo [ref=f7e69]:
+    - generic [ref=f7e70]:
+      - generic [ref=f7e71]:
+        - text: © 2024
+        - strong [ref=f7e72]: HakiMkononi
+        - text: — Sheria yako, mkononi mwako 🇰🇪
+      - generic [ref=f7e73]:
+        - link "Kuhusu" [ref=f7e74] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f7e75] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f7e76]: Taarifa ya kisheria tu. Si ushauri wa kisheria.

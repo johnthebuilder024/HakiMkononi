@@ -1,0 +1,73 @@
+- generic [active] [ref=f14e1]:
+  - navigation [ref=f14e2]:
+    - generic [ref=f14e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f14e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f14e5]
+        - generic [ref=f14e6]: HakiMkononi
+      - generic [ref=f14e7]:
+        - list [ref=f14e8]:
+          - listitem [ref=f14e9]:
+            - link "Home" [ref=f14e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f14e11]:
+            - link "About" [ref=f14e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f14e13]:
+            - link "⚖️ Lawyers" [ref=f14e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f14e15]:
+            - link "🎙️ Court Audio" [ref=f14e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f14e17]:
+            - link "🔍 Find a Lawyer" [ref=f14e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f14e19]:
+            - link "💰 Lawyer Fees" [ref=f14e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f14e21]:
+          - link "Kiswahili" [ref=f14e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=sw
+          - link "English" [ref=f14e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=en
+          - button "✏️ New Chat" [ref=f14e83] [cursor=pointer]
+  - main [ref=f14e24]:
+    - generic [ref=f14e25]:
+      - complementary "Conversation history" [ref=f14e26]:
+        - button "New Chat" [ref=f14e28] [cursor=pointer]
+        - generic [ref=f14e30]:
+          - generic [ref=f14e31]: Today
+          - generic [ref=f14e32] [cursor=pointer]:
+            - generic [ref=f14e33]: ⚖️
+            - generic [ref=f14e34]: Boss wangu alinifukuza kazi bila notisi wala malipo. Ni
+            - button "✕" [ref=f14e35]
+        - generic [ref=f14e36]: Saved in this browser only
+      - generic [ref=f14e37]:
+        - generic [ref=f14e84]:
+          - generic [ref=f14e85]: Police arrested me without a warrant. What are my rights?
+          - img "HakiMkononi" [ref=f14e89]
+        - generic [ref=f14e60]:
+          - generic [ref=f14e61]:
+            - textbox "Your legal problem" [ref=f14e62]:
+              - /placeholder: "Example: My boss fired me without notice or pay. I worked there 3 years. What do I do?"
+            - button "📎" [ref=f14e63] [cursor=pointer]
+            - button "🎤" [ref=f14e65] [cursor=pointer]
+            - button "Send" [disabled] [ref=f14e67]
+          - generic [ref=f14e71]:
+            - generic "Get court document, evidence checklist and step-by-step filing guide" [ref=f14e72] [cursor=pointer]:
+              - checkbox "🏛️ Self-represent in court" [ref=f14e73]
+              - text: 🏛️ Self-represent in court
+            - generic [ref=f14e74]: HakiMkononi provides legal information only. Not legal advice. For complex cases, consult a lawyer.
+  - contentinfo [ref=f14e75]:
+    - generic [ref=f14e76]:
+      - generic [ref=f14e77]:
+        - text: © 2024
+        - strong [ref=f14e78]: HakiMkononi
+        - text: — Your rights, in your hands 🇰🇪
+      - generic [ref=f14e79]:
+        - link "About" [ref=f14e80] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f14e81] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f14e82]: Legal information only. Not legal advice.

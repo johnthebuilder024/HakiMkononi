@@ -1,0 +1,10 @@
+﻿git : remote: No anonymous write access.
+At line:1 char:1
++ git push origin master 2>&1 | Out-File C:\Users\hp\Desktop\HakiMkonon ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (remote: No anonymous write access 
+   .:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+fatal: Authentication failed for 
+'https://github.com/johnthebuilder024/HakiMkononi.git/'

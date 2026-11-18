@@ -1,0 +1,134 @@
+- generic [active] [ref=f9e1]:
+  - navigation [ref=f9e2]:
+    - generic [ref=f9e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f9e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f9e5]
+        - generic [ref=f9e6]: HakiMkononi
+      - generic [ref=f9e7]:
+        - list [ref=f9e8]:
+          - listitem [ref=f9e9]:
+            - link "Nyumbani" [ref=f9e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f9e11]:
+            - link "Kuhusu" [ref=f9e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f9e13]:
+            - link "⚖️ Mawakili" [ref=f9e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f9e15]:
+            - link "🎙️ Rekodi ya Mahakama" [ref=f9e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f9e17]:
+            - link "🔍 Tafuta Wakili" [ref=f9e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f9e19]:
+            - link "💰 Ada za Wakili" [ref=f9e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f9e21]:
+          - link "Kiswahili" [ref=f9e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=sw
+          - link "English" [ref=f9e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=en
+  - main [ref=f9e24]:
+    - generic [ref=f9e25]:
+      - complementary "Historia ya mazungumzo" [ref=f9e26]:
+        - button "Mazungumzo Mapya" [ref=f9e28] [cursor=pointer]
+        - generic [ref=f9e30]:
+          - generic [ref=f9e31]: Leo
+          - generic [ref=f9e32] [cursor=pointer]:
+            - generic [ref=f9e33]: ⚖️
+            - generic [ref=f9e34]: Boss wangu alinifukuza kazi bila notisi wala malipo. Ni
+            - button "✕" [ref=f9e35]
+        - generic [ref=f9e36]: Imehifadhiwa kwenye kivinjari hiki tu
+      - generic [ref=f9e37]:
+        - generic [ref=f9e40]:
+          - button "☰ Mazungumzo ya awali" [ref=f9e42] [cursor=pointer]
+          - img "HakiMkononi" [ref=f9e44]
+          - heading "HakiMkononi" [level=2] [ref=f9e45]
+          - paragraph [ref=f9e46]: Eleza hali yako. AI itakusaidia kuelewa haki zako bila malipo.
+          - generic [ref=f9e47]:
+            - generic [ref=f9e48] [cursor=pointer]: Nilifukuzwa kazi bila notisi
+            - generic [ref=f9e49] [cursor=pointer]: Landlord ananizuia nyumba bila notisi
+            - generic [ref=f9e50] [cursor=pointer]: Polisi walinishika bila warrant
+            - generic [ref=f9e51] [cursor=pointer]: Mke wangu ananidanganya mali
+            - generic [ref=f9e52] [cursor=pointer]: Mwajiri hakulipia mshahara wangu
+            - generic [ref=f9e53] [cursor=pointer]: Nilipigwa na jirani. Nifanye nini?
+          - paragraph [ref=f9e54]: Inategemea Katiba ya Kenya 2010, Sheria ya Ajira 2007 na zaidi.
+          - generic [ref=f9e55]:
+            - generic [ref=f9e56]: 📍
+            - combobox "Kaunti yako (si lazima)" [ref=f9e57] [cursor=pointer]:
+              - option "Kenya Yote" [selected]
+              - option "Baringo"
+              - option "Bomet"
+              - option "Bungoma"
+              - option "Busia"
+              - option "Elgeyo Marakwet"
+              - option "Embu"
+              - option "Garissa"
+              - option "Homa Bay"
+              - option "Isiolo"
+              - option "Kajiado"
+              - option "Kakamega"
+              - option "Kericho"
+              - option "Kiambu"
+              - option "Kilifi"
+              - option "Kirinyaga"
+              - option "Kisii"
+              - option "Kisumu"
+              - option "Kitui"
+              - option "Kwale"
+              - option "Laikipia"
+              - option "Lamu"
+              - option "Machakos"
+              - option "Makueni"
+              - option "Mandera"
+              - option "Marsabit"
+              - option "Meru"
+              - option "Migori"
+              - option "Mombasa"
+              - option "Muranga"
+              - option "Nairobi"
+              - option "Nakuru"
+              - option "Nandi"
+              - option "Narok"
+              - option "Nyandarua"
+              - option "Nyamira"
+              - option "Nyeri"
+              - option "Samburu"
+              - option "Siaya"
+              - option "Taita Taveta"
+              - option "Tana River"
+              - option "Tharaka Nithi"
+              - option "Trans Nzoia"
+              - option "Turkana"
+              - option "Uasin Gishu"
+              - option "Vihiga"
+              - option "Wajir"
+              - option "West Pokot"
+            - generic [ref=f9e58]: kwa uwiano bora wa wakili
+        - generic [ref=f9e60]:
+          - generic [ref=f9e61]:
+            - textbox "Tatizo lako la kisheria" [ref=f9e62]:
+              - /placeholder: "Mfano: Boss wangu alinifukuza kazi bila notisi wala malipo. Nilifanya kazi miaka 3. Nifanye nini?"
+            - button "📎" [ref=f9e63] [cursor=pointer]
+            - button "🎤" [ref=f9e65] [cursor=pointer]
+            - button "Tuma" [disabled] [ref=f9e67]
+          - generic [ref=f9e71]:
+            - generic "Pata hati ya mahakama, orodha ya ushahidi na mwongozo wa hatua kwa hatua" [ref=f9e72] [cursor=pointer]:
+              - checkbox "🏛️ Jitetea mahakamani" [ref=f9e73]
+              - text: 🏛️ Jitetea mahakamani
+            - generic [ref=f9e74]: HakiMkononi inatoa taarifa za kisheria tu. Si ushauri wa kisheria. Kwa kesi ngumu, wasiliana na wakili.
+  - contentinfo [ref=f9e75]:
+    - generic [ref=f9e76]:
+      - generic [ref=f9e77]:
+        - text: © 2024
+        - strong [ref=f9e78]: HakiMkononi
+        - text: — Sheria yako, mkononi mwako 🇰🇪
+      - generic [ref=f9e79]:
+        - link "Kuhusu" [ref=f9e80] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f9e81] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f9e82]: Taarifa ya kisheria tu. Si ushauri wa kisheria.

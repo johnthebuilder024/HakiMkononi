@@ -1,0 +1,183 @@
+What HakiMkononi can handle RIGHT NOW
+Employment (very strong)
+
+Fired without notice
+Unpaid salary / wages
+NSSF deductions not remitted
+Workplace injury (WIBA compensation)
+Unsafe workplace / OSHA violations
+Unfair dismissal, redundancy
+Certificate of service disputes
+Maternity leave, overtime, payslip issues
+Land & Property (very strong)
+
+Land grabbing / boundary disputes
+Title deed registration and transfers
+Compulsory acquisition by government
+Succession / inheritance after death
+Community land disputes
+Landlord & Tenant (very strong)
+
+Illegal eviction / lockout without notice
+Rent arrears and deposit disputes
+Double rent for holding over
+Distress for rent (landlord seizing goods)
+Controlled tenancy disputes (shops, hotels)
+Criminal / Police (strong)
+
+Arrested without being told rights
+Held beyond 24 hours without court
+No bail hearing
+Bribery by police
+Wrongful arrest / illegal detention
+Assault, theft, robbery — reporting rights
+Family & Domestic (strong)
+
+Domestic violence — protection orders
+Divorce and matrimonial property
+Matrimonial home rights
+Customary, Hindu, Muslim, civil marriage disputes
+Child support / maintenance orders
+Custody disputes
+Children (strong)
+
+Child maintenance obligations
+Child custody and guardianship
+Child protection orders
+School expulsion without hearing (Basic Education Act)
+Sexual Offences (strong)
+
+Defilement of a minor
+Rape / sexual assault — reporting and evidence rights
+Police refusing to charge on admission
+Consumer Protection (strong)
+
+Defective goods — refund/replacement rights
+False representation by seller
+Misleading advertising
+Small claims court guidance
+Hire Purchase (strong)
+
+Owner repossessing after two-thirds paid
+Hirer's rights to terminate
+Unlicensed hire-purchase businesses
+Cybercrime & Fraud (moderate)
+
+SIM swap / M-Pesa fraud
+Unauthorised account access
+Online scams / phishing
+Blackmail / sextortion
+Computer Misuse Act offences
+Data Protection (moderate)
+
+Employer sharing salary data without consent
+Personal data shared without permission
+Data breach notification rights
+Right to access your own data
+CCTV surveillance concerns
+Traffic (moderate)
+
+Police impounding car demanding bribe
+Driving licence disputes
+Vehicle detention rights
+County Enforcement / Kanjo (moderate)
+
+Business goods confiscated without notice
+Licence revocation without reasons
+Fair Administrative Action rights
+Elections (basic)
+
+Vote buying / voter bribery
+Electoral offences
+Candidate disqualification
+Refugees (basic)
+
+Arrest of UNHCR card holders
+Constitutional rights on detention
+What it cannot handle yet — gaps worth filling
+1. Copyright & Intellectual Property ← you asked about this Kenya has the Copyright Act (Cap 130) and Industrial Property Act 2001. Common real cases:
+
+Music piracy / someone using your song without permission
+Copying software, books, artwork
+Trademark infringement (someone using your business name/logo)
+Patent disputes
+Add: Copyright Act (Cap 130), Industrial Property Act 2001, Trade Marks Act (Cap 506)
+
+2. Housing / Tenancy for residential flats The current Rent Restriction Act (Cap 296) only covers controlled premises. Kenya is passing a new Landlord and Tenant Bill that covers all residential tenancies. Common gap: tenant in a private estate with no controlled tenancy protection.
+
+Add: Factual guidance on this gap since the law is not yet enacted.
+
+3. Banking & Mobile Money Very common questions:
+
+Bank wrongly freezing account
+Loan charged wrong interest
+Bank refusing to reverse fraud transaction
+Mobile money agent fraud
+CRB blacklisting without notice
+Add: Banking Act (Cap 488), Microfinance Act 2006, National Payment System Act 2011, CRB regulations (Credit Reference Bureau Regulations 2013)
+
+4. Insurance
+
+Insurer refusing to pay accident claim
+Medical insurance claim denied
+Car insurance claim disputes
+Insurer delaying payment unreasonably
+Add: Insurance Act (Cap 487), Insurance (Motor Vehicle Third Party Risks) Act
+
+5. Environment / Noise Pollution
+
+Factory polluting a river near your farm
+Noise pollution from a bar or industry
+Quarry blasting damaging your house
+Add: Environmental Management and Coordination Act (EMCA) 1999, Noise Prevention and Control Rules
+
+6. Disability Rights
+
+Employer refusing to hire because of disability
+Building with no wheelchair access (public building)
+School refusing admission to child with disability
+Add: Persons with Disabilities Act 2003, Constitution Article 54
+
+7. Gender & Reproductive Rights
+
+Forced sterilisation
+Denial of maternal health services
+Gender-based workplace discrimination beyond what Employment Act covers
+Add: Health Act 2017, Protection of Health Information regulations
+
+8. Succession / Wills (deeper) Currently Law of Succession Act is loaded but the common practical questions need more:
+
+Challenging a will
+Surviving spouse rights
+Disinherited child rights
+Grant of probate / letters of administration procedure
+The Act is there — just needs more intent keywords to catch these queries.
+
+9. Public Procurement
+
+Contractor unpaid by government after completing work
+Tender unfairly cancelled
+Conflict of interest in award
+Add: Public Procurement and Asset Disposal Act 2015
+
+10. Entertainment & Sports Contracts
+
+Artist signed unfair record deal
+Athlete unpaid by club
+Manager taking undisclosed commission
+Add: Copyright Act (already covers music), guidance on contract law principles
+
+11. Landlord-Tenant for Land (Caretakers / Squatters)
+
+Caretaker claiming ownership after years of occupation
+Adverse possession claims
+Absentee landlord vs long-term occupant
+This is partly covered by Land Act and Land Registration Act already loaded — just needs better intent keywords for "caretaker", "squatter", "adverse possession".
+
+Priority order for adding
+Copyright Act + Industrial Property Act — most asked by musicians, designers, small businesses
+Banking Act + CRB Regulations — bank account freezing and loan disputes are extremely common
+Insurance Act — car accident claims are daily questions
+Persons with Disabilities Act — important gap, Constitution already covers it partly
+EMCA (Environment) — pollution near farms is a rural Kenya issue
+For 1-3, you can download the PDFs from kenyalaw.org and add them to your data/ folder, then run load_all_pdfs.bat with the new entries added. Want me to write the exact load_all_pdfs.bat additions for those?

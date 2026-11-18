@@ -1,0 +1,259 @@
+- generic [active] [ref=f3e1]:
+  - banner [ref=f3e2]:
+    - generic:
+      - link "Skip to document content" [ref=f3e3] [cursor=pointer]:
+        - /url: "#top"
+      - link "Go to main menu" [ref=f3e4] [cursor=pointer]:
+        - /url: "#main-nav"
+      - link "Go to search" [ref=f3e5] [cursor=pointer]:
+        - /url: "#header-search"
+    - navigation [ref=f3e6]:
+      - list [ref=f3e8]:
+        - listitem [ref=f3e9]:
+          - link "About Us" [ref=f3e10] [cursor=pointer]:
+            - /url: /about/
+        - listitem [ref=f3e11]:
+          - link "Product Catalogue" [ref=f3e12] [cursor=pointer]:
+            - /url: https://kenyalaw.org/ecommerce
+        - listitem [ref=f3e13]:
+          - link "Contact Us" [ref=f3e14] [cursor=pointer]:
+            - /url: /about/#contact
+        - listitem [ref=f3e15]:
+          - link "Site Map" [ref=f3e16] [cursor=pointer]:
+            - /url: /sitemap.xml
+    - generic [ref=f3e19]:
+      - link [ref=f3e20] [cursor=pointer]:
+        - /url: /
+        - img "Kenya Law" [ref=f3e21]
+      - generic [ref=f3e23]:
+        - textbox "Search Kenya Law" [ref=f3e24]
+        - button " Search" [ref=f3e25] [cursor=pointer]:
+          - generic [ref=f3e26]: 
+          - text: Search
+    - navigation [ref=f3e27]:
+      - generic [ref=f3e28]:
+        - text: 
+        - generic [ref=f3e29]:
+          - text: 
+          - list [ref=f3e30]:
+            - listitem [ref=f3e31]:
+              - link "Home" [ref=f3e32] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=f3e33]:
+              - button "Case Law" [ref=f3e34] [cursor=pointer]
+            - listitem [ref=f3e35]:
+              - button "Laws of Kenya" [ref=f3e36] [cursor=pointer]
+            - listitem [ref=f3e37]:
+              - link "Counties" [ref=f3e38] [cursor=pointer]:
+                - /url: /legislation/counties
+            - listitem [ref=f3e39]:
+              - link "Cause List" [ref=f3e40] [cursor=pointer]:
+                - /url: /causelists/
+            - listitem [ref=f3e41]:
+              - link "Kenya Gazette" [ref=f3e42] [cursor=pointer]:
+                - /url: /gazettes/
+            - listitem [ref=f3e43]:
+              - button "Publications" [ref=f3e44] [cursor=pointer]
+            - listitem [ref=f3e45]:
+              - button "Parliament" [ref=f3e46] [cursor=pointer]
+            - listitem [ref=f3e47]:
+              - link "Blog" [ref=f3e48] [cursor=pointer]:
+                - /url: /articles/
+  - main "Judgments" [ref=f3e49]:
+    - generic [ref=f3e51]:
+      - img "profile image" [ref=f3e52]
+      - generic [ref=f3e53]:
+        - heading "Case Law" [level=1] [ref=f3e54]
+        - paragraph [ref=f3e56]: The National Council for Law Reporting (Kenya Law) is the official law reporter for all Kenyan judicial decisions, providing access to Africa's most authoritative and comprehensive case law database. With approximately 300,000 Kenyan cases from 1930 to the present, and updated daily, Kenya Law ensures you have access to the most recent jurisprudence. Beyond Kenya, explore case law from African and international jurisdictions. Our powerful search tools enable you to quickly locate relevant precedents and expand your legal research
+    - generic [ref=f3e57]:
+      - generic [ref=f3e60]:
+        - generic [ref=f3e61]:
+          - generic [ref=f3e62]:
+            - paragraph [ref=f3e63]: Explore 341,330 court judgments.
+            - link " Help opens in new tab" [ref=f3e66] [cursor=pointer]:
+              - /url: https://help.kenyalaw.org/judgments/courts
+              - generic [ref=f3e67]: 
+              - text: Help
+              - generic [ref=f3e68]: opens in new tab
+          - generic [ref=f3e69]:
+            - search [ref=f3e70]:
+              - generic [ref=f3e71]: Search judgments
+              - generic [ref=f3e72]:
+                - searchbox "Search judgments" [ref=f3e73]
+                - button "Search" [ref=f3e74] [cursor=pointer]
+            - link "Advanced search" [ref=f3e75] [cursor=pointer]:
+              - /url: /search/?show-advanced-tab=1&nature=Judgment
+        - generic [ref=f3e76]:
+          - generic [ref=f3e79]:
+            - heading [level=2] [ref=f3e80]:
+              - link "All judgments" [ref=f3e81] [cursor=pointer]:
+                - /url: /judgments/all/
+            - paragraph [ref=f3e82]: Browse the full collection.
+          - generic [ref=f3e85]:
+            - heading [level=2] [ref=f3e86]:
+              - link "Courts" [ref=f3e87] [cursor=pointer]:
+                - /url: "#court-hierarchy-heading"
+            - paragraph [ref=f3e88]: Browse judgments by court or tribunal.
+          - generic [ref=f3e91]:
+            - heading [level=2] [ref=f3e92]:
+              - link "Judges" [ref=f3e93] [cursor=pointer]:
+                - /url: /judgments/all/#facets
+            - paragraph [ref=f3e94]: Browse judges and their decisions.
+          - generic [ref=f3e97]:
+            - heading [level=2] [ref=f3e98]:
+              - link "Indexes and collections" [ref=f3e99] [cursor=pointer]:
+                - /url: /taxonomy/
+            - paragraph [ref=f3e100]: Explore specialist collections and indexes.
+      - generic [ref=f3e102]:
+        - generic [ref=f3e103]:
+          - heading "Find the law from what you know" [level=2] [ref=f3e104]
+          - paragraph [ref=f3e105]: Explore by court.
+        - region [ref=f3e107]:
+          - generic [ref=f3e110]:
+            - heading "Courts" [level=3] [ref=f3e111]
+            - paragraph [ref=f3e112]: Browse judgments by court or level of court.
+            - list [ref=f3e113]:
+              - listitem [ref=f3e114]:
+                - generic [ref=f3e115]:
+                  - button "Show courts for Superior Courts" [ref=f3e116] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f3e117]: 
+                  - link "Superior Courts" [ref=f3e118] [cursor=pointer]:
+                    - /url: /judgments/court-class/superior-courts/
+              - listitem [ref=f3e119]:
+                - generic [ref=f3e120]:
+                  - button "Show courts for Subordinate Courts" [ref=f3e121] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f3e122]: 
+                  - link "Subordinate Courts" [ref=f3e123] [cursor=pointer]:
+                    - /url: /judgments/court-class/subordinate-courts/
+              - listitem [ref=f3e124]:
+                - generic [ref=f3e125]:
+                  - button "Show courts for Small Claims Court" [ref=f3e126] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f3e127]: 
+                  - link "Small Claims Court" [ref=f3e128] [cursor=pointer]:
+                    - /url: /judgments/court-class/small-claims-court/
+              - listitem [ref=f3e129]:
+                - generic [ref=f3e130]:
+                  - button "Show courts for Tribunals" [ref=f3e131] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f3e132]: 
+                  - link "Tribunals" [ref=f3e133] [cursor=pointer]:
+                    - /url: /judgments/court-class/tribunals/
+              - listitem [ref=f3e134]:
+                - generic [ref=f3e135]:
+                  - button "Show courts for Regional and International Courts" [ref=f3e136] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f3e137]: 
+                  - link "Regional and International Courts" [ref=f3e138] [cursor=pointer]:
+                    - /url: /judgments/court-class/regional-and-international-courts/
+              - listitem [ref=f3e139]:
+                - generic [ref=f3e140]:
+                  - button "Show other courts" [ref=f3e141] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f3e142]: 
+                  - generic [ref=f3e143]: Other courts
+            - link "View all courts" [ref=f3e144] [cursor=pointer]:
+              - /url: /judgments/courts/
+      - generic [ref=f3e145]:
+        - generic [ref=f3e146]:
+          - heading "Recent judgments" [level=2] [ref=f3e147]
+          - paragraph [ref=f3e148]: "Latest judgment: 29 October 2026"
+        - region "Results" [ref=f3e149]:
+          - paragraph [ref=f3e150]: Results. 341,330 found.
+          - table [ref=f3e151]:
+            - rowgroup [ref=f3e152]:
+              - row [ref=f3e153]:
+                - cell [ref=f3e154]:
+                  - link "Kassim v Co-operative Bank of Kenya Ltd (Civil Appeal E1426 of 2023) [2026] KEHC 16703 (KLR) (29 October 2026) (Ruling)" [ref=f3e156] [cursor=pointer]:
+                    - /url: /akn/ke/judgment/kehc/2026/16703/eng@2026-10-29
+                - cell "29 October 2026" [ref=f3e157]
+              - row [ref=f3e158]:
+                - cell [ref=f3e159]:
+                  - link "Mwangi v Mwangi (Civil Appeal E685 of 2024) [2026] KEHC 16782 (KLR) (29 October 2026) (Judgment)" [ref=f3e161] [cursor=pointer]:
+                    - /url: /akn/ke/judgment/kehc/2026/16782/eng@2026-10-29
+                - cell "29 October 2026" [ref=f3e162]
+              - row [ref=f3e163]:
+                - cell [ref=f3e164]:
+                  - link "Bett (Suing as the Personal Representative of the Estate of Sawe Barchok-Deceased) v Registrar of Companies & another (Commercial Suit E003 of 2026) [2026] KEHC 16722 (KLR) (28 October 2026) (Ruling)" [ref=f3e166] [cursor=pointer]:
+                    - /url: /akn/ke/judgment/kehc/2026/16722/eng@2026-10-28
+                - cell "28 October 2026" [ref=f3e167]
+              - row [ref=f3e168]:
+                - cell [ref=f3e169]:
+                  - link "Nyagena Hospital Ltd & another v Muruka (Appeal E005 of 2026) [2026] KEELRC 14770 (KLR) (28 October 2026) (Ruling)" [ref=f3e171] [cursor=pointer]:
+                    - /url: /akn/ke/judgment/keelrc/2026/14770/eng@2026-10-28
+                - cell "28 October 2026" [ref=f3e172]
+              - row [ref=f3e173]:
+                - cell [ref=f3e174]:
+                  - link "Rohit v Ngatia & 2 others (Civil Appeal E437 of 2025) [2026] KEHC 16726 (KLR) (Civ) (28 October 2026) (Judgment)" [ref=f3e176] [cursor=pointer]:
+                    - /url: /akn/ke/judgment/kehc/2026/16726/eng@2026-10-28
+                - cell "28 October 2026" [ref=f3e177]
+              - row [ref=f3e178]:
+                - cell [ref=f3e179]:
+                  - link "Classic Steels East Africa Limited v Goodwill Wine and Spirits Limited (Civil Case E860 of 2024) [2026] KEMC 1185 (KLR) (28 October 2026) (Judgment)" [ref=f3e181] [cursor=pointer]:
+                    - /url: /akn/ke/judgment/kemc/2026/1185/eng@2026-10-28
+                - cell "28 October 2026" [ref=f3e182]
+              - row [ref=f3e183]:
+                - cell [ref=f3e184]:
+                  - link "Luvonga v International Airlines Group & 5 others (Civil Case 6157 of 2019) [2026] KEMC 1186 (KLR) (28 October 2026) (Judgment)" [ref=f3e186] [cursor=pointer]:
+                    - /url: /akn/ke/judgment/kemc/2026/1186/eng@2026-10-28
+                - cell "28 October 2026" [ref=f3e187]
+              - row [ref=f3e188]:
+                - cell [ref=f3e189]:
+                  - link "Mutua & another (Suing as the Administrators of the Estate of the Late Samuel Mulinge Mutinga (Deceased)) v Mutoro & 4 others (Civil Appeal E690 of 2025) [2026] KEHC 16773 (KLR) (Civ) (28 October 2026) (Ruling)" [ref=f3e191] [cursor=pointer]:
+                    - /url: /akn/ke/judgment/kehc/2026/16773/eng@2026-10-28
+                - cell "28 October 2026" [ref=f3e192]
+              - row [ref=f3e193]:
+                - cell [ref=f3e194]:
+                  - link "Karuu v Kitonga (Environment and Land Appeal E013 of 2025) [2026] KEELC 7097 (KLR) (28 October 2026) (Judgment)" [ref=f3e196] [cursor=pointer]:
+                    - /url: /akn/ke/judgment/keelc/2026/7097/eng@2026-10-28
+                - cell "28 October 2026" [ref=f3e197]
+              - row [ref=f3e198]:
+                - cell [ref=f3e199]:
+                  - link "Mutiso v Ndivo & another (Environment and Land Case E030 of 2020) [2026] KEELC 7099 (KLR) (28 October 2026) (Judgment)" [ref=f3e201] [cursor=pointer]:
+                    - /url: /akn/ke/judgment/keelc/2026/7099/eng@2026-10-28
+                - cell "28 October 2026" [ref=f3e202]
+        - link "View all judgments" [ref=f3e203] [cursor=pointer]:
+          - /url: /judgments/all/
+  - contentinfo [ref=f3e204]:
+    - generic [ref=f3e205]:
+      - separator [ref=f3e206]
+      - generic [ref=f3e207]:
+        - generic [ref=f3e208]:
+          - paragraph [ref=f3e209]: The NCLR website, systems and content published on this website www.kenyalaw.org is protected under the Copyright Act (Cap. 130, Laws of Kenya). Automated data scraping, bulk extraction, commercial redistribution, or training of machine learning/AI models without an explicit Licensing Agreement from NCLR is strictly prohibited.
+          - paragraph [ref=f3e210]:
+            - text: Documents as received from the source in their original unannotated form (raw documents) are provided for fair and reasonable public use. They may be used and re-used under the terms of the Creative Commons Attribution-NonCommercial 4.0 International license. Under this license, you may freely use, re-use and redistribute works from NCLR provided you credit NCLR as your source and your use is not for commercial gain. For more information, see the
+            - link "Website Terms of Use" [ref=f3e211] [cursor=pointer]:
+              - /url: /terms-of-use/
+            - text: .
+          - list [ref=f3e212]:
+            - listitem [ref=f3e213]:
+              - link "Home" [ref=f3e214] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=f3e215]:
+              - link "About us" [ref=f3e216] [cursor=pointer]:
+                - /url: /about/
+            - listitem [ref=f3e217]:
+              - link "Contact Us" [ref=f3e218] [cursor=pointer]:
+                - /url: /about/#contact
+            - listitem [ref=f3e219]:
+              - link "Site Map" [ref=f3e220] [cursor=pointer]:
+                - /url: /sitemap.xml
+          - generic [ref=f3e221]:
+            - text: © 2026 National Council for Law Reporting (Kenya Law) is ISO 9001:2015 Certified. |
+            - link "Website Terms of Use" [ref=f3e222] [cursor=pointer]:
+              - /url: /terms-of-use/
+        - generic [ref=f3e223]:
+          - link "Contact us" [ref=f3e224] [cursor=pointer]:
+            - /url: /about/#contact
+          - list [ref=f3e225]:
+            - listitem [ref=f3e226]:
+              - link "Visit our Facebook page " [ref=f3e227] [cursor=pointer]:
+                - /url: https://web.facebook.com/mykenyalaw
+                - generic [ref=f3e228]: Visit our Facebook page
+                - generic [ref=f3e229]: 
+            - listitem [ref=f3e230]:
+              - link "Visit our Twitter/X profile " [ref=f3e231] [cursor=pointer]:
+                - /url: https://x.com/mykenyalaw
+                - generic [ref=f3e232]: Visit our Twitter/X profile
+                - generic [ref=f3e233]: 
+            - listitem [ref=f3e234]:
+              - link "Visit our YouTube channel " [ref=f3e235] [cursor=pointer]:
+                - /url: https://www.youtube.com/mykenyalaw
+                - generic [ref=f3e236]: Visit our YouTube channel
+                - generic [ref=f3e237]: 

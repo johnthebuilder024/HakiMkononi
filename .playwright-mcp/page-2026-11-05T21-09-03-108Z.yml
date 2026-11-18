@@ -1,0 +1,439 @@
+- generic [active] [ref=f2e1]:
+  - navigation [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f2e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f2e5]
+        - generic [ref=f2e6]: HakiMkononi
+      - generic [ref=f2e7]:
+        - list [ref=f2e8]:
+          - listitem [ref=f2e9]:
+            - link "Home" [ref=f2e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f2e11]:
+            - link "About" [ref=f2e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f2e13]:
+            - link "⚖️ Lawyers" [ref=f2e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f2e15]:
+            - link "🎙️ Court Audio" [ref=f2e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f2e17]:
+            - link "🔍 Find a Lawyer" [ref=f2e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f2e19]:
+            - link "💰 Lawyer Fees" [ref=f2e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f2e21]:
+          - link "Kiswahili" [ref=f2e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=sw
+          - link "English" [ref=f2e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=en
+          - button "✏️ New Chat" [ref=f2e92] [cursor=pointer]
+  - main [ref=f2e24]:
+    - generic [ref=f2e25]:
+      - complementary "Conversation history" [ref=f2e26]:
+        - button "New Chat" [ref=f2e28] [cursor=pointer]
+        - generic [ref=f2e30]:
+          - generic [ref=f2e249]: Today
+          - generic [ref=f2e250] [cursor=pointer]:
+            - generic [ref=f2e251]: ⚖️
+            - generic [ref=f2e252]: My landlord locked me out of my house without notice an
+            - button "✕" [ref=f2e253]
+          - generic [ref=f2e254] [cursor=pointer]:
+            - generic [ref=f2e255]: ⚖️
+            - generic [ref=f2e256]: My employer fired me without notice after 3 years and r
+            - button "✕" [ref=f2e257]
+          - generic [ref=f2e258] [cursor=pointer]:
+            - generic [ref=f2e259]: ⚖️
+            - generic [ref=f2e260]: I want to buy a plot in Kiambu. The seller showed me a
+            - button "✕" [ref=f2e261]
+          - generic [ref=f2e262]: Older
+          - generic [ref=f2e263] [cursor=pointer]:
+            - generic [ref=f2e264]: ⚖️
+            - generic [ref=f2e265]: Boss wangu alinifukuza kazi bila notisi wala malipo. Ni
+            - button "✕" [ref=f2e266]
+        - generic [ref=f2e45]: Saved in this browser only
+      - generic [ref=f2e46]:
+        - generic [ref=f2e93]:
+          - generic [ref=f2e94]: My landlord locked me out of my house without notice and kept my belongings inside.
+          - generic [ref=f2e121]:
+            - img "HakiMkononi" [ref=f2e123]
+            - generic [ref=f2e124]:
+              - text: 🏛️
+              - strong [ref=f2e125]: Want to represent yourself in court?
+              - text: Turn on "Self-represent in court" below to get a court document, evidence checklist, and step-by-step filing guide.
+              - button "✅ Yes, show me" [ref=f2e126] [cursor=pointer]
+          - generic [ref=f2e127]:
+            - img "HakiMkononi" [ref=f2e129]
+            - generic [ref=f2e130]:
+              - generic [ref=f2e131]:
+                - generic [ref=f2e132]:
+                  - generic [ref=f2e133]: 📜
+                  - generic [ref=f2e134]: What The Law Says
+                - generic [ref=f2e135]:
+                  - paragraph [ref=f2e136]:
+                    - strong [ref=f2e137]: Distress for Rent Act (Cap 293) – Section 11 (Landlord may break into house to seize goods fraudulently secured)
+                    - text: A landlord may break into a locked house during the day to seize goods that have been fraudulently or clandestinely removed by the tenant, if the goods are kept in a locked place to prevent their seizure as distress for arrears of rent.
+                  - paragraph [ref=f2e138]:
+                    - strong [ref=f2e139]: Distress for Rent Act (Cap 293) – Section 9 (Landlord may distrain and sell goods fraudulently carried off premises)
+                    - text: If a tenant removes or allows goods to be removed from the premises, the landlord may distrain and sell those goods to recover arrears of rent.
+                  - paragraph [ref=f2e140]:
+                    - strong [ref=f2e141]: Distress for Rent Act (Cap 293) – Section 14 (Tenant holding premises after time notified to pay double rent)
+                    - text: If a tenant fails to deliver up possession of the premises at the time specified in a notice, the tenant must pay double the rent from that time onward.
+                  - paragraph [ref=f2e142]:
+                    - strong [ref=f2e143]: Rent Restriction Act (Cap 296) – Section 29 (Penalty for subjecting tenant to annoyance)
+                    - text: A landlord who evicts a tenant without tribunal authority or who intentionally annoys a tenant to force them to vacate or pay higher rent is guilty of an offence and may be fined up to six thousand shillings or imprisoned for up to six months.
+              - generic [ref=f2e144]:
+                - generic [ref=f2e145]:
+                  - generic [ref=f2e146]: 💬
+                  - generic [ref=f2e147]: Plain Explanation
+                - generic [ref=f2e148]:
+                  - paragraph [ref=f2e149]: You have the right to live in the property and to keep your belongings. The landlord cannot lock you out without notice or keep your goods inside. The law allows the landlord to seize goods only if they were removed fraudulently, not simply because you were locked out. Because the landlord locked you out without notice, you are entitled to have your belongings returned and to be paid any unpaid rent. The landlord may also face a fine for annoying you.
+                  - paragraph [ref=f2e150]: "Steps to take RIGHT NOW:"
+                  - list [ref=f2e151]:
+                    - listitem [ref=f2e152]: Send a written demand to the landlord asking for immediate return of your belongings and payment of any unpaid rent.
+                    - listitem [ref=f2e153]: Keep a copy of the letter and any receipts or evidence of the lock‑out.
+                    - listitem [ref=f2e154]: If the landlord does not comply within 14 days, file a complaint with the Labour Court or the Rent Tribunal.
+              - generic [ref=f2e155]:
+                - generic [ref=f2e156]:
+                  - generic [ref=f2e157]: 💪
+                  - generic [ref=f2e158]: Your Rights
+                - generic [ref=f2e159]:
+                  - paragraph [ref=f2e160]: "Your rights:"
+                  - list [ref=f2e161]:
+                    - listitem [ref=f2e162]: Right to possession of the property.
+                    - listitem [ref=f2e163]: Right to have your belongings returned.
+                    - listitem [ref=f2e164]: Right to be paid any unpaid salary or rent.
+                  - paragraph [ref=f2e165]: "What went wrong:"
+                  - list [ref=f2e166]:
+                    - listitem [ref=f2e167]: The landlord locked you out without giving notice.
+                    - listitem [ref=f2e168]: The landlord kept your belongings inside the property.
+                    - listitem [ref=f2e169]: The landlord failed to follow the legal process for eviction or distress.
+              - generic [ref=f2e170]:
+                - generic [ref=f2e171]:
+                  - generic [ref=f2e172]: ✉️
+                  - generic [ref=f2e173]: Write This
+                  - generic [ref=f2e174]: 9 left to fill
+                - generic [ref=f2e175]:
+                  - generic [ref=f2e176]: Click [PLACEHOLDER] then type
+                  - button "📋 Copy" [ref=f2e177] [cursor=pointer]
+                - generic [ref=f2e178]: "[DATE] [YOUR NAME] [YOUR ADDRESS] To: [Name of Landlord] [Landlord’s Address] Dear Sir/Madam, Subject: Demand for Return of Belongings and Payment of Unpaid Rent I, [YOUR NAME], write to formally demand the immediate return of all my personal belongings that remain inside the premises at [property address] and the payment of any unpaid rent owed to me. I was locked out of the property without notice, which is unlawful under Kenyan law. Under the Distress for Rent Act (Cap 293) – Section 11, a landlord may only seize goods that have been fraudulently removed by the tenant. Under Section 9, the landlord may distrain and sell goods only if they were removed fraudulently. Under Section 14, a tenant who fails to deliver up possession after a notice must pay double rent, not the case here. Under the Rent Restriction Act (Cap 296) – Section 29, a landlord who evicts a tenant without tribunal authority or who intentionally annoys a tenant is guilty of an offence and may be fined. I demand that you return all my belongings and pay any unpaid rent within 14 days of receiving this letter. Failure to comply will compel me to seek legal redress through the Rent Tribunal. Yours faithfully, [YOUR NAME] [PHONE NUMBER]"
+              - generic [ref=f2e179]:
+                - generic [ref=f2e180]:
+                  - generic [ref=f2e181]: 📚
+                  - generic [ref=f2e182]: Legal Sources
+                - list [ref=f2e183]:
+                  - listitem [ref=f2e184]:
+                    - generic [ref=f2e185]: "1"
+                    - generic [ref=f2e186]:
+                      - strong [ref=f2e187]: Distress for Rent Act (Cap 293)
+                      - emphasis [ref=f2e188]: · 11. Landlord may break into house to seize goods fraudulently secured therein
+                    - link "↗" [ref=f2e189] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/1951/293/eng@2022-12-31
+                  - listitem [ref=f2e190]:
+                    - generic [ref=f2e191]: "2"
+                    - generic [ref=f2e192]:
+                      - strong [ref=f2e193]: Distress for Rent Act (Cap 293)
+                      - emphasis [ref=f2e194]: · 20. Penalty on superior landlord disregarding lodger’s declaration
+                    - link "↗" [ref=f2e195] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/1951/293/eng@2022-12-31
+                  - listitem [ref=f2e196]:
+                    - generic [ref=f2e197]: "3"
+                    - generic [ref=f2e198]:
+                      - strong [ref=f2e199]: Distress for Rent Act (Cap 293)
+                      - emphasis [ref=f2e200]: · 14. Tenant holding premises after time notified to pay double rent
+                    - link "↗" [ref=f2e201] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/1951/293/eng@2022-12-31
+                  - listitem [ref=f2e202]:
+                    - generic [ref=f2e203]: "4"
+                    - generic [ref=f2e204]:
+                      - strong [ref=f2e205]: Distress for Rent Act (Cap 293)
+                      - emphasis [ref=f2e206]: · 9. Landlord may distrain and sell goods fraudulently carried off premises
+                    - link "↗" [ref=f2e207] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/1951/293/eng@2022-12-31
+                  - listitem [ref=f2e208]:
+                    - generic [ref=f2e209]: "5"
+                    - generic [ref=f2e210]:
+                      - strong [ref=f2e211]: Rent Restriction Act (Cap 296)
+                      - emphasis [ref=f2e212]: · 29. Penalty for subjecting tenant to annoyance
+                    - link "↗" [ref=f2e213] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/1959/296/eng@2022-12-31
+              - generic [ref=f2e214]:
+                - button "📋 Copy" [ref=f2e215] [cursor=pointer]
+                - button "⬇️ PDF" [ref=f2e216] [cursor=pointer]
+                - button "✉️ Letter PDF" [ref=f2e217] [cursor=pointer]
+                - button "💾 Save Link" [ref=f2e218] [cursor=pointer]
+              - generic [ref=f2e219]:
+                - generic [ref=f2e220]: Was this helpful?
+                - button "👍" [ref=f2e221] [cursor=pointer]
+                - button "👎" [ref=f2e222] [cursor=pointer]
+              - generic [ref=f2e224]:
+                - generic [ref=f2e225]:
+                  - generic [ref=f2e226]: 💰
+                  - generic [ref=f2e227]: Typical Lawyer Fee for This Case
+                  - generic [ref=f2e228]: LSK Remuneration Order
+                - generic [ref=f2e229]: KES 10,000 – 80,000
+                - generic [ref=f2e230]: "Eviction disputes or deposit recovery at the Rent Tribunal or Magistrate Court. Simple cases can be filed yourself (no lawyer needed). Consultation fee: KES 1,500–3,000."
+                - generic [ref=f2e231]: These are typical ranges only. Always get a written fee agreement.
+          - generic [ref=f2e232]:
+            - img "HakiMkononi" [ref=f2e234]
+            - generic [ref=f2e235]:
+              - text: ✏️ Tap any
+              - strong [ref=f2e236]: "[PLACEHOLDER]"
+              - text: in the letter above to fill it in directly.❓ Have another question? Type it below.
+              - generic [ref=f2e237]:
+                - combobox [ref=f2e238] [cursor=pointer]:
+                  - option "All Kenya" [selected]
+                  - option "Baringo"
+                  - option "Bomet"
+                  - option "Bungoma"
+                  - option "Busia"
+                  - option "Elgeyo Marakwet"
+                  - option "Embu"
+                  - option "Garissa"
+                  - option "Homa Bay"
+                  - option "Isiolo"
+                  - option "Kajiado"
+                  - option "Kakamega"
+                  - option "Kericho"
+                  - option "Kiambu"
+                  - option "Kilifi"
+                  - option "Kirinyaga"
+                  - option "Kisii"
+                  - option "Kisumu"
+                  - option "Kitui"
+                  - option "Kwale"
+                  - option "Laikipia"
+                  - option "Lamu"
+                  - option "Machakos"
+                  - option "Makueni"
+                  - option "Mandera"
+                  - option "Marsabit"
+                  - option "Meru"
+                  - option "Migori"
+                  - option "Mombasa"
+                  - option "Muranga"
+                  - option "Nairobi"
+                  - option "Nakuru"
+                  - option "Nandi"
+                  - option "Narok"
+                  - option "Nyandarua"
+                  - option "Nyamira"
+                  - option "Nyeri"
+                  - option "Samburu"
+                  - option "Siaya"
+                  - option "Taita Taveta"
+                  - option "Tana River"
+                  - option "Tharaka Nithi"
+                  - option "Trans Nzoia"
+                  - option "Turkana"
+                  - option "Uasin Gishu"
+                  - option "Vihiga"
+                  - option "Wajir"
+                  - option "West Pokot"
+                - button "🗑️ Start Fresh" [ref=f2e239] [cursor=pointer]
+          - generic [ref=f2e240]: My landlord locked me out of my house without notice and kept my belongings inside.
+          - generic [ref=f2e267]:
+            - img "HakiMkononi" [ref=f2e269]
+            - generic [ref=f2e270]:
+              - text: 🏛️
+              - strong [ref=f2e271]: Want to represent yourself in court?
+              - text: Turn on "Self-represent in court" below to get a court document, evidence checklist, and step-by-step filing guide.
+              - button "✅ Yes, show me" [ref=f2e272] [cursor=pointer]
+          - generic [ref=f2e273]:
+            - img "HakiMkononi" [ref=f2e275]
+            - generic [ref=f2e276]:
+              - generic [ref=f2e277]:
+                - generic [ref=f2e278]:
+                  - generic [ref=f2e279]: 📜
+                  - generic [ref=f2e280]: What The Law Says
+                - generic [ref=f2e281]:
+                  - paragraph [ref=f2e282]:
+                    - strong [ref=f2e283]: Distress for Rent Act (Cap 293) – Section 11 (Landlord may break into house to seize goods fraudulently secured)
+                    - text: A landlord may break into a locked house during the day to seize goods that have been fraudulently removed and kept locked to prevent seizure.
+                  - paragraph [ref=f2e284]:
+                    - strong [ref=f2e285]: Distress for Rent Act (Cap 293) – Section 9 (Landlord may distrain and sell goods fraudulently carried off premises)
+                    - text: A landlord may distrain and sell goods that have been fraudulently removed from premises to recover rent.
+                  - paragraph [ref=f2e286]:
+                    - strong [ref=f2e287]: Distress for Rent Act (Cap 293) – Section 14 (Tenant holding premises after time notified to pay double rent)
+                    - text: If a tenant fails to vacate after giving notice, they must pay double rent until they vacate.
+                  - paragraph [ref=f2e288]:
+                    - strong [ref=f2e289]: Distress for Rent Act (Cap 293) – Section 20 (Penalty on superior landlord disregarding lodger’s declaration)
+                    - text: A superior landlord who, after being served with a declaration, still levies distress on the lodger’s goods is penalised.
+                  - paragraph [ref=f2e290]:
+                    - strong [ref=f2e291]: Rent Restriction Act (Cap 296) – Section 29 (Penalty for subjecting tenant to annoyance)
+                    - text: A landlord who evicts a tenant without tribunal authority or wilfully annoys a tenant to induce vacate or higher rent is guilty of an offence and liable to a fine or imprisonment.
+              - generic [ref=f2e292]:
+                - generic [ref=f2e293]:
+                  - generic [ref=f2e294]: 💬
+                  - generic [ref=f2e295]: Plain Explanation
+                - generic [ref=f2e296]:
+                  - paragraph [ref=f2e297]: You have the right to live in the property and to keep your belongings. The landlord cannot lock you out without notice or keep your goods inside. The landlord’s action is unlawful and may expose them to a fine or imprisonment under Section 29 of the Rent Restriction Act. You should demand that the landlord return your belongings and restore your access immediately. If the landlord does not comply, you can seek a court order and report the offence to the relevant authorities.
+                  - paragraph [ref=f2e298]: "Steps to take RIGHT NOW:"
+                  - list [ref=f2e299]:
+                    - listitem [ref=f2e300]: Send a written demand to the landlord requesting immediate return of your belongings and restoration of access.
+                    - listitem [ref=f2e301]: If no response within 14 days, file a complaint with the local Land Control Board or the police.
+                    - listitem [ref=f2e302]: Prepare to file a claim in the Magistrate’s Court for unlawful eviction and damages.
+              - generic [ref=f2e303]:
+                - generic [ref=f2e304]:
+                  - generic [ref=f2e305]: 💪
+                  - generic [ref=f2e306]: Your Rights
+                - generic [ref=f2e307]:
+                  - paragraph [ref=f2e308]: "Your rights:"
+                  - list [ref=f2e309]:
+                    - listitem [ref=f2e310]: Right to occupy the premises and keep your personal belongings.
+                    - listitem [ref=f2e311]: Right to be given proper notice before any eviction or lock‑out.
+                  - paragraph [ref=f2e312]: "What went wrong:"
+                  - list [ref=f2e313]:
+                    - listitem [ref=f2e314]: The landlord locked you out without giving notice.
+                    - listitem [ref=f2e315]: The landlord kept your belongings inside, preventing you from accessing them.
+              - generic [ref=f2e316]:
+                - generic [ref=f2e317]:
+                  - generic [ref=f2e318]: ✉️
+                  - generic [ref=f2e319]: Write This
+                  - generic [ref=f2e320]: 8 left to fill
+                - generic [ref=f2e321]:
+                  - generic [ref=f2e322]: Click [PLACEHOLDER] then type
+                  - button "📋 Copy" [ref=f2e323] [cursor=pointer]
+                - generic [ref=f2e324]: "[DATE] [YOUR NAME] [YOUR ADDRESS] To: [Name of Landlord] [Landlord’s Address] Dear Sir/Madam, Subject: Demand for Return of Belongings and Restoration of Access I, [YOUR NAME], write to formally demand that you immediately return all my personal belongings that are currently kept in the premises and restore my access to the property. I was locked out of the house without any notice, which is unlawful under Kenyan law. Under the Rent Restriction Act (Cap 296) – Section 29, a landlord who evicts a tenant without tribunal authority or wilfully annoys a tenant to induce vacate or higher rent is guilty of an offence and liable to a fine or imprisonment. Your action of locking me out and withholding my belongings constitutes such an offence. I demand that you return my belongings and restore my access to the premises within 14 days of receiving this letter. Failure to comply will compel me to seek legal redress through the Magistrate’s Court. Yours faithfully, [YOUR NAME] [PHONE NUMBER]"
+              - generic [ref=f2e325]:
+                - generic [ref=f2e326]:
+                  - generic [ref=f2e327]: 📚
+                  - generic [ref=f2e328]: Legal Sources
+                - list [ref=f2e329]:
+                  - listitem [ref=f2e330]:
+                    - generic [ref=f2e331]: "1"
+                    - generic [ref=f2e332]:
+                      - strong [ref=f2e333]: Distress for Rent Act (Cap 293)
+                      - emphasis [ref=f2e334]: · 11. Landlord may break into house to seize goods fraudulently secured therein
+                    - link "↗" [ref=f2e335] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/1951/293/eng@2022-12-31
+                  - listitem [ref=f2e336]:
+                    - generic [ref=f2e337]: "2"
+                    - generic [ref=f2e338]:
+                      - strong [ref=f2e339]: Distress for Rent Act (Cap 293)
+                      - emphasis [ref=f2e340]: · 20. Penalty on superior landlord disregarding lodger’s declaration
+                    - link "↗" [ref=f2e341] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/1951/293/eng@2022-12-31
+                  - listitem [ref=f2e342]:
+                    - generic [ref=f2e343]: "3"
+                    - generic [ref=f2e344]:
+                      - strong [ref=f2e345]: Distress for Rent Act (Cap 293)
+                      - emphasis [ref=f2e346]: · 14. Tenant holding premises after time notified to pay double rent
+                    - link "↗" [ref=f2e347] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/1951/293/eng@2022-12-31
+                  - listitem [ref=f2e348]:
+                    - generic [ref=f2e349]: "4"
+                    - generic [ref=f2e350]:
+                      - strong [ref=f2e351]: Distress for Rent Act (Cap 293)
+                      - emphasis [ref=f2e352]: · 9. Landlord may distrain and sell goods fraudulently carried off premises
+                    - link "↗" [ref=f2e353] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/1951/293/eng@2022-12-31
+                  - listitem [ref=f2e354]:
+                    - generic [ref=f2e355]: "5"
+                    - generic [ref=f2e356]:
+                      - strong [ref=f2e357]: Rent Restriction Act (Cap 296)
+                      - emphasis [ref=f2e358]: · 29. Penalty for subjecting tenant to annoyance
+                    - link "↗" [ref=f2e359] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/1959/296/eng@2022-12-31
+              - generic [ref=f2e360]:
+                - button "📋 Copy" [ref=f2e361] [cursor=pointer]
+                - button "⬇️ PDF" [ref=f2e362] [cursor=pointer]
+                - button "✉️ Letter PDF" [ref=f2e363] [cursor=pointer]
+                - button "💾 Save Link" [ref=f2e364] [cursor=pointer]
+              - generic [ref=f2e365]:
+                - generic [ref=f2e366]: Was this helpful?
+                - button "👍" [ref=f2e367] [cursor=pointer]
+                - button "👎" [ref=f2e368] [cursor=pointer]
+              - generic [ref=f2e370]:
+                - generic [ref=f2e371]:
+                  - generic [ref=f2e372]: 💰
+                  - generic [ref=f2e373]: Typical Lawyer Fee for This Case
+                  - generic [ref=f2e374]: LSK Remuneration Order
+                - generic [ref=f2e375]: KES 10,000 – 80,000
+                - generic [ref=f2e376]: "Eviction disputes or deposit recovery at the Rent Tribunal or Magistrate Court. Simple cases can be filed yourself (no lawyer needed). Consultation fee: KES 1,500–3,000."
+                - generic [ref=f2e377]: These are typical ranges only. Always get a written fee agreement.
+          - generic [ref=f2e378]:
+            - img "HakiMkononi" [ref=f2e380]
+            - generic [ref=f2e381]:
+              - text: ✏️ Tap any
+              - strong [ref=f2e382]: "[PLACEHOLDER]"
+              - text: in the letter above to fill it in directly.❓ Have another question? Type it below.
+              - generic [ref=f2e383]:
+                - combobox [ref=f2e384] [cursor=pointer]:
+                  - option "All Kenya" [selected]
+                  - option "Baringo"
+                  - option "Bomet"
+                  - option "Bungoma"
+                  - option "Busia"
+                  - option "Elgeyo Marakwet"
+                  - option "Embu"
+                  - option "Garissa"
+                  - option "Homa Bay"
+                  - option "Isiolo"
+                  - option "Kajiado"
+                  - option "Kakamega"
+                  - option "Kericho"
+                  - option "Kiambu"
+                  - option "Kilifi"
+                  - option "Kirinyaga"
+                  - option "Kisii"
+                  - option "Kisumu"
+                  - option "Kitui"
+                  - option "Kwale"
+                  - option "Laikipia"
+                  - option "Lamu"
+                  - option "Machakos"
+                  - option "Makueni"
+                  - option "Mandera"
+                  - option "Marsabit"
+                  - option "Meru"
+                  - option "Migori"
+                  - option "Mombasa"
+                  - option "Muranga"
+                  - option "Nairobi"
+                  - option "Nakuru"
+                  - option "Nandi"
+                  - option "Narok"
+                  - option "Nyandarua"
+                  - option "Nyamira"
+                  - option "Nyeri"
+                  - option "Samburu"
+                  - option "Siaya"
+                  - option "Taita Taveta"
+                  - option "Tana River"
+                  - option "Tharaka Nithi"
+                  - option "Trans Nzoia"
+                  - option "Turkana"
+                  - option "Uasin Gishu"
+                  - option "Vihiga"
+                  - option "Wajir"
+                  - option "West Pokot"
+                - button "🗑️ Start Fresh" [ref=f2e385] [cursor=pointer]
+        - generic [ref=f2e69]:
+          - generic [ref=f2e70]:
+            - textbox "Your legal problem" [ref=f2e71]:
+              - /placeholder: "Example: My boss fired me without notice or pay. I worked there 3 years. What do I do?"
+            - button "📎" [ref=f2e72] [cursor=pointer]
+            - button "🎤" [ref=f2e74] [cursor=pointer]
+            - button "Send" [disabled] [ref=f2e76]
+          - generic [ref=f2e80]:
+            - generic "Get court document, evidence checklist and step-by-step filing guide" [ref=f2e81] [cursor=pointer]:
+              - checkbox "🏛️ Self-represent in court" [ref=f2e82]
+              - text: 🏛️ Self-represent in court
+            - generic [ref=f2e83]: HakiMkononi provides legal information only. Not legal advice. For complex cases, consult a lawyer.
+  - contentinfo [ref=f2e84]:
+    - generic [ref=f2e85]:
+      - generic [ref=f2e86]:
+        - text: © 2024
+        - strong [ref=f2e87]: HakiMkononi
+        - text: — Your rights, in your hands 🇰🇪
+      - generic [ref=f2e88]:
+        - link "About" [ref=f2e89] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f2e90] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f2e91]: Legal information only. Not legal advice.

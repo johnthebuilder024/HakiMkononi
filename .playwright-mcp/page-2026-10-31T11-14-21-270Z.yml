@@ -1,0 +1,248 @@
+- generic [active] [ref=f7e1]:
+  - navigation [ref=f7e2]:
+    - generic [ref=f7e3]:
+      - link "HakiMkononi HakiMkononi" [ref=f7e4] [cursor=pointer]:
+        - /url: /
+        - img "HakiMkononi" [ref=f7e5]
+        - generic [ref=f7e6]: HakiMkononi
+      - generic [ref=f7e7]:
+        - list [ref=f7e8]:
+          - listitem [ref=f7e9]:
+            - link "Nyumbani" [ref=f7e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f7e11]:
+            - link "Kuhusu" [ref=f7e12] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f7e13]:
+            - link "⚖️ Mawakili" [ref=f7e14] [cursor=pointer]:
+              - /url: /lawyers/
+          - listitem [ref=f7e15]:
+            - link "🎙️ Rekodi ya Mahakama" [ref=f7e16] [cursor=pointer]:
+              - /url: /court-audio/
+          - listitem [ref=f7e17]:
+            - link "🔍 Tafuta Wakili" [ref=f7e18] [cursor=pointer]:
+              - /url: /lawyers/directory/
+          - listitem [ref=f7e19]:
+            - link "💰 Ada za Wakili" [ref=f7e20] [cursor=pointer]:
+              - /url: /fees/
+        - navigation "Language selector" [ref=f7e21]:
+          - link "Kiswahili" [ref=f7e22] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=sw
+          - link "English" [ref=f7e23] [cursor=pointer]:
+            - /url: https://hakimkononi.onrender.com/?lang=en
+          - button "✏️ Mpya" [ref=f7e77] [cursor=pointer]
+  - main [ref=f7e24]:
+    - generic [ref=f7e25]:
+      - complementary "Historia ya mazungumzo" [ref=f7e26]:
+        - button "Mazungumzo Mapya" [ref=f7e28] [cursor=pointer]
+        - generic [ref=f7e30]:
+          - generic [ref=f7e88]: Leo
+          - generic [ref=f7e89] [cursor=pointer]:
+            - generic [ref=f7e90]: ⚖️
+            - generic [ref=f7e91]: Boss wangu alinifukuza kazi bila notisi wala malipo. Ni
+            - button "✕" [ref=f7e92]
+        - generic [ref=f7e32]: Imehifadhiwa kwenye kivinjari hiki tu
+      - generic [ref=f7e33]:
+        - generic [ref=f7e78]:
+          - generic [ref=f7e79]: Boss wangu alinifukuza kazi bila notisi wala malipo. Nilifanya kazi miaka 3.
+          - generic [ref=f7e93]:
+            - img "HakiMkononi" [ref=f7e95]
+            - generic [ref=f7e96]:
+              - text: 🏛️
+              - strong [ref=f7e97]: Unataka kwenda mahakamani mwenyewe?
+              - text: Washa kitufe "Jitetea mahakamani" kupata hati ya mahakama, orodha ya ushahidi, na ratiba ya hatua.
+              - button "✅ Ndio, nionyeshe" [ref=f7e98] [cursor=pointer]
+          - generic [ref=f7e99]:
+            - img "HakiMkononi" [ref=f7e101]
+            - generic [ref=f7e102]:
+              - generic [ref=f7e103]:
+                - generic [ref=f7e104]:
+                  - generic [ref=f7e105]: 📜
+                  - generic [ref=f7e106]: Sheria Inasema
+                - list [ref=f7e108]:
+                  - listitem [ref=f7e109]: Employment Act 2007 – 35 Termination notice – Dismissal bila notisi ni viwango vya kazi.
+                  - listitem [ref=f7e110]: Employment Act 2007 – 18 When wages or salaries due – Kila kazi inapaswa kulipwa kulingana na kazi iliyokamilika.
+                  - listitem [ref=f7e111]: Employment Act 2007 – 44 Summary dismissal – Dismissal bila notisi ni “summary dismissal”.
+                  - listitem [ref=f7e112]: Employment Act 2007 – 49 Remedies for wrongful dismissal – Kazi iliyofutwa bila haki inahitajika kulipwa.
+              - generic [ref=f7e113]:
+                - generic [ref=f7e114]:
+                  - generic [ref=f7e115]: 💬
+                  - generic [ref=f7e116]: Tafsiri Rahisi
+                - list [ref=f7e118]:
+                  - listitem [ref=f7e119]: Weka maombi ya malipo ya kazi uliokamilika.
+                  - listitem [ref=f7e120]: Weka maombi ya kulipa notisi ya kazi (kama inahitajika).
+                  - listitem [ref=f7e121]: Ikiwa usikupata jibu ndani ya siku 14, wasiliana na ofisi ya labor.
+              - generic [ref=f7e122]:
+                - generic [ref=f7e123]:
+                  - generic [ref=f7e124]: 💪
+                  - generic [ref=f7e125]: Haki Yako
+                - list [ref=f7e127]:
+                  - listitem [ref=f7e128]:
+                    - text: "Haki:"
+                    - list [ref=f7e129]:
+                      - listitem [ref=f7e130]: Malipo ya kazi uliokamilika.
+                      - listitem [ref=f7e131]: Malipo ya notisi ya kazi (kama inahitajika).
+                  - listitem [ref=f7e132]:
+                    - text: "Kosa:"
+                    - list [ref=f7e133]:
+                      - listitem [ref=f7e134]: Hakuna malipo au notisi.
+              - generic [ref=f7e135]:
+                - generic [ref=f7e136]:
+                  - generic [ref=f7e137]: ✉️
+                  - generic [ref=f7e138]: Andika Hivi
+                - generic [ref=f7e139]: "Tarehe: 31 Oktoba 2026 Jina: [Jina lako] Mada: Kudai haki za kazi na malipo Mada: Nimefuta kazi bila notisi wala malipo. Nilifanya kazi miaka 3. Haki husika: - Malipo ya kazi uliokamilika (Kifungu 18). - Malipo ya notisi ya kazi (Kifungu 35). - Malipo ya “summary dismissal” (Kifungu 49). Ombi: 1. Payi malipo ya kazi uliokamilika. 2. Payi malipo ya notisi ya kazi (kama inahitajika). Muda: Tafadhali nipatie malipo ndani ya siku 14 tangu tarehe hii. Onyo: Ikiwa usikupata malipo, nitawasiliana na ofisi ya labor na kuchukua hatua za kisheria. Saini: _____ [Jina lako]"
+              - generic [ref=f7e140]:
+                - generic [ref=f7e141]:
+                  - generic [ref=f7e142]: 📚
+                  - generic [ref=f7e143]: Vyanzo vya Sheria
+                - list [ref=f7e144]:
+                  - listitem [ref=f7e145]:
+                    - generic [ref=f7e146]: "1"
+                    - generic [ref=f7e147]:
+                      - strong [ref=f7e148]: Employment Act 2007
+                      - emphasis [ref=f7e149]: · 35. Termination notice
+                    - link "↗" [ref=f7e150] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/2007/11/eng@2024-03-22
+                  - listitem [ref=f7e151]:
+                    - generic [ref=f7e152]: "2"
+                    - generic [ref=f7e153]:
+                      - strong [ref=f7e154]: Employment Act 2007
+                      - emphasis [ref=f7e155]: · 18. When wages or salaries due
+                    - link "↗" [ref=f7e156] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/2007/11/eng@2024-03-22
+                  - listitem [ref=f7e157]:
+                    - generic [ref=f7e158]: "3"
+                    - generic [ref=f7e159]:
+                      - strong [ref=f7e160]: Employment Act 2007
+                      - emphasis [ref=f7e161]: · 49. Remedies for wrongful dismissal and unfair termination
+                    - link "↗" [ref=f7e162] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/2007/11/eng@2024-03-22
+                  - listitem [ref=f7e163]:
+                    - generic [ref=f7e164]: "4"
+                    - generic [ref=f7e165]:
+                      - strong [ref=f7e166]: Employment Act 2007
+                      - emphasis [ref=f7e167]: · 44. Summary dismissal
+                    - link "↗" [ref=f7e168] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/2007/11/eng@2024-03-22
+                  - listitem [ref=f7e169]:
+                    - generic [ref=f7e170]: "5"
+                    - generic [ref=f7e171]:
+                      - strong [ref=f7e172]: Employment Act 2007
+                      - emphasis [ref=f7e173]: · 40. Termination on account of redundancy
+                    - link "↗" [ref=f7e174] [cursor=pointer]:
+                      - /url: https://new.kenyalaw.org/akn/ke/act/2007/11/eng@2024-03-22
+              - generic [ref=f7e175]:
+                - button "📋 Nakili" [ref=f7e176] [cursor=pointer]
+                - button "⬇️ PDF" [ref=f7e177] [cursor=pointer]
+                - button "✉️ PDF ya Barua" [ref=f7e178] [cursor=pointer]
+                - button "💾 Hifadhi" [ref=f7e179] [cursor=pointer]
+              - generic [ref=f7e180]:
+                - generic [ref=f7e181]: Je, ilisaidia?
+                - button "👍" [ref=f7e182] [cursor=pointer]
+                - button "👎" [ref=f7e183] [cursor=pointer]
+              - generic [ref=f7e185]:
+                - generic [ref=f7e186]:
+                  - generic [ref=f7e187]: 💰
+                  - generic [ref=f7e188]: Bei ya Wakili kwa Kesi Hii
+                  - generic [ref=f7e189]: LSK Remuneration Order
+                - generic [ref=f7e190]: KES 20,000 – 150,000
+                - generic [ref=f7e191]: "Kesi ya kufukuzwa kazi / mshahara ambao haujalipiwa katika Mahakama ya Kazi. Mawakili wengi wanachukua 20–30% ya malipo (hakuna ushindi, hakuna ada). Ada ya ushauri: KES 2,000–5,000."
+                - generic [ref=f7e192]: Hizi ni bei za kawaida tu. Daima omba makubaliano ya ada kwa maandishi.
+          - generic [ref=f7e193]:
+            - img "HakiMkononi" [ref=f7e195]
+            - generic [ref=f7e196]:
+              - text: 💾
+              - strong [ref=f7e197]: Hifadhi jibu lako
+              - text: Bonyeza
+              - strong [ref=f7e198]: 🔗 Shiriki
+              - text: hapo juu ili kunakili kiungo. Unaweza kukifungua wakati wowote, kwenye simu yoyote.
+              - link "📲 Jitumie kwenye WhatsApp" [ref=f7e199] [cursor=pointer]:
+                - /url: https://wa.me/?text=Jibu%20langu%20la%20kisheria%20kutoka%20HakiMkononi.%20Fungua%20hapa%3A%20https%3A%2F%2Fhakimkononi.onrender.com%2F%3Fjob%3D274%26lang%3Dsw
+          - generic [ref=f7e200]:
+            - img "HakiMkononi" [ref=f7e202]
+            - generic [ref=f7e203]:
+              - text: ❓ Una swali lingine? Andika hapa chini.
+              - generic [ref=f7e204]:
+                - combobox [ref=f7e205] [cursor=pointer]:
+                  - option "Kenya Yote" [selected]
+                  - option "Baringo"
+                  - option "Bomet"
+                  - option "Bungoma"
+                  - option "Busia"
+                  - option "Elgeyo Marakwet"
+                  - option "Embu"
+                  - option "Garissa"
+                  - option "Homa Bay"
+                  - option "Isiolo"
+                  - option "Kajiado"
+                  - option "Kakamega"
+                  - option "Kericho"
+                  - option "Kiambu"
+                  - option "Kilifi"
+                  - option "Kirinyaga"
+                  - option "Kisii"
+                  - option "Kisumu"
+                  - option "Kitui"
+                  - option "Kwale"
+                  - option "Laikipia"
+                  - option "Lamu"
+                  - option "Machakos"
+                  - option "Makueni"
+                  - option "Mandera"
+                  - option "Marsabit"
+                  - option "Meru"
+                  - option "Migori"
+                  - option "Mombasa"
+                  - option "Muranga"
+                  - option "Nairobi"
+                  - option "Nakuru"
+                  - option "Nandi"
+                  - option "Narok"
+                  - option "Nyandarua"
+                  - option "Nyamira"
+                  - option "Nyeri"
+                  - option "Samburu"
+                  - option "Siaya"
+                  - option "Taita Taveta"
+                  - option "Tana River"
+                  - option "Tharaka Nithi"
+                  - option "Trans Nzoia"
+                  - option "Turkana"
+                  - option "Uasin Gishu"
+                  - option "Vihiga"
+                  - option "Wajir"
+                  - option "West Pokot"
+                - button "🗑️ Anza Upya" [ref=f7e206] [cursor=pointer]
+          - generic [ref=f7e207]:
+            - img "HakiMkononi" [ref=f7e209]
+            - generic [ref=f7e210]:
+              - text: 💾
+              - strong [ref=f7e211]: "Hifadhi jibu lako:"
+              - button "📲 Nakili kiungo" [ref=f7e212] [cursor=pointer]
+              - link "📲 Tuma WhatsApp" [ref=f7e213] [cursor=pointer]:
+                - /url: https://wa.me/?text=Angalia%20jibu%20langu%20la%20kisheria%3Ahttps%3A%2F%2Fhakimkononi.onrender.com%2F%3Fjob%3D274
+        - generic [ref=f7e54]:
+          - generic [ref=f7e55]:
+            - textbox "Tatizo lako la kisheria" [ref=f7e56]:
+              - /placeholder: "Mfano: Boss wangu alinifukuza kazi bila notisi wala malipo. Nilifanya kazi miaka 3. Nifanye nini?"
+            - button "📎" [ref=f7e57] [cursor=pointer]
+            - button "🎤" [ref=f7e59] [cursor=pointer]
+            - button "Tuma" [disabled] [ref=f7e61]
+          - generic [ref=f7e65]:
+            - generic "Pata hati ya mahakama, orodha ya ushahidi na mwongozo wa hatua kwa hatua" [ref=f7e66] [cursor=pointer]:
+              - checkbox "🏛️ Jitetea mahakamani" [ref=f7e67]
+              - text: 🏛️ Jitetea mahakamani
+            - generic [ref=f7e68]: HakiMkononi inatoa taarifa za kisheria tu. Si ushauri wa kisheria. Kwa kesi ngumu, wasiliana na wakili.
+  - contentinfo [ref=f7e69]:
+    - generic [ref=f7e70]:
+      - generic [ref=f7e71]:
+        - text: © 2024
+        - strong [ref=f7e72]: HakiMkononi
+        - text: — Sheria yako, mkononi mwako 🇰🇪
+      - generic [ref=f7e73]:
+        - link "Kuhusu" [ref=f7e74] [cursor=pointer]:
+          - /url: /about/
+        - text: ·
+        - link "Kenya Law" [ref=f7e75] [cursor=pointer]:
+          - /url: https://kenyalaw.org
+      - generic [ref=f7e76]: Taarifa ya kisheria tu. Si ushauri wa kisheria.
