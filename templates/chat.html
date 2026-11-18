@@ -124,12 +124,30 @@
 .sidebar-toggle {
   display: none;
   background: none; border: none;
-  color: rgba(255,255,255,.85);
-  font-size: 1.1rem; cursor: pointer;
-  padding: .5rem .6rem;
-  margin-right: .1rem;
+  color: rgba(255,255,255,.9);
+  cursor: pointer;
+  padding: .4rem .5rem;
   min-width: 44px; min-height: 44px;
   align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  line-height: 1;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.sidebar-toggle:hover { background: rgba(255,255,255,.15); }
+
+/* On mobile: lang pills always visible outside the collapse */
+@media (max-width: 991px) {
+  /* Keep lang pills visible even when nav is collapsed */
+  .navbar-haki .lang-always-visible {
+    display: flex !important;
+    gap: .3rem;
+    align-items: center;
+  }
+  .lang-always-visible .lang-pill {
+    padding: .15em .5em;
+    font-size: .74rem;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -357,14 +375,12 @@
 .chat-input-inner { max-width: 740px; margin: 0 auto; }
 .chat-disclaimer { font-size: .76rem; color: #bbb; }
 
-/* Self-represent pill — active state */
-#selfRepLabel.self-rep-on {
-  background: var(--haki-green);
-  border-color: var(--haki-green);
-  color: #fff;
-}
-/* Hide disclaimer on small screens to give self-rep pill room */
-@media (max-width: 480px) {
+/* Self-represent active state inside input bar */
+#selfRepLabel.self-rep-on { color: var(--haki-green) !important; }
+#selfRepLabel.self-rep-on span { opacity: 1; }
+
+/* Hide disclaimer on very small screens */
+@media (max-width: 400px) {
   .chat-disclaimer { display: none; }
 }
 
@@ -511,6 +527,18 @@
     <div class="chat-input-bar">
       <div class="chat-input-inner">
         <div class="chat-textarea-wrap">
+          <!-- Self-represent toggle — inside input bar, always visible -->
+          <label id="selfRepLabel"
+                 title="{% if lang == 'en' %}Get court document, evidence checklist and step-by-step filing guide{% else %}Pata hati ya mahakama, orodha ya ushahidi na mwongozo wa hatua kwa hatua{% endif %}"
+                 style="display:flex;align-items:center;gap:.25rem;cursor:pointer;
+                        color:#888;font-size:.78rem;font-weight:600;flex-shrink:0;
+                        padding:.2rem .3rem;border-radius:6px;transition:color .15s;
+                        white-space:nowrap;user-select:none;"
+                 onclick="this.classList.toggle('self-rep-on')">
+            <input type="checkbox" id="selfRepToggle"
+                   style="accent-color:var(--haki-green);width:14px;height:14px;cursor:pointer;flex-shrink:0;">
+            <span>🏛️</span>
+          </label>
           <textarea id="chatInput" rows="1"
                     placeholder="{{ ui.story_placeholder }}"
                     aria-label="{{ ui.field_story }}"></textarea>
@@ -535,20 +563,8 @@
             </svg>
           </button>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:.3rem 0 0;gap:.5rem;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.25rem 0 0;gap:.5rem;flex-wrap:wrap;">
           <span class="mic-status" id="micStatus" style="font-size:.76rem;color:#888;"></span>
-          <!-- Self-represent toggle — styled as a pill button for discoverability -->
-          <label id="selfRepLabel"
-                 style="display:flex;align-items:center;gap:.35rem;cursor:pointer;
-                        background:#f0f7f4;border:1.5px solid #b6d9c3;border-radius:20px;
-                        padding:.22em .75em;font-size:.77rem;font-weight:600;color:#1a7a3c;
-                        transition:background .15s,border-color .15s;user-select:none;"
-                 title="{% if lang == 'en' %}Get a pre-filled court document, evidence checklist and step-by-step filing guide{% else %}Pata hati ya mahakama, orodha ya ushahidi na mwongozo wa hatua kwa hatua{% endif %}"
-                 onclick="this.classList.toggle('self-rep-on')">
-            <input type="checkbox" id="selfRepToggle"
-                   style="accent-color:var(--haki-green);width:13px;height:13px;cursor:pointer;">
-            🏛️ {% if lang == 'en' %}Self-represent in court{% else %}Jitetea mahakamani{% endif %}
-          </label>
           <span id="charCounter" style="display:none;font-size:.72rem;color:#999;"></span>
           <span class="chat-disclaimer">{{ ui.disclaimer }}</span>
         </div>
@@ -614,23 +630,47 @@
   window.openSidebar  = function(){ sidebarEl.classList.add('open');    backdrop.classList.add('show'); };
   window.closeSidebar = function(){ sidebarEl.classList.remove('open'); backdrop.classList.remove('show'); };
 
+  // Close sidebar on Escape key
+  document.addEventListener('keydown', function(e) {
+    if(e.key === 'Escape' && sidebarEl.classList.contains('open')) closeSidebar();
+  });
+
   // ── Chat-page mobile nav setup ──────────────────────────────────────────
   (function injectMobileToggle(){
     // Only inject on mobile/tablet — skip on desktop
     if(window.innerWidth >= 992) return;
 
-    // Add sidebar toggle button to the left of the logo
+    // Add sidebar TOGGLE button to the left of the logo
+    // It opens AND closes the sidebar (true toggle, not just open)
     var toggle = document.createElement('button');
     toggle.className = 'sidebar-toggle';
-    toggle.setAttribute('aria-label', LANG==='sw'?'Fungua historia':'Open history');
-    toggle.innerHTML = '&#9776;'; // ☰ — simple, universal
-    toggle.onclick = openSidebar;
+    toggle.setAttribute('aria-label', LANG==='sw'?'Historia':'History');
+    toggle.innerHTML = '&#9776;'; // ☰
+    toggle.onclick = function(e) {
+      e.stopPropagation();
+      var isOpen = sidebarEl.classList.contains('open');
+      if(isOpen) { closeSidebar(); } else { openSidebar(); }
+    };
     var brand = document.querySelector('.navbar-brand');
     if(brand) brand.parentNode.insertBefore(toggle, brand);
 
-    // Hide the Bootstrap right hamburger — not needed on the chat page
-    var toggler = document.querySelector('.navbar-toggler');
-    if(toggler) toggler.style.display = 'none';
+    // Keep Bootstrap hamburger for nav links — do NOT hide it
+    // But move lang pills outside the collapse so they're always visible
+    var langNav = document.querySelector('[aria-label="Language selector"]');
+    if(langNav) {
+      // Create a small always-visible lang pill container
+      var langSlot = document.createElement('div');
+      langSlot.className = 'lang-always-visible';
+      langSlot.style.cssText = 'display:flex;align-items:center;gap:.25rem;margin-left:auto;padding-right:.5rem;';
+      Array.from(langNav.querySelectorAll('a.lang-pill')).forEach(function(pill) {
+        langSlot.appendChild(pill.cloneNode(true));
+      });
+      // Insert before the Bootstrap toggler so it appears on the right before the ☰
+      var toggler = document.querySelector('.navbar-toggler');
+      if(toggler) toggler.parentNode.insertBefore(langSlot, toggler);
+      // Hide original lang nav inside collapse (avoid duplicates)
+      langNav.style.display = 'none';
+    }
   })();
 
   // ════════════════════════════════════════════════════════════════
