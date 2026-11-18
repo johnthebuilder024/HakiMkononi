@@ -124,13 +124,48 @@
 .sidebar-toggle {
   display: none;
   background: none; border: none;
-  color: rgba(255,255,255,.85);
-  font-size: 1.2rem; cursor: pointer;
-  /* 44px minimum touch target */
-  padding: .5rem .6rem;
-  margin-right: .1rem;
+  color: rgba(255,255,255,.9);
+  cursor: pointer;
+  padding: .4rem .5rem;
   min-width: 44px; min-height: 44px;
-  display: none; align-items: center; justify-content: center;
+  align-items: center; justify-content: center;
+  border-radius: 8px;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+.sidebar-toggle:hover { background: rgba(255,255,255,.12); }
+.sidebar-toggle svg { width: 22px; height: 22px; display: block; }
+
+/* ── Chat-page mobile nav overrides ─────────────────────────────── */
+/* On the chat page on mobile, the Bootstrap nav links + toggler     */
+/* are hidden — only the sidebar icon, logo and lang pills remain.   */
+@media (max-width: 991px) {
+  .chat-page-active .navbar-toggler   { display: none !important; }
+  .chat-page-active #mainNav          { display: none !important; }
+  /* Centre the logo on mobile chat */
+  .chat-page-active .navbar > .container {
+    position: relative;
+    justify-content: center;
+  }
+  .chat-page-active .navbar-brand {
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    pointer-events: auto;
+  }
+  /* Lang pills on the right */
+  .chat-page-active .chat-nav-right {
+    position: absolute; right: .5rem;
+    display: flex; align-items: center; gap: .3rem;
+  }
+  /* Shrink lang pills on small screens */
+  .chat-page-active .lang-pill {
+    padding: .15em .45em;
+    font-size: .72rem;
+  }
+  /* Sidebar toggle on the left */
+  .chat-page-active .sidebar-toggle {
+    position: absolute; left: 0;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -402,8 +437,7 @@
 /* ── Mobile sidebar overlay ──────────────────────────────────────── */
 @media (max-width: 768px) {
   .sidebar-toggle { display: flex !important; }  /* override inline display:none */
-  .chat-sidebar {
-    position: fixed; left: 0; top: 54px; bottom: 0;
+  .chat-sidebar {    position: fixed; left: 0; top: 54px; bottom: 0;
     width: 280px; z-index: 500;
     transform: translateX(-100%);
   }
@@ -601,15 +635,39 @@
   window.openSidebar  = function(){ sidebarEl.classList.add('open');    backdrop.classList.add('show'); };
   window.closeSidebar = function(){ sidebarEl.classList.remove('open'); backdrop.classList.remove('show'); };
 
-  // Add mobile toggle to navbar brand area
+  // ── Chat-page mobile nav setup ──────────────────────────────────────────
+  // 1. Mark <body> so CSS can target chat-page-specific nav overrides
+  document.body.classList.add('chat-page-active');
+
+  // 2. Replace injected ☰ with a clean SVG panel icon (like Claude/ChatGPT)
+  //    and move lang pills to right slot so nav is: [icon] [LOGO] [EN|SW]
   (function injectMobileToggle(){
+    // History panel toggle — left side
     var toggle = document.createElement('button');
     toggle.className = 'sidebar-toggle';
     toggle.setAttribute('aria-label', LANG==='sw'?'Fungua historia':'Open history');
-    toggle.innerHTML = '☰';
+    // SVG: two-line panel icon (cleaner than ☰)
+    toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
+      '<line x1="3" y1="6" x2="21" y2="6"/>' +
+      '<line x1="3" y1="12" x2="15" y2="12"/>' +
+      '<line x1="3" y1="18" x2="18" y2="18"/>' +
+      '</svg>';
     toggle.onclick = openSidebar;
     var brand = document.querySelector('.navbar-brand');
     if(brand) brand.parentNode.insertBefore(toggle, brand);
+
+    // Lang pills — move into a right-slot div so they stay right on mobile
+    var langNav = document.querySelector('[aria-label="Language selector"]');
+    if(langNav) {
+      var rightSlot = document.createElement('div');
+      rightSlot.className = 'chat-nav-right';
+      // Copy only the lang pills (not #newChatBtn which is already in navbar_extra)
+      Array.from(langNav.querySelectorAll('.lang-pill')).forEach(function(pill) {
+        rightSlot.appendChild(pill.cloneNode(true));
+      });
+      var navbar = document.querySelector('.navbar > .container');
+      if(navbar) navbar.appendChild(rightSlot);
+    }
   })();
 
   // ════════════════════════════════════════════════════════════════
