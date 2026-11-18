@@ -120,66 +120,16 @@
   flex-shrink: 0;
 }
 
-/* Mobile overlay toggle — hidden on desktop, shown on mobile/tablet */
+/* Mobile overlay toggle — shown on mobile, hidden on desktop */
 .sidebar-toggle {
-  display: none;                    /* hidden by default (desktop) */
+  display: none;
   background: none; border: none;
-  color: rgba(255,255,255,.9);
-  cursor: pointer;
-  padding: .4rem .5rem;
+  color: rgba(255,255,255,.85);
+  font-size: 1.1rem; cursor: pointer;
+  padding: .5rem .6rem;
+  margin-right: .1rem;
   min-width: 44px; min-height: 44px;
   align-items: center; justify-content: center;
-  border-radius: 8px;
-  transition: background .15s;
-  flex-shrink: 0;
-}
-.sidebar-toggle:hover { background: rgba(255,255,255,.12); }
-.sidebar-toggle svg { width: 22px; height: 22px; display: block; }
-
-/* ── Chat-page nav: clean on mobile/tablet, full on desktop ──────── */
-/* Mobile + tablet (< 992px):                                         */
-/*   - Bootstrap toggler + nav links hidden                           */
-/*   - [⬡ history]  [LOGO]  [EN|SW]                                  */
-/* Desktop (≥ 992px):                                                 */
-/*   - Full nav shows, sidebar-toggle hidden, nothing changes         */
-@media (max-width: 991px) {
-  /* Show the history toggle */
-  .chat-page-active .sidebar-toggle { display: flex !important; }
-
-  /* Hide Bootstrap's right hamburger and collapsed nav */
-  .chat-page-active .navbar-toggler { display: none !important; }
-  .chat-page-active #mainNav        { display: none !important; }
-
-  /* Centre the logo */
-  .chat-page-active .navbar > .container {
-    position: relative;
-    justify-content: center;
-  }
-  .chat-page-active .navbar-brand {
-    position: absolute;
-    left: 50%; transform: translateX(-50%);
-    pointer-events: auto;
-  }
-
-  /* Lang pills pinned to right */
-  .chat-page-active .chat-nav-right {
-    position: absolute; right: .5rem;
-    display: flex; align-items: center; gap: .3rem;
-  }
-  .chat-page-active .lang-pill {
-    padding: .15em .45em;
-    font-size: .72rem;
-  }
-
-  /* History toggle pinned to left */
-  .chat-page-active .sidebar-toggle {
-    position: absolute; left: .2rem;
-  }
-}
-
-/* Desktop: sidebar toggle never shows, full nav always visible */
-@media (min-width: 992px) {
-  .chat-page-active .sidebar-toggle { display: none !important; }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -461,6 +411,7 @@
 
 /* ── Mobile sidebar overlay ──────────────────────────────────────── */
 @media (max-width: 768px) {
+  .sidebar-toggle { display: flex !important; }
   .chat-sidebar {    position: fixed; left: 0; top: 54px; bottom: 0;
     width: 280px; z-index: 500;
     transform: translateX(-100%);
@@ -522,12 +473,8 @@
 
         <!-- Welcome screen -->
         <div id="welcomeScreen">
-          <!-- Mobile sidebar toggle inside welcome -->
-          <div style="display:none;" id="mobileSidebarHint">
-            <button class="sidebar-toggle" onclick="openSidebar()" style="display:block;margin:0 auto .5rem;color:var(--haki-green);background:none;border:1px solid var(--haki-green);border-radius:8px;padding:.3em .8em;font-size:.8rem;">
-              ☰ {% if lang == 'en' %}Past chats{% else %}Mazungumzo ya awali{% endif %}
-            </button>
-          </div>
+          <!-- Mobile: past chats hint hidden — handled by navbar icon -->
+          <div style="display:none;" id="mobileSidebarHint"></div>
           <div class="welcome-avatar">
             <img src="{% static 'img/logo.png' %}" alt="HakiMkononi"
                  onerror="this.parentElement.textContent='⚖️'">
@@ -668,38 +615,22 @@
   window.closeSidebar = function(){ sidebarEl.classList.remove('open'); backdrop.classList.remove('show'); };
 
   // ── Chat-page mobile nav setup ──────────────────────────────────────────
-  document.body.classList.add('chat-page-active');
-
   (function injectMobileToggle(){
-    // Only inject on mobile/tablet — skip on desktop to avoid duplicates
+    // Only inject on mobile/tablet — skip on desktop
     if(window.innerWidth >= 992) return;
 
-    // History panel toggle — left side
+    // Add sidebar toggle button to the left of the logo
     var toggle = document.createElement('button');
     toggle.className = 'sidebar-toggle';
     toggle.setAttribute('aria-label', LANG==='sw'?'Fungua historia':'Open history');
-    toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
-      '<line x1="3" y1="6" x2="21" y2="6"/>' +
-      '<line x1="3" y1="12" x2="15" y2="12"/>' +
-      '<line x1="3" y1="18" x2="18" y2="18"/>' +
-      '</svg>';
+    toggle.innerHTML = '&#9776;'; // ☰ — simple, universal
     toggle.onclick = openSidebar;
     var brand = document.querySelector('.navbar-brand');
     if(brand) brand.parentNode.insertBefore(toggle, brand);
 
-    // Lang pills — clone into a right-slot AND hide the originals so no duplicates
-    var langNav = document.querySelector('[aria-label="Language selector"]');
-    if(langNav) {
-      var rightSlot = document.createElement('div');
-      rightSlot.className = 'chat-nav-right';
-      Array.from(langNav.querySelectorAll('.lang-pill')).forEach(function(pill) {
-        rightSlot.appendChild(pill.cloneNode(true));
-      });
-      var navbar = document.querySelector('.navbar > .container');
-      if(navbar) navbar.appendChild(rightSlot);
-      // Hide the original language nav on mobile so no duplicates
-      langNav.style.display = 'none';
-    }
+    // Hide the Bootstrap right hamburger — not needed on the chat page
+    var toggler = document.querySelector('.navbar-toggler');
+    if(toggler) toggler.style.display = 'none';
   })();
 
   // ════════════════════════════════════════════════════════════════
