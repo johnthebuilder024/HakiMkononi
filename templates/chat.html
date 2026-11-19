@@ -1172,15 +1172,15 @@
   });
   chatInput.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!sendBtn.disabled&&!sendBtn.classList.contains('stopping'))sendMessage();}});
   window.fillChat=function(el){
-    // Prevent multiple rapid chip clicks — ignore if already processing
+    // Prevent multiple rapid chip clicks
+    if(_isSending) return;
     if(sendBtn.classList.contains('stopping')) return;
-    if(currentJobId) return;
     // Fill textarea
     chatInput.value = el.textContent.trim();
     chatInput.dispatchEvent(new Event('input'));
     // Disable ALL chips immediately so user can't send twice
     document.querySelectorAll('.chip').forEach(function(c){ c.style.pointerEvents='none'; c.style.opacity='.5'; });
-    // Send synchronously
+    // Send
     sendMessage();
   };
 
@@ -1597,42 +1597,50 @@
   // ════════════════════════════════════════════════════════════════
   //  SEND MESSAGE
   // ════════════════════════════════════════════════════════════════
+  //  SEND MESSAGE
+  // ════════════════════════════════════════════════════════════════
+  var _isSending = false;  // single flag to prevent duplicate sends
+
   function sendMessage(){
     // Guard: prevent sending while already processing
+    if(_isSending) return;
     if(sendBtn.classList.contains('stopping')) return;
-    if(pollTimer) return;  // already waiting for a response
     var story=chatInput.value.trim(); if(story.length<3)return;
-    // Clear textarea immediately so user can't send again
+    // Mark as sending and clear textarea immediately
+    _isSending = true;
     chatInput.value=''; resetTextarea(); sendBtn.disabled=true;
-    if(pendingLetter!==null){addUserMessage(story);handleLetterFlowInput(story);sendBtn.disabled=chatInput.value.trim().length<3;return;}
+    if(pendingLetter!==null){addUserMessage(story);handleLetterFlowInput(story);sendBtn.disabled=chatInput.value.trim().length<3;_isSending=false;return;}
 
     var history=loadHistory(), hasHistory=history.length>0;
     var msgLower=story.toLowerCase().trim().replace(/[!?.,:]+$/,'');
     var isCorrection=detectCorrection(story), isFollowup=detectFollowup(story,hasHistory);
 
     if(GREETINGS_SET.has(msgLower)||(story.trim().length<8&&!hasHistory)){
-      addUserMessage(story);chatInput.value='';resetTextarea();sendBtn.disabled=true;
+      addUserMessage(story);
       addBotBubble(hasHistory?(LANG==='sw'?'👋 Karibu tena! Una swali lingine la kisheria?':'👋 Hi again! Do you have another legal question?'):(LANG==='sw'?'👋 Habari!<br><br>Niambie tatizo lako la kisheria.<br><br><em>Mfano: Nilifukuzwa kazi bila notisi na mwajiri wangu.</em>':'👋 Hello!<br><br>Tell me your legal problem and I\'ll help you.<br><br><em>Example: My employer fired me without notice.</em>'));
-      sendBtn.disabled=chatInput.value.trim().length<3; return;
+      showSendButton(); _isSending=false; return;
     }
     if(THANKS_SET.has(msgLower)){
-      addUserMessage(story);chatInput.value='';resetTextarea();sendBtn.disabled=true;
+      addUserMessage(story);resetTextarea();
       var sw=['😊 Karibu sana!<br><br>Nimefurahi kukusaidia. Ukiwa na swali lingine, niko hapa.','😊 Karibu!<br><br>Kazi yangu ni kuhakikisha Wakenya wanajua haki zao.','🙏 Karibu sana!<br><br>Shiriki HakiMkononi na wengine wanaohitaji msaada wa kisheria.'];
       var en=['😊 You\'re welcome!<br><br>Glad I could help. If you have another question, I\'m here.','😊 Happy to help!<br><br>No one should face a legal problem alone.','🙏 You\'re welcome!<br><br>Share HakiMkononi with others who might need legal help too.'];
       addBotBubble((LANG==='sw'?sw:en)[Math.floor(Math.random()*3)]);
-      sendBtn.disabled=chatInput.value.trim().length<3; return;
+      showSendButton(); _isSending=false; return;
     }
     var SERIOUS_KW=['murder','mauaji','rape','ubakaji','defilement','udhalilishaji','terrorism','ugaidi','robbery with violence','manslaughter','kuua'];
     if(SERIOUS_KW.some(function(kw){return story.toLowerCase().indexOf(kw)!==-1;})){
-      addUserMessage(story);chatInput.value='';resetTextarea();sendBtn.disabled=true;
+      addUserMessage(story);
       addBotBubble(LANG==='sw'?'🚨 <strong>Kesi Nyeti: Tafuta Wakili Haraka</strong><br><br>Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br>🌐 www.nlas.go.ke':'🚨 <strong>Serious Case: Get a Lawyer Urgently</strong><br><br>This situation needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br>🌐 www.nlas.go.ke');
+      showSendButton(); _isSending=false; return;
+    }
       sendBtn.disabled=chatInput.value.trim().length<3; return;
     }
 
-    addUserMessage(story); chatInput.value=''; resetTextarea(); sendBtn.disabled=true;
+    addUserMessage(story);
     if(isCorrection&&hasHistory){addBotBubble('<em style="color:#888;">'+(LANG==='sw'?'Sawa, naelewa. Acha nirekebishe...':'Got it, let me correct that...')+'</em>');}
     currentStory=story; currentCounty=countySelect.value;
     reassuranceSent=false; reassuranceEl=null;
+    _isSending = false;  // release flag — from here the stop button takes over
 
     // ── Two-stage intent routing ──────────────────────────────────────────
     routeMessage(story, isCorrection, isFollowup,
@@ -1651,6 +1659,7 @@
         }).catch(function(){addError('❌ '+(LANG==='sw'?'Kuna tatizo la muunganisho. Jaribu tena.':'Connection error. Please try again.'));});
       },
       function(){ // CHAT — conversational AI
+        _isSending = false;  // release flag for chat path
         sendConversational(story);
       }
     );
