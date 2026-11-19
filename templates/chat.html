@@ -1171,6 +1171,10 @@
     }
   });
   chatInput.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!sendBtn.disabled&&!sendBtn.classList.contains('stopping'))sendMessage();}});
+
+  // ── Single-send guard — declared here so fillChat can use it ─────────────
+  var _isSending = false;
+
   window.fillChat=function(el){
     // Prevent multiple rapid chip clicks
     if(_isSending) return;
@@ -1239,6 +1243,8 @@
     chatInput.style.overflow = 'hidden';
   }
   window.resetTextarea = resetTextarea;
+
+  function scrollDown(){setTimeout(function(){chatWindow.scrollTo({top:chatWindow.scrollHeight,behavior:'smooth'});},60);}
 
   function addUserMessage(text){
     // Start a new conversation if none active
@@ -1597,10 +1603,6 @@
   // ════════════════════════════════════════════════════════════════
   //  SEND MESSAGE
   // ════════════════════════════════════════════════════════════════
-  //  SEND MESSAGE
-  // ════════════════════════════════════════════════════════════════
-  var _isSending = false;  // single flag to prevent duplicate sends
-
   function sendMessage(){
     // Guard: prevent sending while already processing
     if(_isSending) return;
