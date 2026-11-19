@@ -414,6 +414,12 @@
 .chat-send-btn:active { transform: scale(.9); }
 .chat-send-btn:disabled { background: #ccc; cursor: not-allowed; }
 .chat-send-btn svg { width: 18px; height: 18px; }
+/* Stop button state — red square while processing */
+.chat-send-btn.stopping {
+  background: #dc3545 !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+}
 
 .chat-mic-btn {
   width: 44px; height: 44px; border-radius: 50%;
@@ -560,10 +566,15 @@
           <button class="chat-send-btn" id="sendBtn" type="button"
                   title="{% if lang == 'en' %}Send{% else %}Tuma {% endif %}"
                   disabled>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            <!-- Send icon (default) -->
+            <svg id="sendIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                  stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"></line>
               <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+            <!-- Stop icon (shown while processing) -->
+            <svg id="stopIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none;width:16px;height:16px;">
+              <rect x="4" y="4" width="16" height="16" rx="2"/>
             </svg>
           </button>
         </div>
@@ -1156,11 +1167,57 @@
       counter.style.display = 'none';
     }
   });
-  chatInput.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!sendBtn.disabled)sendMessage();}});
-  sendBtn.addEventListener('click',sendMessage);
-  window.fillChat=function(el){chatInput.value=el.textContent.trim();chatInput.dispatchEvent(new Event('input'));chatInput.focus();};
+  chatInput.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!sendBtn.disabled&&!sendBtn.classList.contains('stopping'))sendMessage();}});
+  window.fillChat=function(el){
+    // Fill textarea and auto-send immediately — no extra click needed
+    chatInput.value=el.textContent.trim();
+    chatInput.dispatchEvent(new Event('input'));
+    chatInput.focus();
+    // Small delay so the textarea renders, then send
+    setTimeout(sendMessage, 50);
+  };
 
-  // Sync self-rep pill visual state whenever checkbox changes
+  // ── Send ↔ Stop button toggle ─────────────────────────────────────────────
+  var sendIcon = document.getElementById('sendIcon');
+  var stopIcon = document.getElementById('stopIcon');
+
+  function showStopButton() {
+    sendBtn.disabled = false;
+    sendBtn.classList.add('stopping');
+    sendBtn.title = LANG==='sw' ? 'Simamisha' : 'Stop';
+    if(sendIcon) sendIcon.style.display = 'none';
+    if(stopIcon) stopIcon.style.display = 'block';
+  }
+
+  function showSendButton() {
+    sendBtn.classList.remove('stopping');
+    sendBtn.title = LANG==='sw' ? 'Tuma' : 'Send';
+    if(sendIcon) sendIcon.style.display = '';
+    if(stopIcon) stopIcon.style.display = 'none';
+    // Re-evaluate disabled state from input content
+    sendBtn.disabled = chatInput.value.trim().length < 3;
+  }
+
+  function stopGeneration() {
+    // Cancel polling — the job continues on the server but we stop waiting
+    clearInterval(pollTimer); pollTimer = null;
+    removeThinking();
+    if(reassuranceEl){ reassuranceEl.remove(); reassuranceEl = null; }
+    addBotBubble(LANG==='sw'
+      ? '⏹ <em style="color:#888;">Imesimamishwa. Una swali lingine?</em>'
+      : '⏹ <em style="color:#888;">Stopped. Have another question?</em>');
+    showSendButton();
+    currentJobId = null;
+  }
+
+  // Wire the button: when in stop mode, clicking stops; otherwise sends
+  sendBtn.addEventListener('click', function() {
+    if(sendBtn.classList.contains('stopping')) {
+      stopGeneration();
+    } else {
+      sendMessage();
+    }
+  });
   (function(){
     var tog = document.getElementById('selfRepToggle');
     var lbl = document.getElementById('selfRepLabel');
@@ -1210,7 +1267,10 @@
     messagesEl.appendChild(row); scrollDown(); resetInput();
   }
 
-  function resetInput(){sendBtn.disabled=chatInput.value.trim().length<3;clearInterval(pollTimer);pollTimer=null;}
+  function resetInput(){
+    showSendButton();
+    clearInterval(pollTimer); pollTimer=null;
+  }
 
   // ── Quick action bar — shown after every answer in the follow-up nudge ──────
   // Fix #8: mid-chat county picker  Fix #10: start fresh shortcut
@@ -1457,6 +1517,7 @@
     fetch('/api/status/'+currentJobId+'/',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
       if(d.status==='done'){
         clearInterval(pollTimer);
+        showSendButton();
         // Remove the reassurance message before showing the answer
         if(reassuranceEl){ reassuranceEl.remove(); reassuranceEl=null; }
         d.job_id=currentJobId; addAnswerCard(d);
@@ -1494,7 +1555,7 @@
         }
       }else if(d.status==='error'){
         clearInterval(pollTimer);
-        // Error with retry button (Fix #9)
+        showSendButton();
         var errMsg=d.message||(LANG==='sw'?'Kuna tatizo. Jaribu tena.':'An error occurred. Please try again.');
         var errStory=currentStory;
         removeThinking();
@@ -1509,7 +1570,7 @@
       }
     }).catch(function(){
       clearInterval(pollTimer);
-      // Network error with retry button
+      showSendButton();
       var errStory=currentStory;
       removeThinking();
       var row=document.createElement('div'); row.className='msg-row bot';
@@ -1571,6 +1632,7 @@
         .then(function(d){
           if(!d.job_id){addError('❌ '+(d.error||'Submission failed.'));return;}
           currentJobId=d.job_id; clearInterval(pollTimer); pollTimer=setInterval(poll,POLL_MS); poll();
+          showStopButton();
         }).catch(function(){addError('❌ '+(LANG==='sw'?'Kuna tatizo la muunganisho. Jaribu tena.':'Connection error. Please try again.'));});
       },
       function(){ // CHAT — conversational AI
