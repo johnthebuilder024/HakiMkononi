@@ -1635,8 +1635,6 @@
       addBotBubble(LANG==='sw'?'🚨 <strong>Kesi Nyeti: Tafuta Wakili Haraka</strong><br><br>Kesi hii inahitaji wakili wa kweli, si AI.<br><br>📞 <strong>NLAS (Bure):</strong> 0800 720 120<br>🌐 www.nlas.go.ke':'🚨 <strong>Serious Case: Get a Lawyer Urgently</strong><br><br>This situation needs a real lawyer, not an AI.<br><br>📞 <strong>NLAS (Free):</strong> 0800 720 120<br>🌐 www.nlas.go.ke');
       showSendButton(); _isSending=false; return;
     }
-      sendBtn.disabled=chatInput.value.trim().length<3; return;
-    }
 
     addUserMessage(story);
     if(isCorrection&&hasHistory){addBotBubble('<em style="color:#888;">'+(LANG==='sw'?'Sawa, naelewa. Acha nirekebishe...':'Got it, let me correct that...')+'</em>');}
