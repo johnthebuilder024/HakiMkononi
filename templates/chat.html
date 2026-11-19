@@ -652,8 +652,8 @@
 
   // ── Chat-page mobile nav setup ──────────────────────────────────────────
   (function injectMobileToggle(){
-    // Only inject on mobile/tablet — skip on desktop
-    if(window.innerWidth >= 992) return;
+    // Only inject on mobile/tablet — skip on desktop (> 991px)
+    if(window.innerWidth > 991) return;
 
     // Add sidebar TOGGLE button to the left of the logo
     // It opens AND closes the sidebar (true toggle, not just open)
@@ -1155,7 +1155,10 @@
     this.style.height = newH + 'px';
     // Keep overflow hidden so scrollbar never appears
     this.style.overflow = newH >= 200 ? 'auto' : 'hidden';
-    sendBtn.disabled = this.value.trim().length < 3;
+    // Only update disabled if NOT in stop mode
+    if(!sendBtn.classList.contains('stopping')) {
+      sendBtn.disabled = this.value.trim().length < 3;
+    }
     // Character counter — show when >200 chars
     var len = this.value.length;
     var counter = document.getElementById('charCounter');
@@ -1169,12 +1172,16 @@
   });
   chatInput.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!sendBtn.disabled&&!sendBtn.classList.contains('stopping'))sendMessage();}});
   window.fillChat=function(el){
-    // Fill textarea and auto-send immediately — no extra click needed
-    chatInput.value=el.textContent.trim();
+    // Prevent multiple rapid chip clicks — ignore if already processing
+    if(sendBtn.classList.contains('stopping')) return;
+    if(currentJobId) return;
+    // Fill textarea
+    chatInput.value = el.textContent.trim();
     chatInput.dispatchEvent(new Event('input'));
-    chatInput.focus();
-    // Small delay so the textarea renders, then send
-    setTimeout(sendMessage, 50);
+    // Disable ALL chips immediately so user can't send twice
+    document.querySelectorAll('.chip').forEach(function(c){ c.style.pointerEvents='none'; c.style.opacity='.5'; });
+    // Send synchronously
+    sendMessage();
   };
 
   // ── Send ↔ Stop button toggle ─────────────────────────────────────────────
@@ -1199,7 +1206,6 @@
   }
 
   function stopGeneration() {
-    // Cancel polling — the job continues on the server but we stop waiting
     clearInterval(pollTimer); pollTimer = null;
     removeThinking();
     if(reassuranceEl){ reassuranceEl.remove(); reassuranceEl = null; }
@@ -1207,6 +1213,7 @@
       ? '⏹ <em style="color:#888;">Imesimamishwa. Una swali lingine?</em>'
       : '⏹ <em style="color:#888;">Stopped. Have another question?</em>');
     showSendButton();
+    document.querySelectorAll('.chip').forEach(function(c){ c.style.pointerEvents=''; c.style.opacity=''; });
     currentJobId = null;
   }
 
@@ -1269,6 +1276,7 @@
 
   function resetInput(){
     showSendButton();
+    document.querySelectorAll('.chip').forEach(function(c){ c.style.pointerEvents=''; c.style.opacity=''; });
     clearInterval(pollTimer); pollTimer=null;
   }
 
@@ -1518,6 +1526,8 @@
       if(d.status==='done'){
         clearInterval(pollTimer);
         showSendButton();
+        // Re-enable chips
+        document.querySelectorAll('.chip').forEach(function(c){ c.style.pointerEvents=''; c.style.opacity=''; });
         // Remove the reassurance message before showing the answer
         if(reassuranceEl){ reassuranceEl.remove(); reassuranceEl=null; }
         d.job_id=currentJobId; addAnswerCard(d);
