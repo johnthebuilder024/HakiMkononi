@@ -1598,8 +1598,13 @@
   //  SEND MESSAGE
   // ════════════════════════════════════════════════════════════════
   function sendMessage(){
+    // Guard: prevent sending while already processing
+    if(sendBtn.classList.contains('stopping')) return;
+    if(pollTimer) return;  // already waiting for a response
     var story=chatInput.value.trim(); if(story.length<3)return;
-    if(pendingLetter!==null){addUserMessage(story);chatInput.value='';resetTextarea();sendBtn.disabled=true;handleLetterFlowInput(story);sendBtn.disabled=chatInput.value.trim().length<3;return;}
+    // Clear textarea immediately so user can't send again
+    chatInput.value=''; resetTextarea(); sendBtn.disabled=true;
+    if(pendingLetter!==null){addUserMessage(story);handleLetterFlowInput(story);sendBtn.disabled=chatInput.value.trim().length<3;return;}
 
     var history=loadHistory(), hasHistory=history.length>0;
     var msgLower=story.toLowerCase().trim().replace(/[!?.,:]+$/,'');
