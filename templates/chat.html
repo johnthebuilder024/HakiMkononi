@@ -104,8 +104,9 @@
   background: none; border: none; color: rgba(255,255,255,.5);
   cursor: pointer; font-size: .8rem;
   /* 44px touch target */
-  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
   border-radius: 6px; transition: opacity .15s, color .15s;
+  margin-right: -.5rem;
 }
 .sidebar-item:hover .sidebar-item-del { opacity: 1; }
 .sidebar-item-del:hover { color: #f87171; }
@@ -178,6 +179,7 @@
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   min-height: 55vh; padding: 2rem 1rem 1rem; text-align: center;
+  animation: fadeUp .35s ease;
 }
 .welcome-avatar {
   width: 72px; height: 72px; border-radius: 50%;
@@ -190,15 +192,28 @@
 #welcomeScreen h2 { font-size: 1.4rem; font-weight: 800; color: var(--haki-dark); margin-bottom: .3rem; }
 #welcomeScreen h2 span { color: var(--haki-gold); }
 #welcomeScreen p { color: #666; font-size: .9rem; max-width: 400px; margin: 0 auto 1.25rem; }
-.example-chips { display: flex; flex-wrap: wrap; gap: .45rem; justify-content: center; max-width: 520px; }
+.example-chips { display: flex; flex-wrap: wrap; gap: .45rem; justify-content: center; max-width: 560px; }
 .example-chips .chip {
   background: #fff; border: 1.5px solid #dde8dc; border-radius: 20px;
   padding: .4em 1em; font-size: .84rem; color: var(--haki-dark);
   cursor: pointer; transition: all .15s; white-space: nowrap;
   /* 44px min touch target */
   min-height: 38px; display: inline-flex; align-items: center;
+  /* reset button defaults */
+  font-family: inherit; line-height: 1.4;
 }
 .example-chips .chip:hover { background: var(--haki-green); color: #fff; border-color: var(--haki-green); }
+/* Keyboard focus — chips are now real buttons */
+.example-chips .chip:focus-visible {
+  outline: 3px solid var(--haki-green); outline-offset: 2px;
+  background: var(--haki-light);
+}
+/* Disabled state while waiting for AI */
+.example-chips .chip[disabled],
+.example-chips .chip[style*="pointer-events: none"],
+.example-chips .chip[style*="pointer-events:none"] {
+  opacity: .45; cursor: not-allowed;
+}
 
 /* ── Message rows ────────────────────────────────────────────────── */
 .msg-row {
@@ -508,7 +523,7 @@
           <p>{{ ui.hero_sub }}</p>
           <div class="example-chips">
             {% for chip in ui.chips %}
-            <span class="chip" onclick="fillChat(this)">{{ chip }}</span>
+            <button class="chip" type="button" onclick="fillChat(this)">{{ chip }}</button>
             {% endfor %}
           </div>
           <p class="mt-2 small text-muted" style="font-size:.75rem;">{{ ui.hero_note }}</p>
@@ -522,12 +537,12 @@
               <option value="{{ c }}">{{ c }}</option>
               {% endfor %}
             </select>
-            <span style="color:#aaa;font-size:.76rem;">{% if lang == 'en' %}for better lawyer matching{% else %}kwa uwiano bora wa wakili{% endif %}</span>
+            <span style="color:#777;font-size:.76rem;font-weight:500;">{% if lang == 'en' %}for better lawyer matching{% else %}kwa uwiano bora wa wakili{% endif %}</span>
           </div>
         </div>
 
         <!-- Messages injected here -->
-        <div id="messagesContainer"></div>
+        <div id="messagesContainer" aria-live="polite" aria-label="{% if lang == 'en' %}Conversation{% else %}Mazungumzo{% endif %}"></div>
 
       </div>
     </div>
@@ -580,7 +595,7 @@
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:.25rem 0 0;gap:.5rem;flex-wrap:wrap;">
           <span class="mic-status" id="micStatus" style="font-size:.76rem;color:#888;"></span>
-          <span id="charCounter" style="display:none;font-size:.72rem;color:#999;"></span>
+          <span id="charCounter" style="font-size:.72rem;color:#aaa;display:none;"></span>
           <span class="chat-disclaimer">{{ ui.disclaimer }}</span>
         </div>
       </div>
@@ -592,7 +607,8 @@
 <!-- Toast notification for clipboard copy -->
 <div id="shareToast" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
   background:#1a7a3c;color:#fff;padding:.6rem 1.2rem;border-radius:20px;font-size:.84rem;
-  box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;white-space:nowrap;max-width:90vw;text-align:center;">
+  box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;white-space:nowrap;max-width:90vw;text-align:center;
+  transition:opacity .3s;">
 </div>
 
 <!-- County select is now in #welcomeScreen — see above -->
@@ -624,7 +640,8 @@
   // ── Core state ────────────────────────────────────────────────────
   var currentJobId     = null;
   var pollTimer        = null;
-  var POLL_MS          = 5000;
+  var POLL_MS          = 2500;   // poll every 2.5s — faster feedback
+  var POLL_MS_SLOW     = 5000;   // slow down after first 30s
   var MAX_WAIT_MS      = 300000;
   var startTime        = 0;
   var activeThinking   = null;
@@ -1159,12 +1176,12 @@
     if(!sendBtn.classList.contains('stopping')) {
       sendBtn.disabled = this.value.trim().length < 3;
     }
-    // Character counter — show when >200 chars
+    // Character counter — show when ≥100 chars so user knows they're writing a lot
     var len = this.value.length;
     var counter = document.getElementById('charCounter');
-    if (len > 200) {
+    if (len >= 100) {
       counter.textContent = len + ' / 500';
-      counter.style.color = len > 450 ? '#dc3545' : '#999';
+      counter.style.color = len > 450 ? '#dc3545' : len > 350 ? '#f77f00' : '#aaa';
       counter.style.display = 'inline';
     } else {
       counter.style.display = 'none';
@@ -1244,7 +1261,11 @@
   }
   window.resetTextarea = resetTextarea;
 
-  function scrollDown(){setTimeout(function(){chatWindow.scrollTo({top:chatWindow.scrollHeight,behavior:'smooth'});},60);}
+  function scrollDown(){
+    // Immediate scroll to show new content, then smooth re-scroll after render settles
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+    setTimeout(function(){ chatWindow.scrollTo({top:chatWindow.scrollHeight,behavior:'smooth'}); }, 100);
+  }
 
   function addUserMessage(text){
     // Start a new conversation if none active
@@ -1266,12 +1287,32 @@
   }
   function addBotMessage(html){addBotBubble(html);}
 
+  var _thinkingTimer = null;
+
   function addThinking(){
     var row=document.createElement('div'); row.className='msg-row bot';
-    row.innerHTML=avatarHTML()+'<div class="thinking-bubble"><span></span><span></span><span></span></div>';
-    messagesEl.appendChild(row); activeThinking=row; scrollDown(); return row;
+    row.innerHTML=avatarHTML()+
+      '<div class="thinking-bubble">' +
+        '<span></span><span></span><span></span>' +
+        '<span class="thinking-elapsed" id="thinkingElapsed" style="margin-left:.5rem;font-size:.72rem;color:#aaa;font-style:italic;"></span>' +
+      '</div>';
+    messagesEl.appendChild(row); activeThinking=row; scrollDown();
+    // Start elapsed counter inside the bubble
+    clearInterval(_thinkingTimer);
+    _thinkingTimer = setInterval(function(){
+      var el = document.getElementById('thinkingElapsed');
+      if(!el){ clearInterval(_thinkingTimer); return; }
+      var secs = Math.round((Date.now() - startTime) / 1000);
+      if(secs < 5){ el.textContent = ''; return; }
+      el.textContent = secs < 60 ? secs + 's' : Math.floor(secs/60) + 'm ' + (secs%60) + 's';
+    }, 1000);
+    return row;
   }
-  function removeThinking(){if(activeThinking){activeThinking.remove();activeThinking=null;}}
+  function removeThinking(){
+    if(activeThinking){activeThinking.remove();activeThinking=null;}
+    clearInterval(_thinkingTimer); _thinkingTimer=null;
+    var el=document.getElementById('thinkingElapsed'); if(el) el.textContent='';
+  }
 
   function addError(msg){
     removeThinking();
@@ -1500,7 +1541,8 @@
     row.appendChild(document.createRange().createContextualFragment(avatarHTML()));
     row.appendChild(card);
     messagesEl.appendChild(row);
-    setTimeout(function(){row.scrollIntoView({behavior:'smooth',block:'start'});},80);
+    // Scroll to show the top of the new answer card, not just the bottom
+    setTimeout(function(){ row.scrollIntoView({behavior:'smooth',block:'start'}); },120);
     resetInput();
 
     // Save to per-job localStorage (for ?job= URL sharing) — 30 days
@@ -1519,6 +1561,13 @@
     if(elapsed>MAX_WAIT_MS){
       addError('⏱️ '+(LANG==='sw'?'Imechukua muda mrefu sana. Tafadhali jaribu tena.':'This is taking too long. Please try again.'));
       return;
+    }
+    // Adaptive polling: fast (2.5s) for first 30s, then slow down to 5s to save bandwidth
+    var targetInterval = elapsed < 30000 ? POLL_MS : POLL_MS_SLOW;
+    if(pollTimer && pollTimer._interval !== targetInterval) {
+      clearInterval(pollTimer);
+      pollTimer = setInterval(poll, targetInterval);
+      pollTimer._interval = targetInterval;
     }
     if(!reassuranceSent&&elapsed>30000){
       reassuranceSent=true;
@@ -1654,7 +1703,8 @@
         .then(function(r){return r.json();})
         .then(function(d){
           if(!d.job_id){addError('❌ '+(d.error||'Submission failed.'));return;}
-          currentJobId=d.job_id; clearInterval(pollTimer); pollTimer=setInterval(poll,POLL_MS); poll();
+          currentJobId=d.job_id; clearInterval(pollTimer);
+          pollTimer=setInterval(poll,POLL_MS); pollTimer._interval=POLL_MS; poll();
           showStopButton();
         }).catch(function(){addError('❌ '+(LANG==='sw'?'Kuna tatizo la muunganisho. Jaribu tena.':'Connection error. Please try again.'));});
       },
@@ -1668,24 +1718,70 @@
   // ════════════════════════════════════════════════════════════════
   //  HELPERS
   // ════════════════════════════════════════════════════════════════
-  window.copyLetter=function(id){var el=document.getElementById(id);if(el)try{navigator.clipboard.writeText(el.innerText||el.textContent||'');}catch(e){}};
-  window.copyAnswer=function(jobId){var texts=[];document.querySelectorAll('.bot-card .bot-card-text,.bot-card .chat-letter').forEach(function(el){texts.push((el.innerText||el.textContent||'').trim());});try{navigator.clipboard.writeText(texts.join('\n\n'));}catch(e){}};
+  function _showToast(msg) {
+    var toast = document.getElementById('shareToast');
+    if(!toast) return;
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    toast.style.opacity = '1';
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(function(){
+      toast.style.opacity = '0';
+      setTimeout(function(){ toast.style.display='none'; toast.style.opacity='1'; }, 300);
+    }, 3000);
+  }
+
+  window.copyLetter=function(id){
+    var el=document.getElementById(id);
+    if(!el) return;
+    var text = el.innerText || el.textContent || '';
+    if(navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function(){
+        _showToast(LANG==='sw' ? '✅ Barua imenakiliwa!' : '✅ Letter copied!');
+      }).catch(function(){ _showToast('✅ ' + (LANG==='sw'?'Imenakiliwa':'Copied')); });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); _showToast(LANG==='sw'?'✅ Imenakiliwa!':'✅ Copied!'); } catch(e){}
+      document.body.removeChild(ta);
+    }
+  };
+  window.copyAnswer=function(jobId){
+    var texts=[];
+    document.querySelectorAll('.bot-card .bot-card-text,.bot-card .chat-letter').forEach(function(el){texts.push((el.innerText||el.textContent||'').trim());});
+    var text = texts.join('\n\n');
+    if(navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function(){
+        _showToast(LANG==='sw' ? '✅ Jibu limenenakiliwa!' : '✅ Answer copied!');
+      }).catch(function(){ _showToast('✅ ' + (LANG==='sw'?'Imenakiliwa':'Copied')); });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); _showToast(LANG==='sw'?'✅ Imenakiliwa!':'✅ Copied!'); } catch(e){}
+      document.body.removeChild(ta);
+    }
+  };
   window.downloadPDF=function(jobId,type){var url=type==='letter'?'/api/letter-pdf/'+jobId+'/':'/api/answer-pdf/'+jobId+'/';fetch(url,{cache:'no-store'}).then(function(r){return r.blob();}).then(function(blob){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='HakiMkononi-'+type+'-'+new Date().toISOString().slice(0,10)+'.pdf';a.style.display='none';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(a.href);},10000);}).catch(function(){});};
   window.shareAnswer=function(jobId){
     var url=location.origin+'/?job='+jobId+'&lang='+LANG;
-    var toast=document.getElementById('shareToast');
     if(navigator.share){
       navigator.share({title:'HakiMkononi',text:LANG==='sw'?'Jibu langu la kisheria kutoka HakiMkononi:':'My legal answer from HakiMkononi:',url:url}).catch(function(){});
     } else {
-      try{
-        navigator.clipboard.writeText(url);
-        // Show toast
-        if(toast){
-          toast.textContent=LANG==='sw'?'✅ Kiungo kimehifadhiwa! Unaweza kukifungua wakati wowote.':'✅ Link saved to clipboard! Open it anytime on any device.';
-          toast.style.display='block';
-          setTimeout(function(){ toast.style.display='none'; }, 4000);
-        }
-      }catch(e){}
+      var fallback = function(){
+        var ta = document.createElement('textarea');
+        ta.value = url; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } catch(e){}
+        document.body.removeChild(ta);
+        _showToast(LANG==='sw'?'✅ Kiungo kimehifadhiwa! Fungua wakati wowote.':'✅ Link saved to clipboard! Open it anytime.');
+      };
+      if(navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function(){
+          _showToast(LANG==='sw'?'✅ Kiungo kimehifadhiwa! Fungua wakati wowote.':'✅ Link saved to clipboard! Open it anytime.');
+        }).catch(fallback);
+      } else { fallback(); }
     }
   };
   window.sendFeedback=function(queryId,helpful,rowId){var row=document.getElementById(rowId);if(!queryId){if(row)row.innerHTML='<span>✅ '+(LANG==='sw'?'Asante!':'Thanks!')+'</span>';return;}fetch('/api/feedback/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},body:JSON.stringify({query_id:queryId,helpful:helpful})}).finally(function(){if(row)row.innerHTML='<span>✅ '+(LANG==='sw'?'Asante kwa maoni!':'Thank you!')+'</span>';});};
