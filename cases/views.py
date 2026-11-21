@@ -431,6 +431,7 @@ def job_status(request, job_id):
 
     return JsonResponse({
         "status":       "done",
+        "story":        job.story,          # so the browser can show the user bubble on shared links
         "query_id":     job.query_id,
         "is_serious":   job.is_serious,
         "self_rep":     job.self_rep,

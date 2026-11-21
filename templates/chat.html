@@ -901,8 +901,6 @@
   //  NEW CHAT
   // ════════════════════════════════════════════════════════════════
   window.newChat = function(){
-    // Save current conversation before clearing if there's content
-    if(activeConvId && messagesEl.children.length) persistCurrentConv();
 
     clearHistory();
     clearInterval(pollTimer); pollTimer=null; currentJobId=null;
@@ -1285,6 +1283,8 @@
     row.innerHTML=avatarHTML()+'<div class="bot-bubble">'+html+'</div>';
     messagesEl.appendChild(row); scrollDown(); resetInput();
   }
+  // Expose for inline onclick handlers (e.g. the self-rep nudge button)
+  window.addBotBubble = addBotBubble;
   function addBotMessage(html){addBotBubble(html);}
 
   var _thinkingTimer = null;
@@ -1527,9 +1527,19 @@
           ? 'Washa kitufe "Jitetea mahakamani" kupata hati ya mahakama, orodha ya ushahidi, na ratiba ya hatua.'
           : 'Turn on "Self-represent in court" below to get a court document, evidence checklist, and step-by-step filing guide.') +
         '</span><br>' +
-        '<button onclick="var t=document.getElementById(\'selfRepToggle\');t.checked=true;t.dispatchEvent(new Event(\'change\'));document.getElementById(\'selfRepNudge\').remove();chatInput.value=\'' +
-          (LANG==='sw' ? 'Nionyeshe jinsi ya kujitetea mahakamani' : 'Show me how to represent myself in court') +
-        '\';chatInput.dispatchEvent(new Event(\'input\'));sendMessage();" ' +
+        '<button onclick="' +
+          'var t=document.getElementById(\'selfRepToggle\');' +
+          't.checked=true;' +
+          't.dispatchEvent(new Event(\'change\'));' +
+          'document.getElementById(\'selfRepNudge\').remove();' +
+          // Do NOT auto-send — just turn the toggle on, focus the input, and tell the user to ask
+          'chatInput.focus();' +
+          // Show a quick confirmation bubble so the user knows what to do next
+          'addBotBubble(LANG===\'sw\'' +
+            '?\'✅ <strong>Imewashwa!</strong> Sasa andika tatizo lako na nitakuandalia hati ya mahakama, orodha ya ushahidi, na hatua za kufuata.\'' +
+            ':\'✅ <strong>Self-represent is on.</strong> Now describe your situation and I\\\'ll include the court document, evidence checklist, and step-by-step guide.\'' +
+          ');' +
+        '" ' +
         'style="margin-top:.5rem;background:var(--haki-green);color:#fff;border:none;border-radius:20px;padding:.3em .9em;font-size:.8rem;cursor:pointer;">' +
         '✅ ' + (LANG==='sw' ? 'Ndio, nionyeshe' : 'Yes, show me') +
         '</button>' +
@@ -1924,17 +1934,33 @@
   // ════════════════════════════════════════════════════════════════
   //  RESTORE FROM ?job=ID
   // ════════════════════════════════════════════════════════════════
+  //  RESTORE FROM ?job=ID
+  // ════════════════════════════════════════════════════════════════
   (function restore(){
     var params=new URLSearchParams(location.search),savedId=params.get('job');
     if(!savedId){ renderSidebar(); return; }
     try{
       var raw=localStorage.getItem('haki_job_'+savedId);
-      if(raw){var s=JSON.parse(raw);if(Date.now()-(s.saved_at||0)<2592000000){if(s.story)addUserMessage(s.story);currentJobId=savedId;currentStory=s.story||'';s.job_id=savedId;addAnswerCard(s);renderSidebar();return;}}
+      if(raw){var s=JSON.parse(raw);if(Date.now()-(s.saved_at||0)<2592000000){if(s.story)addUserMessage(s.story);currentJobId=savedId;currentStory=s.story||'';s.job_id=savedId;addAnswerCard(s);currentJobId=null;renderSidebar();return;}}
     }catch(e){}
+    // Cache miss or expired — fetch from server
     currentJobId=savedId; addThinking(); startTime=Date.now();
     var t=setInterval(function(){
       fetch('/api/status/'+savedId+'/',{cache:'no-store'}).then(function(r){return r.json();})
-        .then(function(d){if(d.status==='done'){clearInterval(t);d.job_id=savedId;addAnswerCard(d);}else if(d.status==='error'){clearInterval(t);addError(d.message||'Error loading answer.');}})
+        .then(function(d){
+          if(d.status==='done'){
+            clearInterval(t);
+            // Now we have d.story from the API — show user bubble before the answer
+            if(d.story){ addUserMessage(d.story); currentStory=d.story; }
+            d.job_id=savedId;
+            addAnswerCard(d);
+            // Clear currentJobId so the main poll() loop never re-fetches this restored job
+            currentJobId=null;
+          }else if(d.status==='error'){
+            clearInterval(t);
+            addError(d.message||'Error loading answer.');
+          }
+        })
         .catch(function(){clearInterval(t);addError('Connection error.');});
     },2000);
     renderSidebar();
