@@ -215,9 +215,13 @@
             {% if lang == "en" %}
               Already applied?
               <a href="{% url 'lawyer_check_status' %}">Check your application status →</a>
+              &nbsp;·&nbsp;
+              <a href="{% url 'lawyer_login' %}">Log in to your dashboard →</a>
             {% else %}
               Umeomba tayari?
               <a href="{% url 'lawyer_check_status' %}">Angalia hali ya maombi yako →</a>
+              &nbsp;·&nbsp;
+              <a href="{% url 'lawyer_login' %}">Ingia kwenye dashibodi yako →</a>
             {% endif %}
           </p>
         </div>

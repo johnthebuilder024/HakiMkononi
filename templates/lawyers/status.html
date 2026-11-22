@@ -7,10 +7,14 @@
     <div class="row justify-content-center">
       <div class="col-12 col-md-7">
         <div class="card card-haki">
-          <div class="card-header bg-white border-bottom py-3">
+          <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <h2 class="h5 mb-0 fw-bold" style="color:var(--haki-green);">
               Application Status: {{ lawyer.full_name }}
             </h2>
+            <a href="{% url 'lawyer_login' %}"
+               class="btn btn-sm btn-haki">
+              🔐 Log In →
+            </a>
           </div>
           <div class="card-body p-4 text-center">
 
@@ -31,14 +35,17 @@
               <h3 class="fw-bold mt-2">Documents Under Review</h3>
               <p class="text-muted">
                 Your documents have been submitted and are being reviewed by our team.<br>
-                This usually takes <strong>24–48 hours</strong>.<br>
-                You will receive a WhatsApp message at <strong>{{ lawyer.display_phone }}</strong> when approved.
+                This usually takes <strong>24–48 hours</strong>.
               </p>
               <div class="alert alert-info mt-3" style="font-size:.83rem;">
                 <strong>LSK Number submitted:</strong> {{ lawyer.lsk_number }}<br>
                 <strong>County:</strong> {{ lawyer.county }}<br>
                 <strong>Submitted:</strong> {{ lawyer.updated_at|date:"d M Y H:i" }}
               </div>
+              <p class="text-muted small mt-2">
+                Log in anytime to check — your dashboard will show when you are approved.
+              </p>
+              <a href="{% url 'lawyer_login' %}" class="btn btn-haki mt-1">🔐 Log In to Check Status →</a>
 
             {% elif lawyer.kyc_status == 'verified' %}
               <div style="font-size:3rem;">✅</div>
@@ -52,6 +59,9 @@
                 <strong>Specialties:</strong> {{ lawyer.specialty_labels|join:", " }}<br>
                 <strong>County:</strong> {{ lawyer.county }}
               </div>
+              <a href="{% url 'lawyer_login' %}" class="btn btn-haki btn-lg mt-2">
+                🔐 Log In to Your Dashboard →
+              </a>
 
             {% elif lawyer.kyc_status == 'rejected' %}
               <div style="font-size:3rem;">❌</div>
@@ -74,6 +84,13 @@
 
           </div>
         </div>
+
+        <p class="text-center text-muted small mt-3">
+          <a href="{% url 'lawyer_login' %}">Log in to your dashboard</a>
+          &nbsp;·&nbsp;
+          <a href="{% url 'lawyer_check_status' %}">Look up status by email</a>
+        </p>
+
       </div>
     </div>
   </div>

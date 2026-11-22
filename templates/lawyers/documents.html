@@ -19,11 +19,16 @@
           <span style="font-size:1.5rem;">✅</span>
           <div>
             <strong>Documents submitted successfully!</strong><br>
-            Our team will review your application within 24 hours.
-            You will receive a WhatsApp message when your application is approved or if we need more information.<br>
-            <a href="/lawyers/status/{{ lawyer.pk }}/" class="btn btn-sm btn-outline-success mt-2">
-              Check Application Status →
-            </a>
+            Our team will review your application within 24–48 hours.<br>
+            You can log in at any time to check your status.
+            <div class="d-flex gap-2 flex-wrap mt-3">
+              <a href="{% url 'lawyer_login' %}" class="btn btn-haki btn-sm">
+                🔐 Log In to Your Dashboard →
+              </a>
+              <a href="/lawyers/status/{{ lawyer.pk }}/" class="btn btn-sm btn-outline-secondary">
+                Check Status by ID →
+              </a>
+            </div>
           </div>
         </div>
         {% else %}

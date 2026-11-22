@@ -1190,33 +1190,53 @@ def _send_rejection_notification(lawyer):
 
 def _send_password_setup_link(lawyer):
     """
-    Send a password setup link to a newly verified lawyer.
+    Notify a newly verified lawyer that their KYC passed and they can now log in.
     Called from the Django admin `verify_lawyers` action.
+    If the lawyer already set a password at registration, we just tell them to log in.
+    If not (legacy lawyers), we include the password setup link as well.
     """
     import os, base64, threading
     from django.core.mail import send_mail
 
+    login_url = "https://hakimkononi.onrender.com/lawyers/login/"
     token = base64.urlsafe_b64encode(lawyer.email.encode()).decode()
     setup_url = f"https://hakimkononi.onrender.com/lawyers/set-password/?token={token}"
 
-    subject = "Welcome to HakiMkononi — Set your dashboard password"
+    has_password = bool(lawyer.password_hash)
+
+    subject = "🎉 Congratulations — You are now verified on HakiMkononi!"
     body = (
-        f"Congratulations {lawyer.full_name}!\n\n"
-        f"Your application to join HakiMkononi has been verified.\n\n"
-        f"Your profile is now live on the platform. Clients matching your county "
-        f"and specialties will see you after their legal questions.\n\n"
-        f"To access your lawyer dashboard, set your password here:\n"
-        f"{setup_url}\n\n"
-        f"This link is tied to your email address ({lawyer.email}).\n\n"
+        f"Dear {lawyer.full_name},\n\n"
+        f"Great news! Your application to join HakiMkononi has been reviewed and verified.\n\n"
+        f"Your profile is now live on the platform. Clients in {lawyer.county} asking about "
+        f"{', '.join(lawyer.specialty_labels[:2]) or 'your specialties'} will see you and can "
+        f"connect with you directly via WhatsApp or Telegram.\n\n"
+    )
+
+    if has_password:
+        body += (
+            f"You already set your password during registration.\n"
+            f"Log in to your lawyer dashboard here:\n"
+            f"{login_url}\n\n"
+            f"Use your registered email: {lawyer.email}\n\n"
+        )
+    else:
+        body += (
+            f"To access your lawyer dashboard, set your password here:\n"
+            f"{setup_url}\n\n"
+            f"This link is tied to your email address ({lawyer.email}).\n\n"
+        )
+
+    body += (
         f"Your dashboard lets you:\n"
-        f"  • See how many clients viewed your profile\n"
-        f"  • Track leads (clients who connected with you)\n"
-        f"  • Update your bio and contact details\n\n"
+        f"  • See clients who connected with you (leads)\n"
+        f"  • Track lead status (new, contacted, closed)\n"
+        f"  • Update your bio, WhatsApp, and contact details\n\n"
         f"Welcome to the team!\n"
         f"HakiMkononi\n"
     )
 
-    print(f"[LAWYER] Setup link for {lawyer.full_name}: {setup_url}")
+    print(f"[LAWYER] Verification notification for {lawyer.full_name}: {login_url if has_password else setup_url}")
 
     def _send():
         try:
