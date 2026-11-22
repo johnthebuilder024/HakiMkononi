@@ -601,6 +601,9 @@ def lawyer_register(request):
             'years_experience': request.POST.get('years_experience', '0').strip(),
             'firm_name':        request.POST.get('firm_name', '').strip(),
             'bio':              request.POST.get('bio', '').strip(),
+            # Password — set now, used to log in after verification
+            'password':         request.POST.get('password', ''),
+            'confirm_password': request.POST.get('confirm_password', ''),
         }
 
         # Validate
@@ -623,6 +626,12 @@ def lawyer_register(request):
         if lsk_err:
             errors['lsk_number'] = lsk_err
 
+        # Password validation
+        if len(data['password']) < 8:
+            errors['password'] = "Password must be at least 8 characters."
+        elif data['password'] != data['confirm_password']:
+            errors['confirm_password'] = "Passwords do not match."
+
         if not errors:
             # Check uniqueness
             if Lawyer.objects.filter(email=data['email']).exists():
@@ -631,26 +640,30 @@ def lawyer_register(request):
                 errors['lsk_number'] = "This LSK number is already registered."
 
         if not errors:
+            from django.contrib.auth.hashers import make_password as _make_password
             try:
                 years = int(data['years_experience'])
             except ValueError:
                 years = 0
 
             lawyer = Lawyer.objects.create(
-                full_name        = data['full_name'],
-                email            = data['email'],
-                phone            = data['phone'],
-                whatsapp         = data['whatsapp'] or data['phone'],
+                full_name         = data['full_name'],
+                email             = data['email'],
+                phone             = data['phone'],
+                whatsapp          = data['whatsapp'] or data['phone'],
                 telegram_username = data.get('telegram_username', '').strip().lstrip('@'),
-                lsk_number       = data['lsk_number'],
-                lsk_name         = data['lsk_name'],
-                county           = data['county'],
-                county_secondary = data['county_secondary'],
-                specialties      = data['specialties'],
-                years_experience = years,
-                firm_name        = data['firm_name'],
-                bio              = data['bio'],
-                kyc_status       = Lawyer.KYC_L1_PASS,
+                lsk_number        = data['lsk_number'],
+                lsk_name          = data['lsk_name'],
+                county            = data['county'],
+                county_secondary  = data['county_secondary'],
+                specialties       = data['specialties'],
+                years_experience  = years,
+                firm_name         = data['firm_name'],
+                bio               = data['bio'],
+                kyc_status        = Lawyer.KYC_L1_PASS,
+                # Hash and store password immediately so the lawyer can log in
+                # as soon as they are verified — no email link needed
+                password_hash     = _make_password(data['password']),
             )
             # Redirect to document upload
             from django.http import HttpResponseRedirect

@@ -29,6 +29,62 @@
     <div class="alert alert-success py-2 mb-3" style="font-size:.88rem;">{{ save_msg }}</div>
     {% endif %}
 
+    {% if lawyer.kyc_status != 'verified' %}
+    <div class="alert d-flex gap-3 align-items-start mb-4"
+         style="background:#fff8e1;border:1.5px solid #f0c040;border-radius:10px;">
+      <span style="font-size:1.6rem;line-height:1;">
+        {% if lawyer.kyc_status == 'rejected' %}❌
+        {% elif lawyer.kyc_status == 'suspended' %}⚠️
+        {% else %}⏳{% endif %}
+      </span>
+      <div>
+        {% if lawyer.kyc_status == 'pending' or lawyer.kyc_status == 'level1_pass' %}
+          <strong>{% if lang == 'en' %}Documents required{% else %}Hati zinahitajika{% endif %}</strong><br>
+          <small>
+            {% if lang == 'en' %}
+              Your application is waiting for document upload. Upload your Practicing Certificate, National ID, Selfie with ID, and KRA PIN to proceed.
+            {% else %}
+              Ombi lako linasubiri kupakia hati. Pakia Cheti cha Kufanya Kazi, Kitambulisho cha Taifa, Picha yako na Kitambulisho, na PIN ya KRA.
+            {% endif %}
+            <a href="/lawyers/documents/{{ lawyer.pk }}/" class="fw-semibold">
+              {% if lang == 'en' %}Upload documents →{% else %}Pakia hati →{% endif %}
+            </a>
+          </small>
+        {% elif lawyer.kyc_status == 'docs_submitted' %}
+          <strong>{% if lang == 'en' %}Under review — please wait{% else %}Inakaguliwa — tafadhali subiri{% endif %}</strong><br>
+          <small>
+            {% if lang == 'en' %}
+              Your documents have been submitted and are being reviewed by our team. You will be able to appear to clients once verified. This usually takes 24–48 hours.
+            {% else %}
+              Hati zako zimewasilishwa na zinakaguliwa na timu yetu. Utaonekana kwa wateja baada ya kuthibitishwa. Hii kawaida inachukua masaa 24–48.
+            {% endif %}
+          </small>
+        {% elif lawyer.kyc_status == 'rejected' %}
+          <strong>{% if lang == 'en' %}Application rejected{% else %}Ombi limekataliwa{% endif %}</strong><br>
+          <small>
+            {% if lawyer.kyc_rejection_reason %}
+              <em>{{ lawyer.kyc_rejection_reason }}</em><br>
+            {% endif %}
+            {% if lang == 'en' %}
+              You can <a href="/lawyers/register/" class="fw-semibold">submit a new application</a> once you have addressed the reason above.
+            {% else %}
+              Unaweza <a href="/lawyers/register/" class="fw-semibold">kutuma ombi jipya</a> ukisha kushughulikia sababu hapo juu.
+            {% endif %}
+          </small>
+        {% elif lawyer.kyc_status == 'suspended' %}
+          <strong>{% if lang == 'en' %}Account suspended{% else %}Akaunti imesimamishwa{% endif %}</strong><br>
+          <small>
+            {% if lang == 'en' %}
+              Your account has been suspended. Contact us at admin@hakimkononi.co.ke for more information.
+            {% else %}
+              Akaunti yako imesimamishwa. Wasiliana nasi kwa admin@hakimkononi.co.ke kwa maelezo zaidi.
+            {% endif %}
+          </small>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
     {% if not has_password %}
     <div class="alert alert-warning d-flex gap-2 align-items-start mb-3">
       <span style="font-size:1.2rem;">🔐</span>

@@ -171,14 +171,41 @@
                   {% if errors.bio %}<div class="invalid-feedback">{{ errors.bio }}</div>{% endif %}
                 </div>
 
-              </div>
+                <!-- Divider -->
+                <div class="col-12">
+                  <hr class="my-1">
+                  <p class="fw-semibold mb-0" style="color:var(--haki-green);">🔐 Set Your Dashboard Password</p>
+                  <small class="text-muted">You will use this to log into your lawyer dashboard once your application is verified.</small>
+                </div>
 
+                <!-- Password -->
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                  <input type="password" name="password" id="regPassword"
+                         class="form-control {% if errors.password %}is-invalid{% endif %}"
+                         minlength="8" required
+                         placeholder="At least 8 characters">
+                  {% if errors.password %}<div class="invalid-feedback">{{ errors.password }}</div>{% endif %}
+                </div>
+
+                <!-- Confirm password -->
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                  <input type="password" name="confirm_password" id="regConfirm"
+                         class="form-control {% if errors.confirm_password %}is-invalid{% endif %}"
+                         minlength="8" required
+                         placeholder="Type your password again">
+                  {% if errors.confirm_password %}<div class="invalid-feedback">{{ errors.confirm_password }}</div>{% endif %}
+                </div>
+
+              </div>
               <div class="alert alert-info mt-4 d-flex gap-2" style="font-size:.85rem;">
                 <span>ℹ️</span>
                 <div>
                   After submitting this form you will be asked to upload verification documents
                   (Practicing Certificate, National ID, Selfie with ID, KRA PIN).
-                  Your application will be reviewed by our team within 24 hours.
+                  Once our team verifies your documents, you can log in at
+                  <strong>/lawyers/login/</strong> using your email and the password you set above.
                 </div>
               </div>
 
