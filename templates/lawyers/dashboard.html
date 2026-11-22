@@ -3,6 +3,14 @@
 
 {% block title %}Dashboard: {{ lawyer.full_name }} | HakiMkononi{% endblock %}
 
+{% block navbar_extra %}
+<a href="{% url 'lawyer_dashboard' %}"
+   class="btn btn-sm"
+   style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);font-weight:600;">
+  ⚖️ {% if lang == 'en' %}My Dashboard{% else %}Dashibodi Yangu{% endif %}
+</a>
+{% endblock %}
+
 {% block content %}
 <section class="py-3" style="background:linear-gradient(135deg,var(--haki-green),var(--haki-dark));">
   <div class="container text-white d-flex align-items-center justify-content-between flex-wrap gap-2 py-1">
@@ -129,10 +137,18 @@
           </div>
           <div class="col-6 col-md-3">
             <div class="card card-haki text-center p-3">
-              <div class="h2 fw-bold mb-0" style="color:var(--haki-dark);">
-                {{ lawyer.years_experience }}
+              <div class="mb-1" style="font-size:1.6rem;line-height:1;">
+                {% if lawyer.kyc_status == 'verified' %}✅{% else %}⏳{% endif %}
               </div>
-              <small class="text-muted">{% if lang == 'en' %}Years exp.{% else %}Miaka uzoefu{% endif %}</small>
+              <small class="fw-semibold" style="color:{% if lawyer.kyc_status == 'verified' %}var(--haki-green){% else %}#e07c00{% endif %};">
+                {% if lawyer.kyc_status == 'verified' %}
+                  {% if lang == 'en' %}Profile Live{% else %}Wasifu Uko Hai{% endif %}
+                {% elif lawyer.kyc_status == 'docs_submitted' %}
+                  {% if lang == 'en' %}Under Review{% else %}Inakaguliwa{% endif %}
+                {% else %}
+                  {% if lang == 'en' %}Pending{% else %}Inasubiri{% endif %}
+                {% endif %}
+              </small>
             </div>
           </div>
         </div>
@@ -325,9 +341,11 @@
                  class="btn btn-sm btn-outline-secondary">
                 👁️ {% if lang == 'en' %}View Public Profile{% else %}Ona Wasifu wa Umma{% endif %}
               </a>
+            </div>
+            <div class="text-center mt-2">
               <a href="{% url 'lawyer_set_password' %}?token={{ setup_token }}"
-                 class="btn btn-sm btn-outline-secondary">
-                🔐 {% if lang == 'en' %}Change Password{% else %}Badilisha Nenosiri{% endif %}
+                 style="font-size:.78rem;color:#888;text-decoration:none;">
+                🔐 {% if lang == 'en' %}Change password{% else %}Badilisha nenosiri{% endif %}
               </a>
             </div>
           </div>
@@ -336,8 +354,9 @@
 
     </div><!-- end .row -->
 
-      <!-- ── Public Answer (reputation building) ── -->
-      <div class="col-12 mt-4">
+    <!-- ── Public Answer (reputation building) ── -->
+    <div class="row mt-2">
+      <div class="col-12">
         <div class="card card-haki">
           <div class="card-header py-3" style="background:var(--haki-light);">
             <h2 class="h6 fw-bold mb-0" style="color:var(--haki-green);">
@@ -407,6 +426,7 @@
           </div>
         </div>
       </div>
+    </div><!-- end public answer row -->
 
   </div>
 </section>

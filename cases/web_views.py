@@ -1000,6 +1000,8 @@ def lawyer_profile(request, lawyer_id):
         'tg_link':        tg_link,
         'lead_count':     lead_count,
         'public_answers': public_answers,
+        # True when the logged-in lawyer is viewing their own profile
+        'is_own_profile': request.session.get('lawyer_id') == lawyer.pk,
     }, lang)
 
 

@@ -5,10 +5,18 @@
 
 {% block content %}
 <section class="py-4" style="background:linear-gradient(135deg,var(--haki-green),var(--haki-dark));">
-  <div class="container text-white py-2">
+  <div class="container text-white py-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
     <a href="{% url 'lawyers_landing' %}" style="color:rgba(255,255,255,.7);font-size:.85rem;text-decoration:none;">
       ← {% if lang == 'en' %}Back to Lawyers{% else %}Rudi kwa Mawakili{% endif %}
     </a>
+    {% if is_own_profile %}
+    <a href="{% url 'lawyer_dashboard' %}"
+       style="color:rgba(255,255,255,.85);font-size:.82rem;text-decoration:none;
+              background:rgba(255,255,255,.12);padding:.25em .75em;border-radius:20px;
+              border:1px solid rgba(255,255,255,.3);">
+      ⚖️ {% if lang == 'en' %}My Dashboard{% else %}Dashibodi Yangu{% endif %}
+    </a>
+    {% endif %}
   </div>
 </section>
 
@@ -31,14 +39,16 @@
                   <img src="{{ lawyer.profile_photo_url }}" alt="{{ lawyer.full_name }}"
                        style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--haki-light);"
                        onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                  <div style="display:none;width:90px;height:90px;border-radius:50%;background:var(--haki-light);
-                              align-items:center;justify-content:center;font-size:2.2rem;
-                              border:3px solid var(--haki-light);">⚖️</div>
+                  <div style="display:none;width:90px;height:90px;border-radius:50%;background:var(--haki-green);
+                              align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;
+                              color:#fff;border:3px solid var(--haki-light);">
+                    {{ lawyer.full_name|slice:":1" }}
+                  </div>
                 {% else %}
-                  <div style="width:90px;height:90px;border-radius:50%;background:var(--haki-light);
-                              display:flex;align-items:center;justify-content:center;font-size:2.2rem;
-                              border:3px solid var(--haki-light);">
-                    ⚖️
+                  <div style="width:90px;height:90px;border-radius:50%;background:var(--haki-green);
+                              display:flex;align-items:center;justify-content:center;font-size:1.8rem;
+                              font-weight:700;color:#fff;border:3px solid var(--haki-light);">
+                    {{ lawyer.full_name|slice:":1" }}
                   </div>
                 {% endif %}
               </div>
@@ -103,6 +113,21 @@
           </div>
           <div class="card-body p-4" style="font-size:.95rem;line-height:1.7;">
             {{ lawyer.bio }}
+          </div>
+        </div>
+        {% elif is_own_profile %}
+        <div class="card mb-4" style="border:2px dashed #c8e6c9;border-radius:12px;">
+          <div class="card-body p-4 text-center" style="color:#888;">
+            <p class="mb-2">
+              {% if lang == 'en' %}
+                ✏️ You haven't added a bio yet. A bio helps clients trust you before they reach out.
+              {% else %}
+                ✏️ Bado hujaandika maelezo. Maelezo husaidia wateja kukuamini kabla ya kuwasiliana.
+              {% endif %}
+            </p>
+            <a href="{% url 'lawyer_dashboard' %}" class="btn btn-sm btn-haki">
+              {% if lang == 'en' %}Add Bio in Dashboard →{% else %}Ongeza Maelezo kwenye Dashibodi →{% endif %}
+            </a>
           </div>
         </div>
         {% endif %}
