@@ -496,6 +496,34 @@ def dashboard(request):
     User = get_user_model()
     team_members = User.objects.filter(is_staff=True).order_by('username')
 
+    # Slang keywords list for dashboard management
+    from cases.models import SlangKeyword
+    slang_keywords = SlangKeyword.objects.order_by('topic', 'word')[:100]
+
+    # Law sections — recent additions and unembedded ones
+    unembedded_laws = Law.objects.filter(embedding_json='').exclude(content='')[:20]
+    recent_laws     = Law.objects.order_by('-created_at')[:10]
+
+    # Testimonials pending approval
+    from cases.models import Testimonial
+    pending_testimonials = Testimonial.objects.filter(approved=False).order_by('-created_at')[:20]
+    approved_testimonial_count = Testimonial.objects.filter(approved=True).count()
+
+    # Lead summary per lawyer (for platform owner visibility)
+    from cases.models import Lead
+    lead_summary = (
+        Lead.objects
+        .select_related('lawyer')
+        .values('lawyer__full_name', 'lawyer__pk', 'lawyer__kyc_status')
+        .annotate(
+            total=Count('id'),
+            new=Count('id', filter=Q(status='new')),
+            contacted=Count('id', filter=Q(status='contacted')),
+        )
+        .filter(lawyer__kyc_status='verified')
+        .order_by('-total')[:15]
+    )
+
     # ── Handle POST — save correction or update review status ────────────────
     fix_message = None
     if request.method == 'POST':
@@ -613,6 +641,79 @@ def dashboard(request):
                 fix_message = f"✅ Report #{report_id} marked as reviewed."
             except LawyerReport.DoesNotExist:
                 fix_message = "❌ Report not found."
+
+        # ── Testimonial moderation ────────────────────────────────────────────
+        elif action in ('approve_testimonial', 'reject_testimonial'):
+            from cases.models import Testimonial
+            t_id = request.POST.get('testimonial_id', '').strip()
+            try:
+                t = Testimonial.objects.get(pk=t_id)
+                if action == 'approve_testimonial':
+                    t.approved = True
+                    t.save(update_fields=['approved'])
+                    fix_message = f"✅ Testimonial from {t.name} approved — now shows publicly."
+                else:
+                    name = t.name
+                    t.delete()
+                    fix_message = f"🗑️ Testimonial from {name} rejected and deleted."
+            except Testimonial.DoesNotExist:
+                fix_message = "❌ Testimonial not found."
+
+        # ── Slang keyword toggle/delete ───────────────────────────────────────
+        elif action in ('toggle_slang', 'delete_slang'):
+            from cases.models import SlangKeyword
+            from cases.rag import invalidate_law_cache
+            slang_id = request.POST.get('slang_id', '').strip()
+            try:
+                kw = SlangKeyword.objects.get(pk=slang_id)
+                if action == 'toggle_slang':
+                    kw.active = not kw.active
+                    kw.save(update_fields=['active'])
+                    try: invalidate_law_cache()
+                    except Exception: pass
+                    fix_message = f"{'✅ Activated' if kw.active else '⏸️ Deactivated'} keyword '{kw.word}'."
+                else:
+                    word = kw.word
+                    kw.delete()
+                    try: invalidate_law_cache()
+                    except Exception: pass
+                    fix_message = f"🗑️ Keyword '{word}' deleted."
+            except SlangKeyword.DoesNotExist:
+                fix_message = "❌ Keyword not found."
+
+        # ── Build embeddings for new law sections ─────────────────────────────
+        elif action == 'build_embeddings':
+            try:
+                from cases.rag import embed_text, invalidate_law_cache
+                import time as _time
+                unembedded = Law.objects.filter(embedding_json='').exclude(content='')
+                total = unembedded.count()
+                if total == 0:
+                    fix_message = "ℹ️ All law sections already have embeddings — AI is fully up to date."
+                else:
+                    count = 0
+                    failed = 0
+                    for law in unembedded[:50]:  # cap at 50 per request to avoid timeout
+                        try:
+                            text = f"{law.title} {law.section}: {law.content}"
+                            vec  = embed_text(text)
+                            if vec:
+                                law.set_embedding(vec)
+                                law.save(update_fields=['embedding_json'])
+                                count += 1
+                                _time.sleep(0.15)  # stay within Gemini rate limits
+                        except Exception:
+                            failed += 1
+                    try: invalidate_law_cache()
+                    except Exception: pass
+                    remaining = total - count - failed
+                    fix_message = (
+                        f"✅ Built embeddings for {count} law sections."
+                        + (f" {failed} failed." if failed else "")
+                        + (f" {remaining} still pending — click again to continue." if remaining > 0 else " All done!")
+                    )
+            except Exception as exc:
+                fix_message = f"❌ Embedding error: {str(exc)[:200]}"
 
         # ── Add slang keyword ─────────────────────────────────────────────────
         elif action == 'add_slang':
@@ -762,6 +863,13 @@ def dashboard(request):
         'unreviewed_reports':     unreviewed_reports,
         'team_members':           team_members,
         'current_user_id':        request.user.pk,
+        # New management data
+        'slang_keywords':         slang_keywords,
+        'unembedded_laws':        unembedded_laws,
+        'recent_laws':            recent_laws,
+        'pending_testimonials':   pending_testimonials,
+        'approved_testimonial_count': approved_testimonial_count,
+        'lead_summary':           lead_summary,
         # Misc
         'fix_message': fix_message,
         # Form choices for inline forms

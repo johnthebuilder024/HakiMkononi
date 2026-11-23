@@ -103,7 +103,10 @@
     <a href="#sec-review-queue">👎 Review Answers</a>
     <a href="#sec-kyc">⚖️ Lawyer KYC</a>
     <a href="#sec-reports">🚩 Reports</a>
-    <a href="#sec-slang">🗣️ Add Slang</a>
+    <a href="#sec-testimonials">🌟 Testimonials</a>
+    <a href="#sec-laws-status">⚖️ Laws</a>
+    <a href="#sec-slang">🗣️ Slang</a>
+    <a href="#sec-team">👥 Team</a>
     <a href="/admin/logout/" style="color:#f87171;">Logout</a>
   </div>
 </div>
@@ -921,7 +924,7 @@
     </div>
 
     <!-- ── Team Management ── -->
-    <div class="col-12">
+    <div class="col-12" id="sec-team">
       <div class="section-card">
         <div class="sc-header">👥 Team &amp; Access Management</div>
         <div class="sc-body">
@@ -1002,6 +1005,247 @@
     </div>
 
   </div><!-- /management row -->
+
+  <!-- ══ SECOND MANAGEMENT ROW ══════════════════════════════════════ -->
+  <div class="row g-4 mt-0">
+
+    <!-- ── Testimonials Moderation ── -->
+    <div class="col-12" id="sec-testimonials">
+      <div class="section-card">
+        <div class="sc-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <span>🌟 Win Stories (Testimonials)
+            {% if pending_testimonials %}
+            <span class="badge bg-warning text-dark ms-1">{{ pending_testimonials|length }} pending</span>
+            {% endif %}
+            <span class="badge bg-success ms-1">{{ approved_testimonial_count }} live</span>
+          </span>
+        </div>
+        <div class="sc-body p-0">
+          {% if not pending_testimonials %}
+          <div class="text-center text-muted py-3" style="font-size:.9rem;">
+            🎉 No testimonials waiting for review.
+          </div>
+          {% else %}
+          {% for t in pending_testimonials %}
+          <div class="p-3 border-bottom">
+            <div class="d-flex align-items-start gap-3 flex-wrap">
+              <div style="flex:1;min-width:200px;">
+                <div class="fw-semibold" style="font-size:.88rem;">
+                  {{ t.name }}
+                  {% if t.county %}<span class="text-muted fw-normal">· 📍 {{ t.county }}</span>{% endif %}
+                  {% if t.case_type %}<span class="badge bg-light text-dark ms-1" style="font-size:.68rem;">{{ t.case_type }}</span>{% endif %}
+                  <span class="text-muted fw-normal" style="font-size:.75rem;">· {{ t.created_at|date:"d M Y" }}</span>
+                </div>
+                <div class="mt-1" style="font-size:.84rem;color:#333;">{{ t.story|truncatechars:300 }}</div>
+                {% if t.outcome %}
+                <div class="mt-1" style="font-size:.8rem;color:#1a7a3c;font-weight:600;">
+                  ✅ Outcome: {{ t.outcome }}
+                </div>
+                {% endif %}
+              </div>
+              <div class="d-flex flex-column gap-2" style="min-width:120px;">
+                <form method="POST" action="/dashboard/">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="approve_testimonial">
+                  <input type="hidden" name="testimonial_id" value="{{ t.pk }}">
+                  <button type="submit" class="btn btn-sm w-100"
+                          style="background:#1a7a3c;color:#fff;font-size:.75rem;">
+                    ✅ Approve
+                  </button>
+                </form>
+                <form method="POST" action="/dashboard/">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="reject_testimonial">
+                  <input type="hidden" name="testimonial_id" value="{{ t.pk }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger w-100"
+                          style="font-size:.75rem;"
+                          onclick="return confirm('Delete this testimonial from {{ t.name }}?')">
+                    🗑️ Reject
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Lead Summary ── -->
+    <div class="col-12 col-lg-6" id="sec-leads">
+      <div class="section-card">
+        <div class="sc-header">📲 Client Leads by Lawyer</div>
+        <div class="sc-body p-0">
+          {% if lead_summary %}
+          <table class="table table-sm mb-0" style="font-size:.82rem;">
+            <thead>
+              <tr>
+                <th>Lawyer</th>
+                <th class="text-center">Total</th>
+                <th class="text-center">New</th>
+                <th class="text-center">Contacted</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in lead_summary %}
+              <tr>
+                <td>
+                  <a href="/lawyers/{{ row.lawyer__pk }}/" target="_blank"
+                     style="color:var(--haki-green);text-decoration:none;">
+                    {{ row.lawyer__full_name }}
+                  </a>
+                </td>
+                <td class="text-center fw-bold">{{ row.total }}</td>
+                <td class="text-center text-warning fw-bold">{{ row.new }}</td>
+                <td class="text-center text-success fw-bold">{{ row.contacted }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div class="text-center text-muted py-3" style="font-size:.88rem;">
+            No leads yet — will appear here when clients contact lawyers.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Slang Keywords List ── -->
+    <div class="col-12 col-lg-6" id="sec-slang-list">
+      <div class="section-card">
+        <div class="sc-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <span>🗣️ Slang Keywords ({{ slang_keywords|length }})</span>
+          <a href="#sec-slang" class="btn btn-sm btn-haki" style="font-size:.74rem;">
+            ➕ Add New
+          </a>
+        </div>
+        <div class="sc-body p-0" style="max-height:340px;overflow-y:auto;">
+          <table class="table table-sm mb-0" style="font-size:.78rem;">
+            <thead>
+              <tr>
+                <th>Word</th>
+                <th>Topic</th>
+                <th>Lang</th>
+                <th>Active</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for kw in slang_keywords %}
+              <tr style="{% if not kw.active %}opacity:.45;{% endif %}">
+                <td class="fw-semibold">{{ kw.word }}</td>
+                <td>{{ kw.topic }}</td>
+                <td>{{ kw.language }}</td>
+                <td>
+                  <form method="POST" action="/dashboard/" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="toggle_slang">
+                    <input type="hidden" name="slang_id" value="{{ kw.pk }}">
+                    <button type="submit" class="btn btn-sm py-0 px-1"
+                            style="font-size:.7rem;border:1px solid #ddd;background:#fff;">
+                      {% if kw.active %}✅{% else %}⏸️{% endif %}
+                    </button>
+                  </form>
+                </td>
+                <td>
+                  <form method="POST" action="/dashboard/" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_slang">
+                    <input type="hidden" name="slang_id" value="{{ kw.pk }}">
+                    <button type="submit" class="btn btn-sm py-0 px-1"
+                            style="font-size:.7rem;border:1px solid #fcc;background:#fff;color:#dc3545;"
+                            onclick="return confirm('Delete keyword {{ kw.word }}?')">
+                      🗑️
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-muted text-center py-2">No keywords yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Law Sections + Embeddings ── -->
+    <div class="col-12" id="sec-laws-status">
+      <div class="section-card">
+        <div class="sc-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <span>⚖️ Law Sections
+            <span class="badge bg-success ms-1">{{ total_law_sections }} total</span>
+            {% if unembedded_laws %}
+            <span class="badge bg-danger ms-1">{{ unembedded_laws|length }}+ not searchable yet</span>
+            {% else %}
+            <span class="badge bg-success ms-1">All searchable ✅</span>
+            {% endif %}
+          </span>
+          <div class="d-flex gap-2 flex-wrap">
+            {% if unembedded_laws %}
+            <form method="POST" action="/dashboard/">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="build_embeddings">
+              <button type="submit" class="btn btn-sm btn-haki"
+                      onclick="return confirm('Build AI embeddings for {{ unembedded_laws|length }}+ sections? This may take a minute.')">
+                🤖 Build Embeddings (make searchable)
+              </button>
+            </form>
+            {% endif %}
+            <a href="#sec-law-section" class="btn btn-sm btn-outline-secondary"
+               style="font-size:.8rem;">
+              ➕ Add Law Section
+            </a>
+          </div>
+        </div>
+        {% if unembedded_laws %}
+        <div class="sc-body p-0">
+          <div class="p-2" style="background:#fff8f8;border-bottom:1px solid #fcc;font-size:.8rem;color:#721c24;">
+            ⚠️ The following sections were added but are not yet searchable by the AI.
+            Click <strong>Build Embeddings</strong> above to activate them.
+          </div>
+          <table class="table table-sm mb-0" style="font-size:.8rem;">
+            <thead><tr><th>Act</th><th>Section</th><th>Category</th><th>Added</th></tr></thead>
+            <tbody>
+              {% for law in unembedded_laws %}
+              <tr>
+                <td>{{ law.title|truncatechars:40 }}</td>
+                <td>{{ law.section|truncatechars:40 }}</td>
+                <td>{{ law.category }}</td>
+                <td>{{ law.created_at|date:"d M Y" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="sc-body p-0">
+          <div class="p-3" style="font-size:.82rem;">
+            <strong>Recently added sections:</strong>
+          </div>
+          <table class="table table-sm mb-0" style="font-size:.8rem;">
+            <thead><tr><th>Act</th><th>Section</th><th>Category</th><th>Added</th></tr></thead>
+            <tbody>
+              {% for law in recent_laws %}
+              <tr>
+                <td>{{ law.title|truncatechars:40 }}</td>
+                <td>{{ law.section|truncatechars:40 }}</td>
+                <td>{{ law.category }}</td>
+                <td>{{ law.created_at|date:"d M Y" }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-muted text-center py-2">No law sections yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div><!-- /second management row -->
 
 </div><!-- /container -->
 
