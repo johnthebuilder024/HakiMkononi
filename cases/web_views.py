@@ -348,6 +348,55 @@ def ask_web(request):
     }, lang)
 
 
+# ─── /dashboard/login/ and /dashboard/logout/ ────────────────────────────────
+
+@require_http_methods(["GET", "POST"])
+def dashboard_login(request):
+    """
+    GET  /dashboard/login/  — show the branded login page
+    POST /dashboard/login/  — authenticate and redirect to dashboard
+    """
+    from django.contrib.auth import authenticate, login as auth_login
+    from django.shortcuts import redirect
+
+    # Already logged in as staff? Go straight to dashboard
+    if request.user.is_authenticated and request.user.is_staff:
+        return redirect('/dashboard/')
+
+    error    = None
+    username = ''
+    next_url = request.GET.get('next', request.POST.get('next', '/dashboard/'))
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        user = authenticate(request, username=username, password=password)
+        if user is not None and user.is_staff and user.is_active:
+            auth_login(request, user)
+            return redirect(next_url or '/dashboard/')
+        elif user is not None and not user.is_staff:
+            error = "Your account does not have platform access."
+        else:
+            error = "Username or password is incorrect."
+
+    from django.middleware.csrf import get_token
+    get_token(request)  # ensure CSRF cookie is set
+    return render(request, 'dashboard_login.html', {
+        'error':    error,
+        'username': username,
+        'next':     next_url,
+    })
+
+
+@require_http_methods(["GET", "POST"])
+def dashboard_logout(request):
+    """GET /dashboard/logout/ — log out and return to the login page."""
+    from django.contrib.auth import logout as auth_logout
+    auth_logout(request)
+    from django.shortcuts import redirect
+    return redirect('/dashboard/login/')
+
+
 # ─── /dashboard/ — Admin Learning Dashboard ──────────────────────────────────
 
 from django.contrib.admin.views.decorators import staff_member_required
@@ -356,7 +405,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 
-@staff_member_required(login_url='/admin/login/')
+@staff_member_required(login_url='/dashboard/login/')
 def dashboard(request):
     """
     Staff-only learning dashboard.

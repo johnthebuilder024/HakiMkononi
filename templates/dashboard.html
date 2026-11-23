@@ -107,7 +107,7 @@
     <a href="#sec-laws-status">⚖️ Laws</a>
     <a href="#sec-slang">🗣️ Slang</a>
     <a href="#sec-team">👥 Team</a>
-    <a href="/admin/logout/" style="color:#f87171;">Logout</a>
+    <a href="/dashboard/logout/" style="color:#f87171;">Logout</a>
   </div>
 </div>
 
@@ -1249,9 +1249,16 @@
 
 </div><!-- /container -->
 
-<footer style="background:#0f4d26;color:rgba(255,255,255,.6);font-size:.8rem;padding:.75rem 1.5rem;margin-top:2rem;display:flex;justify-content:space-between;">
-  <span>⚖️ HakiMkononi Admin Dashboard</span>
-  <span>Staff only — <a href="/admin/logout/" style="color:#c9a84c;">Logout</a></span>
+<footer style="background:#0f4d26;color:rgba(255,255,255,.6);font-size:.8rem;padding:.75rem 1.5rem;margin-top:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">
+  <span>⚖️ HakiMkononi Platform Dashboard</span>
+  <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+    <a href="/admin/" target="_blank"
+       style="color:rgba(255,255,255,.5);font-size:.75rem;text-decoration:none;
+              border:1px solid rgba(255,255,255,.2);padding:.2em .6em;border-radius:6px;">
+      ⚙️ Django Admin
+    </a>
+    <a href="/dashboard/logout/" style="color:#f87171;text-decoration:none;">Logout</a>
+  </div>
 </footer>
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>

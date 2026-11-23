@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
 from cases.web_views import home, about, ask_web, dashboard
+from cases.web_views import dashboard_login, dashboard_logout
 from cases.web_views import lawyer_register, lawyer_documents, lawyer_status
 from cases.web_views import lawyers_connect, lawyers_for_query, lawyers_landing
 from cases.web_views import lawyer_profile, lawyer_login, lawyer_logout
@@ -34,6 +35,8 @@ urlpatterns = [
     path("ask/",                       ask_web,            name="ask_web"),
     path("about/",                     about,              name="about"),
     path("dashboard/",                 dashboard,          name="dashboard"),
+    path("dashboard/login/",           dashboard_login,    name="dashboard_login"),
+    path("dashboard/logout/",          dashboard_logout,   name="dashboard_logout"),
     # Lawyers — public
     path("lawyers/",                                lawyers_landing,    name="lawyers_landing"),
     path("lawyers/directory/",                      lawyers_directory,  name="lawyers_directory"),

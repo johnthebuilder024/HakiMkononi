@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Platform Login | HakiMkononi</title>
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+  <style>
+    :root {
+      --haki-green: #1a7a3c;
+      --haki-dark:  #0f4d26;
+      --haki-gold:  #c9a84c;
+      --haki-light: #e8f5ee;
+    }
+    body {
+      background: linear-gradient(135deg, var(--haki-dark) 0%, #1a2a1a 100%);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .login-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      width: 100%;
+      max-width: 420px;
+      overflow: hidden;
+    }
+    .login-header {
+      background: var(--haki-green);
+      border-bottom: 3px solid var(--haki-gold);
+      padding: 2rem 2rem 1.5rem;
+      text-align: center;
+      color: #fff;
+    }
+    .login-header .logo {
+      width: 64px; height: 64px; border-radius: 14px;
+      object-fit: cover; margin-bottom: .75rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,.25);
+    }
+    .login-header h1 {
+      font-size: 1.5rem; font-weight: 800; margin: 0 0 .2rem;
+    }
+    .login-header h1 span { color: var(--haki-gold); }
+    .login-header p {
+      font-size: .82rem; color: rgba(255,255,255,.75); margin: 0;
+    }
+    .login-body { padding: 2rem; }
+    .form-label { font-weight: 600; font-size: .88rem; color: #333; }
+    .form-control {
+      border-radius: 10px; border: 1.5px solid #dde;
+      font-size: .93rem; padding: .65rem .9rem;
+      transition: border-color .2s;
+    }
+    .form-control:focus {
+      border-color: var(--haki-green);
+      box-shadow: 0 0 0 3px rgba(26,122,60,.12);
+    }
+    .btn-login {
+      background: var(--haki-green); color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 1rem; font-weight: 700;
+      padding: .75rem;
+      width: 100%; margin-top: .5rem;
+      transition: background .15s, transform .1s;
+      cursor: pointer;
+    }
+    .btn-login:hover { background: var(--haki-dark); }
+    .btn-login:active { transform: scale(.98); }
+    .error-box {
+      background: #fdf0f0; border: 1px solid #f5c6cb;
+      border-radius: 8px; padding: .65rem .9rem;
+      font-size: .85rem; color: #721c24; margin-bottom: 1rem;
+    }
+    .login-footer {
+      padding: 1rem 2rem 1.5rem;
+      text-align: center;
+      border-top: 1px solid #f3f3f3;
+      font-size: .78rem; color: #aaa;
+    }
+    .login-footer a { color: var(--haki-green); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+
+    <!-- Header -->
+    <div class="login-header">
+      <img src="/static/img/logo.png" alt="HakiMkononi" class="logo"
+           onerror="this.style.display='none'">
+      <h1>Haki<span>Mkononi</span></h1>
+      <p>Platform Owner &amp; Team Login</p>
+    </div>
+
+    <!-- Body -->
+    <div class="login-body">
+
+      {% if error %}
+      <div class="error-box">❌ {{ error }}</div>
+      {% endif %}
+
+      <form method="POST" action="/dashboard/login/">
+        {% csrf_token %}
+        {% if next %}
+        <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+
+        <div class="mb-3">
+          <label class="form-label" for="id_username">Username</label>
+          <input type="text" id="id_username" name="username"
+                 class="form-control" autocomplete="username"
+                 autofocus required
+                 placeholder="Your username"
+                 value="{{ username|default:'' }}">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="id_password">Password</label>
+          <input type="password" id="id_password" name="password"
+                 class="form-control" autocomplete="current-password"
+                 required placeholder="Your password">
+        </div>
+
+        <button type="submit" class="btn-login">
+          🔐 Log In to Dashboard
+        </button>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <a href="/">← Back to HakiMkononi</a>
+      &nbsp;·&nbsp;
+      <a href="/lawyers/login/">Lawyer Login</a>
+    </div>
+
+  </div>
+</body>
+</html>
