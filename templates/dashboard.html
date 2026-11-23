@@ -100,10 +100,10 @@
   <a href="/" class="brand">⚖️ Haki<span>Mkononi</span></a>
   <div class="nav-links">
     <a href="/">🌐 Website</a>
-    <a href="/admin/">⚙️ Admin Panel</a>
-    <a href="/admin/cases/query/?was_helpful__exact=0">📋 All 👎 Queries</a>
-    <a href="/admin/cases/lawyer/?kyc_status__exact=docs_submitted">⚖️ Lawyer KYC</a>
-    <a href="/admin/cases/slangkeyword/">🗣️ Slang Keywords</a>
+    <a href="#sec-review-queue">👎 Review Answers</a>
+    <a href="#sec-kyc">⚖️ Lawyer KYC</a>
+    <a href="#sec-reports">🚩 Reports</a>
+    <a href="#sec-slang">🗣️ Add Slang</a>
     <a href="/admin/logout/" style="color:#f87171;">Logout</a>
   </div>
 </div>
@@ -195,8 +195,8 @@
       <strong>{{ lawyers_pending_review }} lawyer{{ lawyers_pending_review|pluralize }} pending KYC review</strong><br>
       <small class="text-muted">
         Documents submitted and waiting for your approval.
-        <a href="/admin/cases/lawyer/?kyc_status__exact=docs_submitted" class="fw-semibold">
-          Review now →
+        <a href="#sec-kyc" class="fw-semibold">
+          Review now ↓
         </a>
       </small>
     </div>
@@ -216,14 +216,14 @@
       <div class="stat-card" style="border-left:4px solid #ffc107;">
         <div class="num" style="color:#b8860b;">{{ lawyers_pending_review }}</div>
         <div class="label">Pending Review</div>
-        <div class="sub"><a href="/admin/cases/lawyer/?kyc_status__exact=docs_submitted">Review →</a></div>
+        <div class="sub"><a href="#sec-kyc">Review ↓</a></div>
       </div>
     </div>
     <div class="col-6 col-md-4">
       <div class="stat-card">
         <div class="num">{{ lawyers_total }}</div>
         <div class="label">Total Applications</div>
-        <div class="sub"><a href="/admin/cases/lawyer/">All →</a></div>
+        <div class="sub"><a href="#sec-kyc">All ↓</a></div>
       </div>
     </div>
   </div>
@@ -351,11 +351,11 @@
                   <small class="text-muted">{{ cat.rate }}%</small>
                 </td>
                 <td>
-                  <a href="/admin/cases/query/?was_helpful__exact=0&laws_used__category={{ cat.code }}"
+                  <a href="#sec-review-queue"
+                     onclick="showTab('pending')"
                      class="btn btn-sm py-0 px-2"
-                     style="font-size:.7rem;background:#f5f5f5;border:1px solid #ddd;"
-                     target="_blank">
-                    Review →
+                     style="font-size:.7rem;background:#f5f5f5;border:1px solid #ddd;">
+                    Review ↓
                   </a>
                 </td>
               </tr>
@@ -368,7 +368,7 @@
       {% endif %}
 
       <!-- Review queue tabs -->
-      <div class="section-card">
+      <div class="section-card" id="sec-review-queue">
         <div class="sc-header d-flex align-items-center justify-content-between flex-wrap gap-2">
           <span>
             👎 Review Queue
@@ -475,10 +475,10 @@
                             style="font-size:.75rem;">
                       🔕 Won't Fix
                     </button>
-                    <a href="/admin/cases/law/?q={{ q.laws_used.all|first }}"
+                    <a href="#sec-law-section"
                        class="btn btn-sm btn-outline-primary"
-                       style="font-size:.75rem;" target="_blank">
-                      📄 Edit Law Sections
+                       style="font-size:.75rem;">
+                      📄 Add Law Section ↓
                     </a>
                   </div>
                 </form>
@@ -488,7 +488,7 @@
 
             {% if pending_count > 30 %}
             <div class="text-center text-muted small mt-3">
-              Showing 30 of {{ pending_count }} pending. <a href="/admin/cases/query/?was_helpful__exact=0&review_status__exact=pending">See all in admin →</a>
+              Showing 30 of {{ pending_count }} pending — scroll up to find earlier items.
             </div>
             {% endif %}
           </div>
@@ -543,7 +543,7 @@
   <div class="row g-4 mt-2">
 
     <!-- ── Lawyer KYC Management ── -->
-    <div class="col-12">
+    <div class="col-12" id="sec-kyc">
       <div class="section-card">
         <div class="sc-header d-flex align-items-center justify-content-between flex-wrap gap-2">
           <span>⚖️ Lawyer Applications
@@ -708,7 +708,7 @@
     </div>
 
     <!-- ── Lawyer Reports ── -->
-    <div class="col-12">
+    <div class="col-12" id="sec-reports">
       <div class="section-card">
         <div class="sc-header d-flex align-items-center justify-content-between flex-wrap gap-2">
           <span>🚩 Lawyer Reports
@@ -832,7 +832,7 @@
     {% endif %}
 
     <!-- ── Add Slang Keyword & Law Section — two columns ── -->
-    <div class="col-12 col-lg-6">
+    <div class="col-12 col-lg-6" id="sec-slang">
       <div class="section-card h-100">
         <div class="sc-header">🗣️ Add Slang Keyword</div>
         <div class="sc-body">
@@ -871,7 +871,7 @@
       </div>
     </div>
 
-    <div class="col-12 col-lg-6">
+    <div class="col-12 col-lg-6" id="sec-law-section">
       <div class="section-card h-100">
         <div class="sc-header">📄 Add Law Section</div>
         <div class="sc-body">
@@ -911,7 +911,9 @@
             </div>
             <button type="submit" class="btn btn-sm btn-haki w-100">➕ Add Law Section</button>
             <small class="text-muted d-block mt-1 text-center">
-              After adding, go to Admin → Laws → select it → Build Embeddings to make it searchable.
+              After adding, the section is saved but not yet searchable by the AI.
+              To make it searchable: go to <a href="/admin/cases/law/" target="_blank">Admin → Laws</a>,
+              select it, and run "Build Embeddings".
             </small>
           </form>
         </div>
