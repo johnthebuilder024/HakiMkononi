@@ -153,6 +153,13 @@
            title="{{ l.lang_name }}">{{ l.lang_name }}</a>
         {% endfor %}
         {% block navbar_extra %}{% endblock %}
+        {% if request.user.is_staff %}
+        <a href="/dashboard/"
+           class="btn btn-sm"
+           style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);font-weight:600;white-space:nowrap;">
+          📊 Dashboard
+        </a>
+        {% endif %}
       </div>
     </div>
   </div>

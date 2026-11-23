@@ -69,7 +69,7 @@ class LawAdmin(admin.ModelAdmin):
 @admin.register(Query)
 class QueryAdmin(admin.ModelAdmin):
     list_display = ['pk', 'story_preview', 'county', 'feedback_badge', 'created_at']
-    list_filter = ['was_helpful', 'county', 'created_at']
+    list_filter = ['was_helpful', 'review_status', 'county', 'created_at', 'laws_used__category']
     search_fields = ['story', 'answer_law', 'correct_section']
     readonly_fields = [
         'story', 'county', 'user_identifier', 'answer_law', 'answer_simple',

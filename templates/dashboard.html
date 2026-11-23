@@ -89,6 +89,8 @@
 
     .page-title { font-size: 1.4rem; font-weight: 800; color: #1a1a2e; margin-bottom: .2rem; }
     .page-sub   { font-size: .85rem; color: #666; }
+    .btn-haki   { background: var(--haki-green); border-color: var(--haki-green); color: #fff; font-weight: 600; }
+    .btn-haki:hover { background: var(--haki-dark); border-color: var(--haki-dark); color: #fff; }
   </style>
 </head>
 <body>
@@ -100,7 +102,9 @@
     <a href="/">🌐 Website</a>
     <a href="/admin/">⚙️ Admin Panel</a>
     <a href="/admin/cases/query/?was_helpful__exact=0">📋 All 👎 Queries</a>
+    <a href="/admin/cases/lawyer/?kyc_status__exact=docs_submitted">⚖️ Lawyer KYC</a>
     <a href="/admin/cases/slangkeyword/">🗣️ Slang Keywords</a>
+    <a href="/admin/logout/" style="color:#f87171;">Logout</a>
   </div>
 </div>
 
@@ -553,12 +557,42 @@
           <a href="/admin/cases/query/?was_helpful__exact=1" class="btn btn-sm btn-outline-success">
             👍 All Helpful Queries
           </a>
+          <a href="/admin/cases/lawyer/?kyc_status__exact=docs_submitted" class="btn btn-sm btn-outline-warning">
+            ⚖️ Review Lawyer Applications
+          </a>
+          <a href="/admin/cases/lawyer/" class="btn btn-sm btn-outline-secondary">
+            📋 All Lawyers
+          </a>
           <a href="/admin/cases/slangkeyword/" class="btn btn-sm btn-outline-secondary">
             🗣️ Manage Slang Keywords
           </a>
           <a href="/admin/" class="btn btn-sm btn-outline-secondary">
             ⚙️ Full Admin Panel
           </a>
+        </div>
+      </div>
+
+      <!-- Team access note -->
+      <div class="section-card mt-3">
+        <div class="sc-header">👥 Platform Owner &amp; Team Access</div>
+        <div class="sc-body" style="font-size:.88rem;line-height:1.8;">
+          <p class="mb-2">
+            This dashboard is only visible to <strong>staff</strong> Django users.
+            Share access by creating staff accounts in the admin:
+          </p>
+          <ol class="mb-3" style="padding-left:1.2rem;">
+            <li>Go to <a href="/admin/auth/user/add/" target="_blank">Admin → Users → Add User →</a></li>
+            <li>Set username, password, check <strong>Staff status</strong>, save.</li>
+            <li>They log in at <a href="/admin/" target="_blank">/admin/</a> and get here via <strong>/dashboard/</strong>.</li>
+          </ol>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="/admin/auth/user/add/" class="btn btn-sm btn-haki" target="_blank">
+              ➕ Add Team Member
+            </a>
+            <a href="/admin/auth/user/" class="btn btn-sm btn-outline-secondary" target="_blank">
+              👤 Manage All Users
+            </a>
+          </div>
         </div>
       </div>
     </div>
