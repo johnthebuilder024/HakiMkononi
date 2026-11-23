@@ -472,46 +472,197 @@ def dashboard(request):
     total_acts = Law.objects.values('title').distinct().count()
 
     # ── Lawyer KYC pipeline ───────────────────────────────────────────────────
-    from cases.models import Lawyer
+    from cases.models import Lawyer, LawyerPublicAnswer, LawyerReport
     lawyers_pending_review = Lawyer.objects.filter(kyc_status='docs_submitted').count()
     lawyers_verified       = Lawyer.objects.filter(kyc_status='verified', is_active=True).count()
     lawyers_total          = Lawyer.objects.count()
 
+    # Full lawyer lists for dashboard management
+    lawyers_awaiting = Lawyer.objects.filter(kyc_status='docs_submitted').order_by('created_at')
+    lawyers_all      = Lawyer.objects.order_by('-created_at')[:50]
+
+    # Pending public answers waiting for approval
+    pending_public_answers = LawyerPublicAnswer.objects.filter(
+        approved=False
+    ).select_related('lawyer').order_by('-created_at')[:20]
+
+    # Unreviewed reports
+    unreviewed_reports = LawyerReport.objects.filter(
+        reviewed=False
+    ).select_related('lawyer').order_by('-created_at')[:20]
+
+    # Current staff team members
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    team_members = User.objects.filter(is_staff=True).order_by('username')
+
     # ── Handle POST — save correction or update review status ────────────────
     fix_message = None
     if request.method == 'POST':
-        query_id       = request.POST.get('query_id')
-        action         = request.POST.get('action', 'save_fix')
-        correct_section = request.POST.get('correct_section', '').strip()
-        what_happened  = request.POST.get('what_actually_happened', '').strip()
-        review_note    = request.POST.get('review_note', '').strip()
-        try:
-            q = Query.objects.get(pk=query_id)
-            if action == 'mark_fixed':
-                q.correct_section        = correct_section
-                q.what_actually_happened = what_happened
-                q.review_status          = 'fixed'
-                q.review_note            = review_note
-                q.save(update_fields=['correct_section','what_actually_happened',
-                                      'review_status','review_note'])
-                fix_message = f"✅ Query #{query_id} marked as fixed."
-            elif action == 'mark_wontfix':
-                q.review_status = 'wontfix'
-                q.review_note   = review_note
-                q.save(update_fields=['review_status','review_note'])
-                fix_message = f"🔕 Query #{query_id} marked as won't fix."
-            elif action == 'reopen':
-                q.review_status = 'pending'
-                q.save(update_fields=['review_status'])
-                fix_message = f"🔄 Query #{query_id} reopened for review."
+        action = request.POST.get('action', 'save_fix')
+
+        # ── Lawyer KYC actions ────────────────────────────────────────────────
+        if action in ('verify_lawyer', 'reject_lawyer', 'suspend_lawyer', 'activate_lawyer'):
+            lawyer_id = request.POST.get('lawyer_id', '').strip()
+            try:
+                lawyer = Lawyer.objects.get(pk=lawyer_id)
+                if action == 'verify_lawyer':
+                    lawyer.kyc_status  = 'verified'
+                    lawyer.verified_by = request.user
+                    lawyer.verified_at = timezone.now()
+                    lawyer.is_active   = True
+                    lawyer.save(update_fields=['kyc_status','verified_by','verified_at','is_active'])
+                    # Send notification email
+                    try:
+                        from cases.web_views import _send_password_setup_link
+                        _send_password_setup_link(lawyer)
+                    except Exception:
+                        pass
+                    fix_message = f"✅ {lawyer.full_name} verified and notified."
+                elif action == 'reject_lawyer':
+                    reason = request.POST.get('rejection_reason', '').strip()
+                    lawyer.kyc_status            = 'rejected'
+                    lawyer.kyc_rejection_reason  = reason
+                    lawyer.save(update_fields=['kyc_status','kyc_rejection_reason'])
+                    try:
+                        from cases.web_views import _send_rejection_notification
+                        _send_rejection_notification(lawyer)
+                    except Exception:
+                        pass
+                    fix_message = f"❌ {lawyer.full_name} rejected."
+                elif action == 'suspend_lawyer':
+                    lawyer.kyc_status = 'suspended'
+                    lawyer.save(update_fields=['kyc_status'])
+                    fix_message = f"⚠️ {lawyer.full_name} suspended."
+                elif action == 'activate_lawyer':
+                    lawyer.kyc_status = 'verified'
+                    lawyer.is_active  = True
+                    lawyer.save(update_fields=['kyc_status','is_active'])
+                    fix_message = f"✅ {lawyer.full_name} reactivated."
+            except Lawyer.DoesNotExist:
+                fix_message = "❌ Lawyer not found."
+
+        # ── Public answer moderation ──────────────────────────────────────────
+        elif action in ('approve_public_answer', 'reject_public_answer'):
+            pa_id = request.POST.get('pa_id', '').strip()
+            try:
+                pa = LawyerPublicAnswer.objects.get(pk=pa_id)
+                if action == 'approve_public_answer':
+                    pa.approved = True
+                    pa.save(update_fields=['approved'])
+                    fix_message = f"✅ Public answer by {pa.lawyer.full_name} approved."
+                else:
+                    pa.delete()
+                    fix_message = "🗑️ Public answer rejected and deleted."
+            except LawyerPublicAnswer.DoesNotExist:
+                fix_message = "❌ Answer not found."
+
+        # ── Add slang keyword ─────────────────────────────────────────────────
+        elif action == 'add_slang':
+            from cases.models import SlangKeyword
+            word  = request.POST.get('slang_word', '').strip().lower()
+            topic = request.POST.get('slang_topic', '').strip()
+            lang  = request.POST.get('slang_lang', 'sw').strip()
+            if word and topic:
+                _, created = SlangKeyword.objects.get_or_create(
+                    word=word, topic=topic,
+                    defaults={'language': lang, 'active': True}
+                )
+                if created:
+                    from cases.rag import invalidate_law_cache
+                    try: invalidate_law_cache()
+                    except Exception: pass
+                    fix_message = f"✅ Slang keyword '{word}' added for topic '{topic}'."
+                else:
+                    fix_message = f"ℹ️ '{word}' already exists for that topic."
             else:
-                # legacy save_fix
-                q.correct_section        = correct_section
-                q.what_actually_happened = what_happened
-                q.save(update_fields=['correct_section', 'what_actually_happened'])
-                fix_message = f"✅ Query #{query_id} updated."
-        except Query.DoesNotExist:
-            fix_message = f"❌ Query #{query_id} not found."
+                fix_message = "❌ Word and topic are required."
+
+        # ── Add law section ───────────────────────────────────────────────────
+        elif action == 'add_law_section':
+            from cases.models import Law
+            title    = request.POST.get('law_title', '').strip()
+            section  = request.POST.get('law_section', '').strip()
+            category = request.POST.get('law_category', '').strip()
+            content  = request.POST.get('law_content', '').strip()
+            source   = request.POST.get('law_source', '').strip()
+            if title and section and category and content:
+                law = Law.objects.create(
+                    title=title, section=section,
+                    category=category, content=content,
+                    source_url=source,
+                )
+                fix_message = (
+                    f"✅ Law section '{section}' added under '{title}'. "
+                    f"Run 'Build Embeddings' in admin to make it searchable."
+                )
+            else:
+                fix_message = "❌ Title, section, category, and content are all required."
+
+        # ── Team member management ────────────────────────────────────────────
+        elif action == 'add_team_member':
+            username = request.POST.get('tm_username', '').strip()
+            password = request.POST.get('tm_password', '').strip()
+            email    = request.POST.get('tm_email', '').strip()
+            if username and len(password) >= 8:
+                if User.objects.filter(username=username).exists():
+                    fix_message = f"❌ Username '{username}' already taken."
+                else:
+                    u = User.objects.create_user(
+                        username=username, password=password,
+                        email=email, is_staff=True
+                    )
+                    fix_message = f"✅ Team member '{username}' added with dashboard access."
+            else:
+                fix_message = "❌ Username and password (min 8 chars) are required."
+
+        elif action == 'remove_team_member':
+            tm_id = request.POST.get('tm_id', '').strip()
+            # Never allow removing yourself
+            if str(request.user.pk) == tm_id:
+                fix_message = "❌ You cannot remove your own account."
+            else:
+                try:
+                    u = User.objects.get(pk=tm_id, is_staff=True)
+                    uname = u.username
+                    u.is_staff = False
+                    u.save(update_fields=['is_staff'])
+                    fix_message = f"✅ '{uname}' removed from dashboard access (account kept)."
+                except User.DoesNotExist:
+                    fix_message = "❌ User not found."
+
+        # ── Existing query review actions ─────────────────────────────────────
+        else:
+            query_id        = request.POST.get('query_id')
+            correct_section = request.POST.get('correct_section', '').strip()
+            what_happened   = request.POST.get('what_actually_happened', '').strip()
+            review_note     = request.POST.get('review_note', '').strip()
+            try:
+                q = Query.objects.get(pk=query_id)
+                if action == 'mark_fixed':
+                    q.correct_section        = correct_section
+                    q.what_actually_happened = what_happened
+                    q.review_status          = 'fixed'
+                    q.review_note            = review_note
+                    q.save(update_fields=['correct_section','what_actually_happened',
+                                          'review_status','review_note'])
+                    fix_message = f"✅ Query #{query_id} marked as fixed."
+                elif action == 'mark_wontfix':
+                    q.review_status = 'wontfix'
+                    q.review_note   = review_note
+                    q.save(update_fields=['review_status','review_note'])
+                    fix_message = f"🔕 Query #{query_id} marked as won't fix."
+                elif action == 'reopen':
+                    q.review_status = 'pending'
+                    q.save(update_fields=['review_status'])
+                    fix_message = f"🔄 Query #{query_id} reopened for review."
+                else:
+                    q.correct_section        = correct_section
+                    q.what_actually_happened = what_happened
+                    q.save(update_fields=['correct_section', 'what_actually_happened'])
+                    fix_message = f"✅ Query #{query_id} updated."
+            except (Query.DoesNotExist, TypeError):
+                fix_message = f"❌ Query not found."
 
     context = {
         # Stats
@@ -548,8 +699,17 @@ def dashboard(request):
         'lawyers_pending_review': lawyers_pending_review,
         'lawyers_verified':       lawyers_verified,
         'lawyers_total':          lawyers_total,
+        'lawyers_awaiting':       lawyers_awaiting,
+        'lawyers_all':            lawyers_all,
+        'pending_public_answers': pending_public_answers,
+        'unreviewed_reports':     unreviewed_reports,
+        'team_members':           team_members,
+        'current_user_id':        request.user.pk,
         # Misc
         'fix_message': fix_message,
+        # Form choices for inline forms
+        'law_category_choices':   Law.CATEGORY_CHOICES,
+        'slang_topic_choices':    [('employment','Employment / Job'),('criminal','Criminal / Police / Arrest'),('land','Land / Landlord / Tenant'),('family','Family / Marriage / Divorce'),('fraud','Fraud / Cybercrime'),('data','Data Protection / Privacy')],
     }
     return render(request, 'dashboard.html', context)
 
