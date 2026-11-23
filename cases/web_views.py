@@ -550,12 +550,69 @@ def dashboard(request):
                 if action == 'approve_public_answer':
                     pa.approved = True
                     pa.save(update_fields=['approved'])
-                    fix_message = f"✅ Public answer by {pa.lawyer.full_name} approved."
+                    # Notify the lawyer their answer is now live
+                    try:
+                        import os, threading
+                        from django.core.mail import send_mail
+                        login_url = "https://hakimkononi.onrender.com/lawyers/dashboard/"
+                        subject = "✅ Your public answer is now live on HakiMkononi"
+                        body = (
+                            f"Hi {pa.lawyer.full_name},\n\n"
+                            f"Your public answer has been reviewed and approved.\n\n"
+                            f"Question: {pa.question[:200]}\n\n"
+                            f"It is now visible on your public profile at:\n"
+                            f"https://hakimkononi.onrender.com/lawyers/{pa.lawyer.pk}/\n\n"
+                            f"Log in to your dashboard to post another:\n{login_url}\n\n"
+                            f"HakiMkononi Team\n"
+                        )
+                        def _send_approval():
+                            try:
+                                from_email = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@hakimkononi.co.ke')
+                                send_mail(subject, body, from_email, [pa.lawyer.email], fail_silently=True)
+                            except Exception: pass
+                        threading.Thread(target=_send_approval, daemon=True).start()
+                    except Exception: pass
+                    fix_message = f"✅ Public answer by {pa.lawyer.full_name} approved and they have been notified."
                 else:
+                    lawyer_email = pa.lawyer.email
+                    lawyer_name  = pa.lawyer.full_name
                     pa.delete()
-                    fix_message = "🗑️ Public answer rejected and deleted."
+                    # Notify lawyer of rejection
+                    try:
+                        import os, threading
+                        from django.core.mail import send_mail
+                        subject = "Your public answer was not approved — HakiMkononi"
+                        body = (
+                            f"Hi {lawyer_name},\n\n"
+                            f"Your public answer was reviewed but could not be approved at this time.\n\n"
+                            f"Please log in to your dashboard and try submitting another:\n"
+                            f"https://hakimkononi.onrender.com/lawyers/dashboard/\n\n"
+                            f"HakiMkononi Team\n"
+                        )
+                        def _send_rejection():
+                            try:
+                                from_email = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@hakimkononi.co.ke')
+                                send_mail(subject, body, from_email, [lawyer_email], fail_silently=True)
+                            except Exception: pass
+                        threading.Thread(target=_send_rejection, daemon=True).start()
+                    except Exception: pass
+                    fix_message = "🗑️ Public answer rejected, deleted, and lawyer notified."
             except LawyerPublicAnswer.DoesNotExist:
                 fix_message = "❌ Answer not found."
+
+        # ── Lawyer report review ──────────────────────────────────────────────
+        elif action == 'review_report':
+            from cases.models import LawyerReport
+            report_id   = request.POST.get('report_id', '').strip()
+            action_note = request.POST.get('action_taken', '').strip()
+            try:
+                report = LawyerReport.objects.get(pk=report_id)
+                report.reviewed     = True
+                report.action_taken = action_note
+                report.save(update_fields=['reviewed', 'action_taken'])
+                fix_message = f"✅ Report #{report_id} marked as reviewed."
+            except LawyerReport.DoesNotExist:
+                fix_message = "❌ Report not found."
 
         # ── Add slang keyword ─────────────────────────────────────────────────
         elif action == 'add_slang':
@@ -1461,12 +1518,18 @@ def lawyer_dashboard(request, lawyer=None):
                 save_msg = "Lead updated." if lang == 'en' else "Mteja amesasishwa."
         elif action == 'post_public_answer':
             from cases.models import LawyerPublicAnswer
+            from datetime import timedelta as _td
             question = request.POST.get('pa_question', '').strip()[:500]
             answer_text = request.POST.get('pa_answer', '').strip()[:800]
             if question and answer_text:
-                # Only allow one unapproved answer pending at a time
+                # Block if one is already pending review
                 pending = LawyerPublicAnswer.objects.filter(
                     lawyer=lawyer, approved=False
+                ).count()
+                # Also enforce one per 7 days (whether approved or not)
+                week_ago = timezone.now() - _td(days=7)
+                recent   = LawyerPublicAnswer.objects.filter(
+                    lawyer=lawyer, created_at__gte=week_ago
                 ).count()
                 if pending >= 1:
                     save_msg = (
@@ -1475,6 +1538,14 @@ def lawyer_dashboard(request, lawyer=None):
                         if lang == 'en' else
                         "Una jibu moja linalongojea ukaguzi. "
                         "Subiri lipitishwe kabla ya kutuma lingine."
+                    )
+                elif recent >= 1:
+                    save_msg = (
+                        "You can submit one public answer per week. "
+                        "Please wait 7 days before posting another."
+                        if lang == 'en' else
+                        "Unaweza kutuma jibu moja la umma kwa wiki. "
+                        "Tafadhali subiri siku 7 kabla ya kutuma lingine."
                     )
                 else:
                     LawyerPublicAnswer.objects.create(

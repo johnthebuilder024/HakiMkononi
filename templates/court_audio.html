@@ -117,6 +117,8 @@
 var LANG = '{{ lang }}';
 var CSRF = '{{ csrf_token }}';
 var pollTimer = null;
+var pollStart = null;
+var POLL_MAX_MS = 180000; // 3 minutes max
 
 function uploadAudio(){
   var file = document.getElementById('audioFile').files[0];
@@ -139,14 +141,27 @@ function uploadAudio(){
       document.getElementById('resultCard').style.display = '';
       document.getElementById('statusMsg').textContent = LANG==='sw' ? '⏳ Inatafsiria... subiri dakika moja.' : '⏳ Transcribing... please wait about a minute.';
       document.getElementById('uploadCard').style.opacity = '.5';
+      pollStart = Date.now();
       pollTimer = setInterval(function(){ pollStatus(d.id); }, 4000);
     })
     .catch(function(){ showError(LANG==='sw' ? 'Hitilafu ya muunganisho.' : 'Connection error.'); });
 }
 
 function pollStatus(id){
+  // Timeout guard — stop after 3 minutes
+  if(Date.now() - pollStart > POLL_MAX_MS){
+    clearInterval(pollTimer);
+    showError(LANG==='sw'
+      ? 'Imechukua muda mrefu sana. Jaribu tena na faili fupi zaidi.'
+      : 'This is taking too long. Please try again with a shorter recording.');
+    return;
+  }
+
   fetch('/api/court-audio/'+id+'/')
-    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(!r.ok){ throw new Error('Status ' + r.status); }
+      return r.json();
+    })
     .then(function(d){
       if(d.status === 'done'){
         clearInterval(pollTimer);
@@ -154,26 +169,47 @@ function pollStatus(id){
         document.getElementById('summaryDiv').style.display = '';
         document.getElementById('summaryText').textContent = d.summary || (LANG==='sw'?'Hakuna muhtasari uliopatikana.':'No summary generated.');
         document.getElementById('transcriptText').textContent = d.transcript || '';
+        // Re-enable upload for another recording
+        document.getElementById('uploadCard').style.opacity = '1';
+        var btn = document.getElementById('uploadBtn');
+        btn.disabled = false;
+        btn.textContent = LANG==='sw' ? '⬆️ Pakia Rekodi Nyingine' : '⬆️ Upload Another Recording';
       } else if(d.status === 'error'){
         clearInterval(pollTimer);
-        showError(d.error || (LANG==='sw'?'Hitilafu ya utatuzi.':'Transcription error.'));
+        showError(d.error_message || d.error || (LANG==='sw'?'Hitilafu ya utatuzi.':'Transcription error.'));
       }
+      // still pending — keep polling
     })
-    .catch(function(){});
+    .catch(function(err){
+      // Don't stop polling on a single network hiccup, but show a note
+      document.getElementById('statusMsg').textContent =
+        LANG==='sw' ? '⏳ Bado inashughulikia... subiri.' : '⏳ Still processing... please wait.';
+    });
 }
 
 function showError(msg){
+  clearInterval(pollTimer);
   var btn = document.getElementById('uploadBtn');
   btn.disabled = false;
   btn.textContent = LANG==='sw' ? '⬆️ Pakia na Tafsiri' : '⬆️ Upload & Transcribe';
   document.getElementById('uploadCard').style.opacity = '1';
   document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('summaryDiv').style.display = 'none';
+  document.getElementById('statusMsg').textContent = '';
   alert(msg);
 }
 
 function copySummary(){
   var text = document.getElementById('summaryText').textContent;
-  try { navigator.clipboard.writeText(text); } catch(e) {}
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).catch(function(){});
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+  }
 }
 </script>
 {% endblock %}

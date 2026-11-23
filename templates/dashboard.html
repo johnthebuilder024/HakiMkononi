@@ -707,6 +707,80 @@
       </div>
     </div>
 
+    <!-- ── Lawyer Reports ── -->
+    <div class="col-12">
+      <div class="section-card">
+        <div class="sc-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <span>🚩 Lawyer Reports
+            {% if unreviewed_reports %}
+            <span class="badge bg-danger ms-1">{{ unreviewed_reports|length }} unreviewed</span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="sc-body p-0">
+          {% if not unreviewed_reports %}
+          <div class="text-center text-muted py-4" style="font-size:.9rem;">
+            🎉 No unreviewed reports right now.
+          </div>
+          {% endif %}
+          {% for report in unreviewed_reports %}
+          <div class="p-3 border-bottom">
+            <div class="d-flex align-items-start gap-3 flex-wrap">
+              <div style="flex:1;min-width:200px;">
+                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                  <span class="fw-bold" style="font-size:.88rem;">
+                    🚩 Report #{{ report.pk }} —
+                    <a href="/lawyers/{{ report.lawyer.pk }}/" target="_blank"
+                       style="color:var(--haki-green);text-decoration:none;">
+                      {{ report.lawyer.full_name }}
+                    </a>
+                  </span>
+                  <span class="text-muted" style="font-size:.75rem;">{{ report.created_at|date:"d M Y H:i" }}</span>
+                </div>
+                <div style="font-size:.84rem;color:#333;background:#fff8f8;padding:.5rem .75rem;border-left:3px solid #dc3545;border-radius:3px;margin-bottom:.5rem;">
+                  {{ report.reason }}
+                </div>
+                {% if report.contact_info %}
+                <div style="font-size:.78rem;color:#666;">
+                  📞 Contact: <strong>{{ report.contact_info }}</strong>
+                </div>
+                {% endif %}
+              </div>
+              <div style="min-width:220px;">
+                <form method="POST" action="/dashboard/">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="review_report">
+                  <input type="hidden" name="report_id" value="{{ report.pk }}">
+                  <div class="mb-2">
+                    <textarea name="action_taken" class="form-control form-control-sm" rows="2"
+                              placeholder="What action did you take? (internal note)"
+                              style="font-size:.75rem;">{{ report.action_taken }}</textarea>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-sm"
+                            style="background:#1a7a3c;color:#fff;font-size:.75rem;flex:1;">
+                      ✅ Mark Reviewed
+                    </button>
+                  </div>
+                </form>
+                <form method="POST" action="/dashboard/" class="mt-1">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="suspend_lawyer">
+                  <input type="hidden" name="lawyer_id" value="{{ report.lawyer.pk }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger w-100"
+                          style="font-size:.75rem;"
+                          onclick="return confirm('Suspend {{ report.lawyer.full_name }}? This removes them from the platform.')">
+                    ⚠️ Suspend Lawyer
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
     <!-- ── Public Answers Moderation ── -->
     {% if pending_public_answers %}
     <div class="col-12">

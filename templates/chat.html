@@ -1404,7 +1404,12 @@
             var list = d2.lawyers||[];
             lawyerSlot.innerHTML = '';
             if(!list.length){
-              lawyerSlot.innerHTML = '<div style="padding:.6rem 1.1rem;font-size:.82rem;color:#888;">'+(LANG==='sw'?'Hakuna wakili katika kaunti hiyo kwa sasa.':'No verified lawyers in that county yet.')+'</div>';
+              lawyerSlot.innerHTML =
+                '<div style="padding:.6rem 1.1rem;font-size:.82rem;color:#888;">' +
+                (LANG==='sw'
+                  ? 'Hakuna wakili katika kaunti hiyo kwa sasa. <a href="/lawyers/directory/" style="color:var(--haki-green);">Tazama mawakili wote →</a>'
+                  : 'No verified lawyers in that county yet. <a href="/lawyers/directory/" style="color:var(--haki-green);">Browse all lawyers →</a>') +
+                '</div>';
               return;
             }
             list.forEach(function(l){
@@ -1597,6 +1602,45 @@
         if(reassuranceEl){ reassuranceEl.remove(); reassuranceEl=null; }
         d.job_id=currentJobId; addAnswerCard(d);
         if(d.assistant_summary&&currentStory)addToHistory(currentStory,d.assistant_summary);
+
+        // ── Court audio nudge — shown ONCE per session after criminal/court answers ──
+        if(!sessionStorage.getItem('haki_court_audio_shown')) {
+          var _isCriminalAnswer = false;
+          // Check sources for criminal categories
+          if(d.sources && d.sources.length) {
+            d.sources.forEach(function(s){
+              if(s.category === 'criminal_procedure' || s.category === 'constitution') {
+                // Check specific constitutional articles about arrest/courts
+                var sec = (s.section || '').toLowerCase();
+                if(sec.indexOf('49') !== -1 || sec.indexOf('50') !== -1 ||
+                   sec.indexOf('51') !== -1 || sec.indexOf('arrest') !== -1) {
+                  _isCriminalAnswer = true;
+                }
+              }
+              if(s.category === 'criminal_procedure') _isCriminalAnswer = true;
+            });
+          }
+          // Also check the story itself for court keywords
+          var _story = (currentStory || '').toLowerCase();
+          var _courtKW = ['court','hearing','magistrate','mahakama','jaji','kusikilizwa','trial','bail','dhamana','kortini','session'];
+          _courtKW.forEach(function(kw){ if(_story.indexOf(kw) !== -1) _isCriminalAnswer = true; });
+
+          if(_isCriminalAnswer) {
+            sessionStorage.setItem('haki_court_audio_shown', '1');
+            setTimeout(function(){
+              addBotBubble(
+                '🎙️ <strong>' + (LANG==='sw' ? 'Ulikuwa mahakamani hivi karibuni?' : 'Have you been to court recently?') + '</strong><br>' +
+                '<span style="color:#666;font-size:.82rem;">' +
+                (LANG==='sw'
+                  ? 'Pakia rekodi fupi ya kusikilizwa kwako — HakiMkononi itatafsiri na kueleza kwa Kiswahili rahisi alichosema jaji.'
+                  : 'Upload a short recording of your court hearing — HakiMkononi will transcribe it and explain in plain language what the judge said.') +
+                '</span><br>' +
+                '<a href="/court-audio/" style="display:inline-block;margin-top:.4rem;background:var(--haki-green);color:#fff;text-decoration:none;border-radius:20px;padding:.3em .9em;font-size:.8rem;">' +
+                '🎙️ ' + (LANG==='sw' ? 'Pakia Rekodi ya Kusikilizwa' : 'Upload Court Recording') + '</a>'
+              );
+            }, 2800);
+          }
+        }
         // Save prompt — handled below (show ONCE per session, not every answer)
         // Old showSavePrompt() call removed to prevent duplicate save bubbles
         // On the website the letter is editable inline — no need for the name/phone flow.
