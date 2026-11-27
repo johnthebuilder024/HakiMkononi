@@ -261,34 +261,47 @@
             </h2>
           </div>
           <div class="card-body p-4">
-            <form method="POST" novalidate>
+            <form method="POST" enctype="multipart/form-data" novalidate>
               {% csrf_token %}
               <input type="hidden" name="action" value="update_profile">
 
-              <!-- Profile photo URL -->
+              <!-- Profile photo — upload directly or paste URL -->
               <div class="mb-3">
                 <label class="form-label fw-semibold small">
-                  {% if lang == 'en' %}Profile Photo URL{% else %}URL ya Picha ya Wasifu{% endif %}
+                  {% if lang == 'en' %}Profile Photo{% else %}Picha ya Wasifu{% endif %}
                   <span class="text-muted fw-normal">({% if lang == 'en' %}optional{% else %}si lazima{% endif %})</span>
                 </label>
-                {% if lawyer.profile_photo_url %}
+                <!-- Current photo preview -->
+                {% if lawyer.profile_photo %}
+                <div class="mb-2 d-flex align-items-center gap-2">
+                  <img src="{{ lawyer.profile_photo.url }}" alt="Current photo"
+                       style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--haki-light);"
+                       onerror="this.style.display='none'">
+                  <small class="text-muted text-success">✅ {% if lang == 'en' %}Photo uploaded{% else %}Picha imepakiwa{% endif %}</small>
+                </div>
+                {% elif lawyer.profile_photo_url %}
                 <div class="mb-2 d-flex align-items-center gap-2">
                   <img src="{{ lawyer.profile_photo_url }}" alt="Current photo"
-                       style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--haki-light);"
+                       style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--haki-light);"
                        onerror="this.style.display='none'">
-                  <small class="text-muted">{% if lang == 'en' %}Current photo{% else %}Picha ya sasa{% endif %}</small>
+                  <small class="text-muted">{% if lang == 'en' %}Current photo (URL){% else %}Picha ya sasa (URL){% endif %}</small>
                 </div>
                 {% endif %}
-                <input type="url" name="profile_photo_url" class="form-control"
+                <!-- Upload a new file -->
+                <div class="mb-2">
+                  <input type="file" name="profile_photo_file" class="form-control form-control-sm"
+                         accept="image/jpeg,image/png,image/webp,image/jpg">
+                  <small class="text-muted">
+                    {% if lang == 'en' %}Upload a photo from your device (JPG/PNG, max 5MB){% else %}Pakia picha kutoka kwa simu yako (JPG/PNG, hadi 5MB){% endif %}
+                  </small>
+                </div>
+                <!-- OR paste URL -->
+                <div class="d-flex align-items-center gap-2 mt-1" style="font-size:.78rem;color:#aaa;">
+                  <span>{% if lang == 'en' %}or paste a photo URL{% else %}au bandika URL ya picha{% endif %}</span>
+                </div>
+                <input type="url" name="profile_photo_url" class="form-control form-control-sm mt-1"
                        value="{{ lawyer.profile_photo_url|default:'' }}"
                        placeholder="https://example.com/your-photo.jpg">
-                <small class="text-muted">
-                  {% if lang == 'en' %}
-                    Paste a direct link to your photo (LinkedIn, professional website, etc.)
-                  {% else %}
-                    Weka kiungo cha moja kwa moja kwa picha yako (LinkedIn, tovuti ya kitaalamu, n.k.)
-                  {% endif %}
-                </small>
               </div>
 
               <div class="mb-3">

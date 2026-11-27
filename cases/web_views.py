@@ -1680,14 +1680,30 @@ def lawyer_dashboard(request, lawyer=None):
             if tg is not None:
                 lawyer.telegram_username = tg
             lawyer.county_secondary = county2
-            if hasattr(lawyer, 'profile_photo_url'):
+
+            # Handle direct photo upload — goes to Cloudinary when configured
+            photo_file = request.FILES.get('profile_photo_file')
+            if photo_file:
+                if photo_file.size > 5 * 1024 * 1024:
+                    save_msg = "❌ Photo too large. Max 5 MB." if lang == 'en' else "❌ Picha ni kubwa sana. Hadi 5 MB."
+                else:
+                    lawyer.profile_photo = photo_file
+                    if hasattr(lawyer, 'profile_photo_url'):
+                        lawyer.profile_photo_url = ''  # clear URL since we have a real file
+            elif hasattr(lawyer, 'profile_photo_url'):
                 lawyer.profile_photo_url = photo_url
-            update_fields = ['bio', 'whatsapp', 'telegram_username',
-                             'county_secondary', 'updated_at']
-            if hasattr(lawyer, 'profile_photo_url'):
+
+            update_fields = ['bio', 'whatsapp', 'telegram_username', 'county_secondary', 'updated_at']
+            if photo_file and photo_file.size <= 5 * 1024 * 1024:
+                update_fields += ['profile_photo']
+                if hasattr(lawyer, 'profile_photo_url'):
+                    update_fields.append('profile_photo_url')
+            elif hasattr(lawyer, 'profile_photo_url'):
                 update_fields.append('profile_photo_url')
-            lawyer.save(update_fields=update_fields)
-            save_msg = "Profile updated." if lang == 'en' else "Wasifu umesasishwa."
+
+            if not save_msg:
+                lawyer.save(update_fields=update_fields)
+                save_msg = "✅ Profile updated." if lang == 'en' else "✅ Wasifu umesasishwa."
         elif action == 'update_lead_status':
             lead_id = request.POST.get('lead_id', '')
             new_status = request.POST.get('status', '')

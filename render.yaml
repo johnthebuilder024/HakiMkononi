@@ -46,6 +46,13 @@ services:
         sync: false
       - key: ALLOWED_HOSTS
         sync: false
+      # ── Cloudinary — profile photo and KYC document storage ──────────────────
+      - key: CLOUDINARY_CLOUD_NAME
+        value: "gvggf0o1"
+      - key: CLOUDINARY_API_KEY
+        sync: false   # set in Render dashboard: 838626914129742
+      - key: CLOUDINARY_API_SECRET
+        sync: false   # set in Render dashboard: uM8bZju09QPk4bETMIkZdZd9kyY
       # ── Anti-trafficking (add these once you have partner emails confirmed) ──
       - key: TRAFFICKING_ENCRYPTION_KEY
         sync: false   # generate: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"

@@ -26,6 +26,10 @@ django-cors-headers
 reportlab
 pillow
 
+# Cloudinary — profile photo and document storage
+cloudinary==1.41.0
+django-cloudinary-storage==0.3.0
+
 # Channels (bots)
 python-telegram-bot
 africastalking

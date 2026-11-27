@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    'cloudinary',
+    'cloudinary_storage',
     'cases',
     'trafficking.apps.TraffickingConfig',  # anti-trafficking module
 ]
@@ -132,6 +134,29 @@ WHITENOISE_USE_FINDERS = True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# ─── Cloudinary — persistent file storage for lawyer photos + KYC docs ───────
+# On Render (ephemeral filesystem) file uploads are lost on redeploy.
+# Cloudinary gives permanent storage for all FileField uploads.
+_CLOUDINARY_CLOUD = os.getenv('CLOUDINARY_CLOUD_NAME', '').strip()
+_CLOUDINARY_KEY   = os.getenv('CLOUDINARY_API_KEY', '').strip()
+_CLOUDINARY_SEC   = os.getenv('CLOUDINARY_API_SECRET', '').strip()
+
+if _CLOUDINARY_CLOUD and _CLOUDINARY_KEY and _CLOUDINARY_SEC:
+    import cloudinary
+    cloudinary.config(
+        cloud_name  = _CLOUDINARY_CLOUD,
+        api_key     = _CLOUDINARY_KEY,
+        api_secret  = _CLOUDINARY_SEC,
+        secure      = True,
+    )
+    # Route ALL FileField uploads through Cloudinary
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': _CLOUDINARY_CLOUD,
+        'API_KEY':    _CLOUDINARY_KEY,
+        'API_SECRET': _CLOUDINARY_SEC,
+    }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
