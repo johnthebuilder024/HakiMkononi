@@ -279,18 +279,40 @@ def about(request):
 def lawyers_landing(request):
     """
     GET /lawyers/
-    Public landing page explaining the platform to lawyers,
-    with a clear call-to-action to register.
+    Shows verified lawyers for clients to find + join section for lawyers.
     """
     from cases.models import Lawyer
 
     lang = _get_lang(request)
-    verified_count = Lawyer.objects.filter(
+
+    # All verified lawyers — show to clients
+    lawyers = Lawyer.objects.filter(
         kyc_status=Lawyer.KYC_VERIFIED, is_active=True
-    ).count()
+    ).order_by('-verified_at')
+
+    verified_count = lawyers.count()
+
+    # Optional county filter from query param
+    f_county = request.GET.get('county', '').strip()
+    f_specialty = request.GET.get('specialty', '').strip()
+
+    if f_county:
+        lawyers = lawyers.filter(county__iexact=f_county) | lawyers.filter(county_secondary__iexact=f_county)
+    if f_specialty:
+        lawyers = [l for l in lawyers if f_specialty in (l.specialties or [])]
+    else:
+        lawyers = list(lawyers[:50])
+
     return _render_with_lang(
         request, "lawyers/landing.html",
-        {"verified_count": verified_count}, lang
+        {
+            "verified_count": verified_count,
+            "lawyers":        lawyers,
+            "counties":       COUNTIES,
+            "spec_choices":   Lawyer.SPEC_CHOICES,
+            "f_county":       f_county,
+            "f_specialty":    f_specialty,
+        }, lang
     )
 
 
@@ -1888,9 +1910,10 @@ def lawyers_directory(request):
     """
     GET /lawyers/directory/
     Browsable, filterable public directory of all verified lawyers.
-    Filters: county, specialty, pro_bono, min_years
+    Filters: county, specialty, pro_bono, min_years, q (name/firm search), sort
     """
-    from cases.models import Lawyer
+    from cases.models import Lawyer, Lead
+    from django.db.models import Count, Avg
 
     lang = _get_lang(request)
 
@@ -1900,34 +1923,49 @@ def lawyers_directory(request):
     f_pro_bono  = request.GET.get('pro_bono', '').strip()
     f_min_years = request.GET.get('min_years', '').strip()
     f_search    = request.GET.get('q', '').strip()
+    f_sort      = request.GET.get('sort', 'recent').strip()
 
     # Base queryset — only verified, active lawyers
     qs = Lawyer.objects.filter(
         kyc_status=Lawyer.KYC_VERIFIED, is_active=True
-    ).order_by('-verified_at')
+    )
 
     # Apply filters
     if f_county:
-        qs = qs.filter(county__iexact=f_county) | qs.filter(county_secondary__iexact=f_county)
+        from django.db.models import Q as _Q
+        qs = qs.filter(_Q(county__iexact=f_county) | _Q(county_secondary__iexact=f_county))
     if f_specialty:
-        # JSON field containment — check if specialty code is in the list
         qs = qs.filter(specialties__contains=[f_specialty])
     if f_pro_bono == '1':
         qs = qs.filter(pro_bono=True)
     if f_min_years.isdigit():
         qs = qs.filter(years_experience__gte=int(f_min_years))
     if f_search:
-        from django.db.models import Q
+        from django.db.models import Q as _Q2
         qs = qs.filter(
-            Q(full_name__icontains=f_search) |
-            Q(firm_name__icontains=f_search) |
-            Q(bio__icontains=f_search)
+            _Q2(full_name__icontains=f_search) |
+            _Q2(firm_name__icontains=f_search) |
+            _Q2(bio__icontains=f_search)
         )
 
-    lawyers = list(qs[:50])  # cap at 50 results
-    total = qs.count()
+    # Annotate with lead count and avg rating for display
+    qs = qs.annotate(
+        lead_count=Count('leads', distinct=True),
+        avg_rating=Avg('leads__rating'),
+    )
 
-    # Build spec choices from model
+    # Sort
+    sort_map = {
+        'recent':     '-verified_at',
+        'experience': '-years_experience',
+        'name':       'full_name',
+        'leads':      '-lead_count',
+    }
+    qs = qs.order_by(sort_map.get(f_sort, '-verified_at'))
+
+    total   = qs.count()
+    lawyers = list(qs[:50])
+
     spec_choices = Lawyer.SPEC_CHOICES
 
     return _render_with_lang(request, 'lawyers/directory.html', {
@@ -1935,12 +1973,13 @@ def lawyers_directory(request):
         'total':        total,
         'counties':     COUNTIES,
         'spec_choices': spec_choices,
-        # current filter values (for pre-filling the filter form)
         'f_county':    f_county,
         'f_specialty': f_specialty,
         'f_pro_bono':  f_pro_bono,
         'f_min_years': f_min_years,
         'f_search':    f_search,
+        'f_sort':      f_sort,
+        'has_filters': bool(f_county or f_specialty or f_pro_bono or f_min_years or f_search),
     }, lang)
 
 
